@@ -1,0 +1,34 @@
+/* ============================================================
+   Titillium Web — lokale Einbindung (DSGVO-konform, kein CDN)
+   Lizenz: SIL OFL 1.1 (fonts/OFL.txt). Quelle: Kunden-Upload (ttf).
+   Optional vor Go-Live: nach woff2 konvertieren (~60 % kleiner).
+   ============================================================ */
+
+@font-face {
+  font-family: 'Titillium Web';
+  font-style: normal;
+  font-weight: 400;
+  font-display: swap;
+  src: url('./TitilliumWeb-Regular.ttf') format('truetype');
+}
+@font-face {
+  font-family: 'Titillium Web';
+  font-style: normal;
+  font-weight: 600;
+  font-display: swap;
+  src: url('./TitilliumWeb-SemiBold.ttf') format('truetype');
+}
+@font-face {
+  font-family: 'Titillium Web';
+  font-style: normal;
+  font-weight: 700;
+  font-display: swap;
+  src: url('./TitilliumWeb-Bold.ttf') format('truetype');
+}
+@font-face {
+  font-family: 'Titillium Web';
+  font-style: normal;
+  font-weight: 900;
+  font-display: swap;
+  src: url('./TitilliumWeb-Black.ttf') format('truetype');
+}
