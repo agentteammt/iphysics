@@ -45,6 +45,11 @@ export async function initHero(cfg = {}) {
   const devSkip = !!cfg.devSkipIntro || qa.includes("skip");
   const revisit = !!sessionStorage.getItem("iph_hero_v4_seen");
 
+  /* Video-Einstieg „Fog-Cut" (Blueprint v8 §C, geändert 06.07.: auch Wiederkehrer): jeder Besuch bei Desktop + voller Motion.
+     touch/reduced/devSkip laden das Video weiterhin gar nicht erst. */
+  const VIDEO_SRC = "assets/intro-flight.mp4", VIDEO_DESCENT = 1.2; /* Kurz-Descent aus dem Video-Weiß */
+  let videoActive = !isTouch && !reduced && !devSkip;
+
   /* ---------- DOM ---------- */
   const stage = $("stage"), cvR = $("cv-real"), cvW = $("cv-wire");
   const rings = $("rings"), lensEl = $("lens"), lensScan = $("lens-scan"), lensDot = $("lens-dot");
@@ -71,6 +76,8 @@ export async function initHero(cfg = {}) {
   const intro = $("intro"), seqEl = $("seq"), rmList = $("rm-list");
   const progress = $("progress"), progFill = $("prog-fill"),
         progPct = $("prog-pct"), progLabel = $("prog-label");
+  let vid = $("introFlight");     /* Video-Layer (v8 §C) — nach Gebrauch aus dem DOM entfernt */
+  const vWhite = $("introWhite"); /* weißes Übergabe-Overlay (z8) */
 
   hint.innerHTML = isTouch
     ? '<b style="color:#3BAED1;font-weight:700">TIPPEN</b> — DER SONAR-PING ZEIGT DIE REALE ANLAGE'
@@ -80,20 +87,56 @@ export async function initHero(cfg = {}) {
   let barH = 58, hintDismissed = false, tourEls = null;
   function layoutChrome() {
     const mobile = innerWidth < 700;
-    barH = mobile ? 46 : 58;
+    barH = mobile ? 54 : 58;
     specbar.style.height = barH + "px";
+    specbar.style.padding = mobile ? "0 10px" : "0 clamp(20px, 6vw, 96px)";
     slotIns.forEach(el => {
       const val = el.querySelector("[data-sb-val]");
       const lbl = el.querySelector("[data-sb-lbl]");
+      const col = el.parentElement;
       if (val) val.style.fontSize = mobile ? "13px" : "15px";
-      if (lbl) lbl.style.display = mobile ? "none" : "block";
+      if (lbl) { /* Mobile-Pass (06.07.): Labels bleiben sichtbar — kompakt, umbruchfähig */
+        lbl.style.display = "block";
+        lbl.style.fontSize = mobile ? "7.5px" : "9px";
+        lbl.style.letterSpacing = mobile ? "0.14em" : "0.22em";
+        lbl.style.whiteSpace = mobile ? "normal" : "nowrap";
+        lbl.style.lineHeight = mobile ? "1.3" : "normal";
+        lbl.style.marginTop = mobile ? "2px" : "3px";
+      }
+      if (col) col.style.flex = mobile ? "1 1 0" : "0 1 clamp(200px, 27vw, 330px)";
     });
     if (hdrNav) hdrNav.style.display = innerWidth < 900 ? "none" : "flex";
     hint.style.bottom = (barH + 18) + "px";
-    progress.style.bottom = `calc(${barH}px + clamp(38px, 7vh, 84px))`;
+    progress.style.bottom = `calc(${barH}px + clamp(120px, 20vh, 240px))`; /* Ladebalken deutlich höher (06.07.) */
     const foot = $("intro-foot");
     if (foot) foot.style.bottom = (barH + 10) + "px";
     camRead.style.top = (mobile ? 74 : 88) + "px"; /* unter dem fixen Header */
+    camRead.style.display = mobile ? "none" : "block"; /* mobil: Platz für die Headline oben */
+
+    /* Mobile-Pass (06.07.): Headline-Block oben unter dem Header statt vertikal mittig —
+       das zentrierte Modell (< 600 px kein Rechts-Offset) läuft sonst durch den Text.
+       Scrim (Template #hero-scrim) sichert die Lesbarkeit. Desktop unverändert; §0 unberührt —
+       der Materialize-Effekt schreibt weiter auf #hero-ui (inneres Element). */
+    const uiCenter = $("hero-ui-center"), scrim = $("hero-scrim");
+    if (uiCenter) {
+      const h1 = uiCenter.querySelector("h1");
+      if (mobile) {
+        uiCenter.style.top = "calc(64px + 4vh)";
+        uiCenter.style.transform = "none";
+        uiCenter.style.left = "20px";
+        uiCenter.style.right = "20px";
+        uiCenter.style.maxWidth = "none";
+        if (h1) h1.style.fontSize = "clamp(1.35rem, 6.6vw, 1.7rem)"; /* einzeilig je Wrapper, kein Glyph-Überlapp bei line-height .8 */
+      } else {
+        uiCenter.style.top = "calc(50% + 4vh)";
+        uiCenter.style.transform = "translateY(-50%)";
+        uiCenter.style.left = "clamp(20px, 6vw, 96px)";
+        uiCenter.style.right = "auto";
+        uiCenter.style.maxWidth = "min(780px, 86vw)";
+        if (h1) h1.style.fontSize = "clamp(1.7rem, 4.6vw, 3.4rem)";
+      }
+    }
+    if (scrim) scrim.style.opacity = mobile ? "1" : "0";
     layoutCorners(); /* Passermarken folgen Header/Leiste */
 
     /* Tour-Layout (Karten + Rail) — Refs werden später gebunden */
@@ -123,6 +166,20 @@ export async function initHero(cfg = {}) {
         railTrack.style.width = "2px"; railTrack.style.height = "auto";
         railFill.style.left = "5px"; railFill.style.top = "6px"; railFill.style.bottom = "auto"; railFill.style.width = "2px";
         railDots.forEach((d, i) => { d.style.left = "0px"; d.style.top = `calc(${i * 25}% - ${i * 3}px)`; });
+      }
+      const ov = tourEls.ovWrap, ovLbl = tourEls.railLabel;
+      if (ov) { /* Überblick-Chips: Desktop links mittig, mobil unten (06.07.) */
+        if (mobile) {
+          ov.style.top = "auto"; ov.style.bottom = "18px"; ov.style.transform = "none";
+          ov.style.left = "16px"; ov.style.right = "16px"; ov.style.width = "auto";
+        } else {
+          ov.style.top = "50%"; ov.style.bottom = "auto"; ov.style.transform = "translateY(-50%)";
+          ov.style.left = "clamp(20px, 6vw, 96px)"; ov.style.right = "auto"; ov.style.width = "min(430px, 44vw)";
+        }
+      }
+      if (ovLbl) {
+        if (mobile) { ovLbl.style.top = "calc(100% + 10px)"; ovLbl.style.right = "0px"; }
+        else { ovLbl.style.top = "calc(100% + 14px)"; ovLbl.style.right = "-2px"; }
       }
     }
   }
@@ -249,7 +306,16 @@ export async function initHero(cfg = {}) {
   scene.fog = fogWire;
 
   /* ---------- Wireframe-Materialien (§2) ---------- */
-  const wireLine = new THREE.LineBasicMaterial({ color: 0x3BAED1, transparent: true, opacity: .9 });
+  /* Kanten-Verlauf (06.07., v3.5): Die Anlagen-Kanten tragen das CD-Gefälle als VERTEX-FARBEN
+     (LineBasicMaterial kann nur eine Farbe). Farbe pro Vertex aus der Weltposition in der
+     Freeze-Pose (T = 17,30 — beim Kantenbau ohnehin aktiv, s. load3D). Die Achse ist so
+     gewählt, dass der Verlauf aus der Hero-Kamera (P1) wie das CD-Gefälle (120°) wirkt:
+     links/oben cyanlastig, rechts/unten grünlastig. Nur Anlagen-Kanten — Raster, Partikel,
+     Bemaßung und alle UI-Verläufe bleiben unverändert. */
+  const EDGE_GRAD_AXIS = new THREE.Vector3(0.79, -0.46, -0.41).normalize(); /* justierbar: Richtung des Gefälles (Welt) */
+  const EDGE_GRAD_BIAS = 0;          /* justierbar: verschiebt die Verlaufs-Mitte entlang der Achse (−0.5 … +0.5) */
+  const EDGE_GRAD_GREEN = 0x45B347;  /* Kontrast-Justage erlaubt: bis ~8 % dunkler (#3EA342) — NUR Linien, keine UI */
+  const wireLine = new THREE.LineBasicMaterial({ color: 0xFFFFFF, vertexColors: true, transparent: true, opacity: .9 });
   const wireFill = new THREE.MeshBasicMaterial({
     color: 0xF6FBFD, polygonOffset: true, polygonOffsetFactor: 2, polygonOffsetUnits: 2
   });
@@ -299,11 +365,41 @@ export async function initHero(cfg = {}) {
   /* ---------- GLB laden (echter LoadingManager-Fortschritt) ---------- */
   let loadDone = false, loadError = null;
 
+  /* Änd. 3 (06.07.): „SYSTEM BEREIT"-Puls — einmaliger Glanz-Sweep (~400 ms) durch die
+     Balkenfüllung + ein Atem-Zug des Balkens (scale 1→1.04→1, ~350 ms, origin center)
+     mit kurzem dezentem Verlaufs-Glow. Kein Loop. Im pendingStart-Fall feuert der Puls
+     NICHT hier, sondern als gemeinsamer Beat mit dem Abflug-Herzschlag (s. pendingLaunch). */
+  let readyPulsed = false;
+  function systemReadyPulse() {
+    if (readyPulsed || reduced) return; readyPulsed = true;
+    const track = progFill.parentElement;
+    if (!track || !track.animate) return;
+    track.style.position = "relative";
+    const gloss = document.createElement("span");
+    Object.assign(gloss.style, {
+      position: "absolute", top: "0", bottom: "0", left: "0", width: "36%",
+      background: "linear-gradient(90deg,transparent,rgba(255,255,255,.95),transparent)",
+      transform: "translateX(-120%)", pointerEvents: "none"
+    });
+    track.appendChild(gloss);
+    gloss.animate([{ transform: "translateX(-120%)" }, { transform: "translateX(300%)" }],
+      { duration: 400, easing: "ease-in-out" }).onfinish = () => gloss.remove();
+    track.animate([
+      { transform: "scale(1)", boxShadow: "0 0 0 rgba(59,174,209,0)" },
+      { transform: "scale(1.04)", boxShadow: "0 0 10px rgba(59,174,209,.4), 0 0 10px rgba(69,179,71,.28)", offset: .45 },
+      { transform: "scale(1)", boxShadow: "0 0 0 rgba(59,174,209,0)" }
+    ], { duration: 350, easing: "ease-in-out" });
+    console.log("[hero] SYSTEM-BEREIT-Puls");
+  }
+
   function setProgress(p) {
     p = clamp(p, 0, 1);
     progFill.style.width = (p * 100) + "%";
     progPct.textContent = Math.round(p * 100) + " %";
-    if (p >= 1) progLabel.textContent = "SYSTEM BEREIT";
+    if (p >= 1) {
+      progLabel.textContent = "SYSTEM BEREIT"; /* Label-Wechsel auch bei reduced-motion; Fehler-Label unberührt */
+      if (!launched && !pendingStart && !devSkip) systemReadyPulse(); /* Änd. 3 — Normalfall: Puls direkt bei 100 % */
+    }
   }
 
   /* Robuste Szenen-Box: Sprung-Guard-Tracks parken Teile weit außerhalb
@@ -338,6 +434,10 @@ export async function initHero(cfg = {}) {
   }
 
   async function load3D() {
+    if (qa.includes("slowload")) { /* QA: pendingStart-Fall erzwingen — Ladebeginn +6 s */
+      console.warn("[hero] QA slowload aktiv: GLB-Ladestart +6 s verzögert (pendingStart-Test)");
+      await new Promise(r => setTimeout(r, 6000));
+    }
     const loader = new GLTFLoader();
     loader.setMeshoptDecoder(MeshoptDecoder);
     const gltf = await loader.loadAsync(cfg.glbUrl, e => {
@@ -445,6 +545,38 @@ export async function initHero(cfg = {}) {
       const to = setTimeout(() => { cancelAnimationFrame(id); r(); }, 50); /* rAF-Drossel (Hintergrund-Tab) umgehen */
     });
 
+    /* Verlaufs-Skala über die Cluster-Box (Achse/Bias: EDGE_GRAD_* oben). Farben als
+       Uint8-BufferAttribute (normalized) — bei ~2 Mio Kanten-Vertices ¼ des Float32-Speichers. */
+    const gC0 = new THREE.Color(0x3BAED1), gC1 = new THREE.Color(EDGE_GRAD_GREEN);
+    let gMin = Infinity, gMax = -Infinity;
+    for (let bi = 0; bi < 8; bi++) {
+      const d = (bi & 1 ? box.max.x : box.min.x) * EDGE_GRAD_AXIS.x +
+                (bi & 2 ? box.max.y : box.min.y) * EDGE_GRAD_AXIS.y +
+                (bi & 4 ? box.max.z : box.min.z) * EDGE_GRAD_AXIS.z;
+      if (d < gMin) gMin = d;
+      if (d > gMax) gMax = d;
+    }
+    const gSpan = Math.max(1e-6, gMax - gMin);
+    const edgeColors = (posArr, mat) => { /* mat = Matrix4 (lokale Koordinaten) oder null (posArr bereits Welt) */
+      const n = posArr.length, out = new Uint8Array(n), e = mat && mat.elements;
+      for (let k = 0; k < n; k += 3) {
+        let x = posArr[k], y = posArr[k + 1], z = posArr[k + 2];
+        if (e) {
+          const lx = x, ly = y, lz = z;
+          x = e[0] * lx + e[4] * ly + e[8] * lz + e[12];
+          y = e[1] * lx + e[5] * ly + e[9] * lz + e[13];
+          z = e[2] * lx + e[6] * ly + e[10] * lz + e[14];
+        }
+        let t = ((x * EDGE_GRAD_AXIS.x + y * EDGE_GRAD_AXIS.y + z * EDGE_GRAD_AXIS.z) - gMin) / gSpan + EDGE_GRAD_BIAS;
+        t = t < 0 ? 0 : t > 1 ? 1 : t;
+        out[k] = (gC0.r + (gC1.r - gC0.r) * t) * 255;
+        out[k + 1] = (gC0.g + (gC1.g - gC0.g) * t) * 255;
+        out[k + 2] = (gC0.b + (gC1.b - gC0.b) * t) * 255;
+      }
+      return out;
+    };
+    const cChunks = [];
+
     /* Phase 1: statische Kanten sammeln (Weltkoordinaten) */
     const chunks = []; let vertTotal = 0, budgetHit = false;
     let i = 0;
@@ -458,6 +590,7 @@ export async function initHero(cfg = {}) {
           const arr = eg.attributes.position.array;
           vertTotal += arr.length / 3;
           chunks.push(arr);
+          cChunks.push(edgeColors(arr, null)); /* Weltkoordinaten → Verlauf direkt baken */
           eg.dispose();
         } catch (e) {}
         if (vertTotal > VERT_CAP) break;
@@ -477,6 +610,10 @@ export async function initHero(cfg = {}) {
       chunks.forEach(a => { all.set(a, off); off += a.length; });
       const g = new THREE.BufferGeometry();
       g.setAttribute("position", new THREE.BufferAttribute(all, 3));
+      const allC = new Uint8Array(all.length);
+      let cOff = 0;
+      cChunks.forEach(a => { allC.set(a, cOff); cOff += a.length; });
+      g.setAttribute("color", new THREE.BufferAttribute(allC, 3, true)); /* normalized Uint8 */
       const merged = new THREE.LineSegments(g, wireLine);
       merged.matrixAutoUpdate = false;
       merged.frustumCulled = false;
@@ -492,7 +629,11 @@ export async function initHero(cfg = {}) {
       while (j < dynList.length && performance.now() - t0 < CHUNK()) {
         const m = dynList[j++].mesh;
         try {
-          const ls = new THREE.LineSegments(new THREE.EdgesGeometry(m.geometry, 13), wireLine);
+          const eg2 = new THREE.EdgesGeometry(m.geometry, 13);
+          /* Farben aus der Freeze-Weltposition (T = 17,30 ist beim Bau aktiv) — bewegte Teile
+             behalten ihre gebakte Farbe (gewollt, kein raumfester Verlauf) */
+          eg2.setAttribute("color", new THREE.BufferAttribute(edgeColors(eg2.attributes.position.array, m.matrixWorld), 3, true));
+          const ls = new THREE.LineSegments(eg2, wireLine);
           ls.matrixAutoUpdate = false;
           ls.raycast = () => {};
           m.add(ls);
@@ -507,7 +648,7 @@ export async function initHero(cfg = {}) {
       }
       await yieldFrame();
     }
-    console.log(`[hero] Kanten: ${chunks.length}/${staticList.length} statisch (gemergt, ${Math.round(vertTotal / 1000)}k Verts, 1 Draw Call) + ${j}/${dynList.length} dynamisch (folgen Animation).`);
+    console.log(`[hero] Kanten: ${chunks.length}/${staticList.length} statisch (gemergt, ${Math.round(vertTotal / 1000)}k Verts, 1 Draw Call) + ${j}/${dynList.length} dynamisch (folgen Animation) · CD-Verlauf als Vertex-Farben gebaked (Uint8).`);
 
     /* Erster Bake + Startpose — Reihenfolge: erst Offset berechnen und setzen
        (resize → computeHeroShift + applyViewOffset), DANN der Runtime-Bake */
@@ -832,13 +973,15 @@ export async function initHero(cfg = {}) {
   function setState(s) {
     state = s; tState = perf();
     console.log(`[hero] state → ${s} @ sim ${simTime.toFixed(2)}`);
-    if (s === "descent") skipBtn.style.display = "block";
+    if (s === "descent" || s === "video") skipBtn.style.display = "block"; /* Skip gilt auch während des Videos (v8 §C) */
     if (s === "sweep" || s === "live") skipBtn.style.display = "none";
     if (s === "live") {
       showHUD();
       revealAnnotations();
       if (!isTouch) { lensEl.style.opacity = "1"; lensScan.style.opacity = "1"; lensDot.style.opacity = "1"; }
       sessionStorage.setItem("iph_hero_v4_seen", "1");
+      if (vid) { videoActive = false; videoOff(); } /* Sicherheitsnetz: Video-Element darf Live nie überleben */
+      if (vWhite && vWhite.isConnected) vWhite.remove(); /* Übergabe-Overlay aufräumen (Skip-/Nicht-Video-Pfad) */
     }
   }
 
@@ -917,8 +1060,10 @@ export async function initHero(cfg = {}) {
       updateH1Lens(mx, my, mr);
     }
 
-    /* Materialize (Scroll 0→1, §6) — gedämpft nachgeführt für geschmeidiges Scrollen */
-    sMat += (scrollP - sMat) * .10; /* sanfter (02.07.) */
+    /* Materialize (Scroll 0→1, §6) — gedämpft nachgeführt für geschmeidiges Scrollen;
+       Zeitkonstante statt Fix-Faktor (06.07.): ≈ .085/Frame @ 60 Hz (vorher .10), auf
+       120-Hz-Displays identisches Nachlauf-Gefühl — weicher trotz 30 % kürzerer Strecke */
+    sMat += (scrollP - sMat) * (1 - Math.exp(-dt * 5.3));
     if (Math.abs(scrollP - sMat) < .0006) sMat = scrollP;
     const sp = easeInOutC(sMat);
     cvW.style.opacity = (1 - sp).toFixed(3);
@@ -940,7 +1085,7 @@ export async function initHero(cfg = {}) {
     if (sp < .999 && model) rWire.render(scene, cam); /* nach Materialize on-demand (§5) */
   }
 
-  /* ---------- Pixel-Dissolve-Maskenframes (§3) — groß (26×11) + mini (10×4) ---------- */
+  /* ---------- Pixel-Dissolve-Maskenframes (§3) — nur noch Mini-Dissolve beim Andocken (Änd. 1: die große Zahl nutzt jetzt den Blueprint-Stack) ---------- */
   function makeDissolveFrames(cols, rows, cell, steps, pw) {
     const cv = document.createElement("canvas");
     cv.width = cols * cell; cv.height = rows * cell;
@@ -978,43 +1123,74 @@ export async function initHero(cfg = {}) {
     return iv;
   }
 
-  /* ---------- Intro v4: KPI-Sequenz (§3) ---------- */
+  /* ---------- Intro v4.1: KPI-Sequenz (§3) — „Blueprint-Stack" (Änd. 1+2, 06.07.) ----------
+     Große Zahlen entstehen wie eine technische Zeichnung, Zeiten relativ zum KPI-Start:
+       Stufe 1 (0–180 ms)   Konstruktionslinien (1 px Stroke rgba(59,174,209,.28), keine Füllung)
+       Stufe 2 (ab 140 ms)  Kontur zieht auf (2 px rgba(59,174,209,.5)), Zeichen-Stagger 44 ms
+       Stufe 3 (320–800 ms) Verlaufsfüllung per gerichtetem Scan links→rechts (Scanlinie mit Glow);
+                            synchron zählt der Betrag 0 → Ziel (easeOutCubic, +6 % Überschwinger,
+                            Rückfeder ~120 ms, Mikro-Punch beim Einrasten). tabular-nums: keine
+                            Breiten-Sprünge; Ziffern nullgepolstert, Vorzeichen und „%" stehen fest.
+     Dock-Flug, Mini-Dissolve im Schriftfeld und alle Sequenz-Timings bleiben unverändert. */
   const KPIS = [["+40 %", "ABSCHLUSSQUOTE IM VERTRIEB"], ["−50 %", "ENGINEERING-KOSTEN"],
                 ["−75 %", "INBETRIEBNAHMEZEIT"]];
-  const STAG = 44, EASE = "cubic-bezier(.16,.8,.24,1)";
+  const STAG = 36, EASE = "cubic-bezier(.22,.9,.3,1)"; /* Änd. 2 (06.07.): Stagger 44→36 (mehr Überlappung), weichere Kurve */
+  const KFX = { s2: 140, s3: 320, scan: 480, spring: 180, punch: 140, over: 1.04 }; /* Änd. 2: Überschwinger +4 %, Rückfeder 180 ms */
+  const NUM_TRANS = "opacity .35s ease-in,transform .35s ease-in,filter .35s ease-in";
 
   function buildKpi(val, label) {
     const k = document.createElement("div");
     Object.assign(k.style, {
       position: "absolute", inset: "0", display: "flex", flexDirection: "column",
       alignItems: "center", justifyContent: "center", gap: "clamp(8px,2.4vh,26px)",
-      pointerEvents: "none", padding: "0 4vw", textAlign: "center"
+      pointerEvents: "none", padding: "0 4vw", textAlign: "center",
+      transform: "translateY(-5vh)" /* KPI-Zahlen ~5 % höher (06.07.) — Dock-Flug misst live, bleibt exakt */
     });
     const num = document.createElement("div");
     Object.assign(num.style, {
-      position: "relative", display: "inline-block", fontWeight: "900", lineHeight: ".94",
-      letterSpacing: "-.02em", fontSize: "clamp(3.9rem,18vw,14.25rem)", whiteSpace: "nowrap",
-      transition: "opacity .35s ease-in,transform .35s ease-in,filter .35s ease-in"
+      position: "relative", display: "inline-block", fontWeight: "700", lineHeight: ".94", /* eine Stufe unter Black — weniger fett (06.07.) */
+      letterSpacing: "-.02em", fontSize: "clamp(2.925rem,13.5vw,10.6875rem)", whiteSpace: "nowrap", /* −25 % (06.07.) */
+      fontVariantNumeric: "tabular-nums", /* Änd. 2: keine Breiten-Sprünge beim Zählen */
+      transition: NUM_TRANS, willChange: "transform, opacity" /* Änd. 2: eigene Ebene — wird nach Sequenzende entfernt */
+    });
+    /* Stufe-1-Ebene (Änd. 1): Konstruktionslinien — hauchdünn, Fade 0–180 ms */
+    const draft = document.createElement("span");
+    Object.assign(draft.style, {
+      position: "absolute", inset: "0", display: "block", whiteSpace: "nowrap",
+      opacity: "0", transition: "opacity .18s ease-out", willChange: "opacity"
     });
     const outline = document.createElement("span");
     Object.assign(outline.style, { display: "block", whiteSpace: "nowrap" });
+    /* Änd. 2 (06.07.): Reveal rein per transform — Clip-Fenster + Gegen-Shift, beides kompositiert;
+       keine per-Frame-Masken mehr (kein Re-Rastern, keine Repaints der ganzen Zahl). Die harte
+       Reveal-Kante liegt exakt unter der Scanlinie. */
+    const fillClip = document.createElement("span");
+    Object.assign(fillClip.style, {
+      position: "absolute", inset: "0", display: "block", overflow: "hidden", willChange: "transform"
+    });
     const fill = document.createElement("span");
     Object.assign(fill.style, {
-      position: "absolute", inset: "0", display: "block", whiteSpace: "nowrap",
-      webkitMaskSize: "100% 100%", maskSize: "100% 100%",
-      webkitMaskRepeat: "no-repeat", maskRepeat: "no-repeat"
+      position: "absolute", inset: "0", display: "block", whiteSpace: "nowrap", willChange: "transform"
     });
-    fill.style.webkitMaskSize = "100% 100%"; fill.style.webkitMaskRepeat = "no-repeat";
     const chars = [...val], n = chars.length;
-    const outSpans = [];
+    const digitIdx = []; chars.forEach((c, i) => { if (c >= "0" && c <= "9") digitIdx.push(i); });
+    const target = parseInt(chars.filter(c => c >= "0" && c <= "9").join(""), 10) || 0;
+    const draftSpans = [], outSpans = [], fillSpans = [];
+    chars.forEach(c => {
+      const s = document.createElement("span");
+      s.textContent = c === " " ? "\u00A0" : c;
+      Object.assign(s.style, { display: "inline-block", color: "transparent" });
+      s.style.webkitTextStroke = "1px rgba(59,174,209,.28)";
+      draft.appendChild(s); draftSpans.push(s);
+    });
     chars.forEach((c, i) => {
       const s = document.createElement("span");
       s.textContent = c === " " ? "\u00A0" : c;
       Object.assign(s.style, {
         display: "inline-block", color: "rgba(16,38,46,.05)",
-        opacity: "0", transform: "translateY(.55em)",
-        transition: `opacity .39s ${EASE},transform .39s ${EASE}`,
-        transitionDelay: (i * STAG) + "ms"
+        opacity: "0", transform: "translateY(.3em)", willChange: "transform, opacity", /* Änd. 2: kürzere Distanz, weicher */
+        transition: `opacity .48s ${EASE},transform .48s ${EASE}`,
+        transitionDelay: (KFX.s2 + i * STAG) + "ms" /* Stufe 2: ab 140 ms, Stagger 36 ms */
       });
       s.style.webkitTextStroke = "2px rgba(59,174,209,.5)";
       outline.appendChild(s); outSpans.push(s);
@@ -1027,21 +1203,100 @@ export async function initHero(cfg = {}) {
       s.style.backgroundSize = (n * 100) + "% 100%";
       s.style.backgroundPosition = (n > 1 ? (i / (n - 1) * 100) : 0) + "% 0";
       s.style.webkitBackgroundClip = "text"; s.style.backgroundClip = "text";
-      fill.appendChild(s);
+      fill.appendChild(s); fillSpans.push(s);
     });
-    num.append(outline, fill);
+    /* Scanlinie (Änd. 1, Stufe 3): feine vertikale Cyan-Linie mit leichtem Glow */
+    const scan = document.createElement("span");
+    Object.assign(scan.style, {
+      position: "absolute", top: "-.03em", bottom: "-.03em", left: "0", width: "2px",
+      background: "linear-gradient(180deg,transparent,rgba(59,174,209,.95) 18%,rgba(59,174,209,.95) 82%,transparent)",
+      boxShadow: "0 0 6px rgba(59,174,209,.55), 0 0 16px rgba(59,174,209,.3)",
+      opacity: "0", pointerEvents: "none", willChange: "transform, opacity"
+    });
+    fillClip.appendChild(fill);
+    num.append(draft, outline, fillClip, scan);
     const lbl = document.createElement("div");
     lbl.textContent = label;
     Object.assign(lbl.style, {
-      fontWeight: "600", fontSize: "clamp(.82rem,1.8vw,1.08rem)", letterSpacing: ".34em",
+      fontWeight: "600", fontSize: "clamp(1.025rem,2.25vw,1.35rem)", letterSpacing: "min(.34em, .82vw)", /* +25 %; Tracking schmilzt nur unter ~700 px, damit die Zeile mobil nicht umbricht (06.07.) */
+      whiteSpace: "nowrap",
       color: "#6B7E86", opacity: "0", transform: "translateY(18px)",
       transition: `opacity .52s ${EASE} .3s,transform .52s ${EASE} .3s`
     });
     k.append(num, lbl);
     seqEl.appendChild(k);
-    const frames = makeDissolveFrames(52, 22, 4, 18, 1.1); /* feineres Raster — viele kleine Pixel (03.07.) */
-    setMaskFrame(fill, frames[0]);
-    return { k, num, outSpans, fill, lbl, frames };
+    const o = { k, num, draft, outSpans, draftSpans, fillSpans, fillClip, fill, scan, lbl,
+                digitIdx, digits: digitIdx.length, target, shown: "", fx: null };
+    setScanQ(o, 0);  /* Füllung startet komplett verdeckt — der Scan deckt sie links→rechts auf */
+    setAmount(o, 0);    /* Änd. 2: Ziffern starten bei 0 (nullgepolstert, tabular) */
+    return o;
+  }
+
+  function setScanQ(o, q) { /* q 0→1: Reveal-Kante links→rechts — nur transform (kompositiert) */
+    const h = ((1 - q) * 100).toFixed(3);
+    o.fillClip.style.transform = `translate3d(-${h}%,0,0)`;
+    o.fill.style.transform = `translate3d(${h}%,0,0)`;
+  }
+  function setAmount(o, v) { /* aktualisiert die Ziffern in allen drei Ebenen (Vorzeichen/% fix) */
+    const str = String(Math.max(0, Math.round(v))).padStart(o.digits, "0");
+    if (str === o.shown) return;
+    o.shown = str;
+    for (let j = 0; j < o.digits; j++) {
+      const ch = str[j] || "0", idx = o.digitIdx[j];
+      o.draftSpans[idx].textContent = ch;
+      o.outSpans[idx].textContent = ch;
+      o.fillSpans[idx].textContent = ch;
+    }
+  }
+  function startScanFx(o) { /* Stufe 3 (320–800 ms): gerichteter Scan + synchroner Count (Änd. 1+2) — strikt rAF, nur transform/opacity */
+    const t0 = performance.now(), A = KFX.scan - KFX.spring, over = Math.round(o.target * KFX.over);
+    const W = o.num.clientWidth; /* einmalige Messung — im rAF nur noch Writes */
+    o.scan.style.opacity = "1";
+    const step = () => {
+      if (!o.fx) return;
+      const t = performance.now() - t0, p = clamp(t / KFX.scan, 0, 1);
+      setScanQ(o, p);
+      o.scan.style.transform = `translate3d(${(p * W).toFixed(1)}px,0,0)`;
+      if (p > .88) o.scan.style.opacity = Math.max(0, (1 - p) / .12).toFixed(3);
+      let v; /* easeOutCubic auf den Überschwinger (+4 %), Rückfeder in den letzten 180 ms */
+      if (t <= A) v = over * easeOutC(clamp(t / A, 0, 1));
+      else v = lerp(over, o.target, easeOutC(clamp((t - A) / KFX.spring, 0, 1)));
+      setAmount(o, v);
+      if (p < 1) o.fx.raf = requestAnimationFrame(step);
+      else { endScan(o); startPunch(o); }
+    };
+    o.fx.raf = requestAnimationFrame(step);
+  }
+  function endScan(o) { /* Endzustand Stufe 3 — Füllung frei, keine Rest-Verschiebung */
+    setScanQ(o, 1);
+    o.scan.style.opacity = "0";
+    setAmount(o, o.target);
+  }
+  function startPunch(o) { /* Änd. 2: Mikro-Punch beim Einrasten — scale 1→1.02→1, 140 ms, ease-out */
+    if (!o.fx) return;
+    const t0 = performance.now();
+    o.num.style.transition = "opacity .35s ease-in,filter .35s ease-in"; /* transform kurz ohne Transition */
+    const step = () => {
+      if (!o.fx) return;
+      const p = clamp((performance.now() - t0) / KFX.punch, 0, 1);
+      if (p >= 1) { o.num.style.transform = ""; o.num.style.transition = NUM_TRANS; clearWill(o); o.fx = null; return; }
+      o.num.style.transform = `scale(${(1 + .02 * Math.sin(Math.PI * easeOutC(p))).toFixed(4)})`;
+      o.fx.raf = requestAnimationFrame(step);
+    };
+    o.fx.raf = requestAnimationFrame(step);
+  }
+  function clearWill(o) { /* Änd. 2: will-change nach Sequenzende wieder freigeben */
+    [o.num, o.draft, o.fillClip, o.fill, o.scan].concat(o.outSpans).forEach(el => { el.style.willChange = ""; });
+  }
+  function finishKpiFx(o) { /* Schnell-Advance/Esc/Launch: Stufen, Scan und Count sofort auf Endzustand */
+    if (!o) return;
+    if (o.fx) { o.fx.t.forEach(clearTimeout); cancelAnimationFrame(o.fx.raf); o.fx = null; }
+    o.draft.style.transition = "none"; o.draft.style.opacity = "1";
+    o.outSpans.forEach(s => { s.style.transition = "none"; s.style.transitionDelay = "0ms"; s.style.opacity = "1"; s.style.transform = "translateY(0)"; });
+    endScan(o);
+    o.num.style.transform = "";
+    o.num.style.transition = NUM_TRANS;
+    clearWill(o);
   }
 
   const kpiEls = reduced ? [] : KPIS.map(([v, l]) => buildKpi(v, l));
@@ -1059,16 +1314,56 @@ export async function initHero(cfg = {}) {
 
   /* ---------- v6: Dock-Flüge ins Schriftfeld ---------- */
   const SEQ = { enter: 540, hold: 736, nextDelay: 69, fly: 518, flyFast: 322 }; /* +15 % langsamer (03.07.) */
-  let seqIdx = -1, seqTimer = null, dissTimer = null, seqDone = false, launched = false, pendingStart = false;
+  let seqIdx = -1, seqTimer = null, seqDone = false, launched = false, pendingStart = false;
   let dockedFlags = [false, false, false], dockedCount = 0, launchScheduled = false;
   let barShown = false, seqStart = 0;
+  let beatStarted = false, introSkipped = false; /* Änd. 1 (06.07.): Abflug-Beat mit großem „SYSTEM BEREIT" */
   const miniFrames = makeDissolveFrames(20, 8, 4, 8, 1.0);
 
+  /* Abflug-Herzschlag — alle drei Slot-Werte pulsieren einmal SYNCHRON (scale ~1.08,
+     brightness ~1.15, ~450 ms, ease-in-out), der Balken echot dezent mit. Labels pulsieren
+     nicht. Feuert seit Änd. 1 (06.07.) im Abflug-Beat ZEITGLEICH mit dem großen
+     „SYSTEM BEREIT" und läuft in dessen Build/Hold hinein. */
+  let heartbeatFired = false;
+  function heartbeat() {
+    if (heartbeatFired || reduced) return; heartbeatFired = true;
+    const kf = [
+      { transform: "scale(1)", filter: "brightness(1)" },
+      { transform: "scale(1.08)", filter: "brightness(1.15)", offset: .5 },
+      { transform: "scale(1)", filter: "brightness(1)" }
+    ];
+    slotIns.forEach(el => {
+      const v = el.querySelector("[data-sb-val]");
+      if (v && v.animate) v.animate(kf, { duration: 450, easing: "ease-in-out" });
+    });
+    const track = progFill.parentElement; /* Balken-Echo */
+    if (track && track.animate) track.animate(
+      [{ transform: "scale(1)" }, { transform: "scale(1.02)", offset: .5 }, { transform: "scale(1)" }],
+      { duration: 450, easing: "ease-in-out" });
+    console.log(`[hero] Abflug-Herzschlag @ ${seqStart ? Math.round(performance.now() - seqStart) : 0} ms`);
+  }
+  function pendingLaunch() { /* Sonderfall pendingStart (Änd. 1): Balken-Puls, Herzschlag und
+       großes „SYSTEM BEREIT" gehen in diesem Moment als EIN gemeinsamer Beat auf; Iris nach
+       Build+Hold. reduced: statischer Kurz-Moment (~400 ms), keine Pulse/Scans. */
+    if (launched || beatStarted) return;
+    if (reduced) {
+      beatStarted = true;
+      rmList.style.display = "none"; /* harter Cut statt Bewegung — das Wort ersetzt die Liste kurz */
+      setTimeout(launch, showReadyWord("reduced"));
+      return;
+    }
+    systemReadyPulse();
+    beatAndLaunch();
+  }
+
   function kpiIn(o) {
+    o.fx = { t: [], raf: 0 };
     requestAnimationFrame(() => {
-      o.outSpans.forEach(s => { s.style.opacity = "1"; s.style.transform = "translateY(0)"; });
+      o.draft.style.opacity = "1"; /* Stufe 1 sofort (0–180 ms) */
+      o.outSpans.forEach(s => { s.style.opacity = "1"; s.style.transform = "translateY(0)"; }); /* Stufe 2 ab 140 ms via transitionDelay */
       o.lbl.style.opacity = "1"; o.lbl.style.transform = "translateY(0)";
     });
+    o.fx.t.push(setTimeout(() => { if (o.fx) startScanFx(o); }, KFX.s3)); /* Stufe 3 ab 320 ms */
   }
   function showBar() {
     if (barShown) return; barShown = true;
@@ -1078,9 +1373,69 @@ export async function initHero(cfg = {}) {
     if (!hdr || hdr.style.opacity === "1") return;
     hdr.style.opacity = "1"; hdr.style.transform = "translateY(0px)"; hdr.style.pointerEvents = "auto";
   }
+  /* ---------- Video-Einstieg „Fog-Cut" (Blueprint v8 §C) ---------- */
+  let videoReady = false, videoFbTimer = null;
+  function gateOpen() { /* Auto-Start: GLB bereit UND (Video 'canplaythrough' ODER Video-Fallback aktiv) */
+    return loadDone && (!videoActive || videoReady);
+  }
+  function videoOff() { /* stoppen + nach Gebrauch (bzw. im Nicht-Video-Pfad) aus dem DOM entfernen */
+    clearTimeout(videoFbTimer);
+    if (!vid) return;
+    try { vid.pause(); } catch (e) { /* egal */ }
+    vid.removeAttribute("src");
+    vid.remove();
+    vid = null;
+  }
+  function videoFallback(reason) { /* 'error' / kein canplaythrough / Autoplay verweigert → normaler Ablauf ohne Video */
+    if (!videoActive) return;
+    videoActive = false; videoReady = false;
+    console.warn(`[hero] Video-Fallback aktiv (${reason}) — normaler Ablauf ohne Video`);
+    videoOff();
+    if (launched) { if (state === "video") setState("descent"); } /* nach Launch: direkt in den normalen Descent */
+    else if (pendingStart && gateOpen()) pendingLaunch();         /* im Boot: kein Hänger — Gate ist jetzt offen */
+  }
+  function startVideoFlight() { /* video.play() zeitgleich mit Iris-Start; der Descent folgt erst auf 'ended' */
+    setState("video");
+    vid.style.display = "block";
+    vid.addEventListener("ended", videoEnded, { once: true });
+    const pr = vid.play();
+    if (pr && pr.catch) pr.catch(err => { console.warn("[hero] Video-Autoplay verweigert:", err && err.name); videoFallback("autoplay"); });
+  }
+  function videoEnded() {
+    if (state !== "video") return; /* bereits geskippt */
+    /* Übergabe im konturlosen Weiß: Overlay sofort deckend → Video weg → Kurz-Descent → Overlay 350 ms ausfaden */
+    vWhite.style.transition = "none";
+    vWhite.style.display = "block";
+    vWhite.style.opacity = "1";
+    vWhite.getBoundingClientRect(); /* Style-Flush: erst deckend, dann Video entfernen */
+    videoOff();
+    DUR.descent = VIDEO_DESCENT; /* 1,2 s — gleiche Kurve, gleicher Seitbogen, Sim-Fenster 15,5 → 17,30 unverändert */
+    setState("descent");
+    vWhite.style.transition = "opacity .35s ease-out";
+    vWhite.style.opacity = "0";
+    setTimeout(() => vWhite.remove(), 420);
+  }
+  if (videoActive && vid && vid.canPlayType && vid.canPlayType("video/mp4")) {
+    /* Pfad-Weiche VOR dem Laden: src nur hier setzen — andere Pfade erzeugen keinerlei Netzwerk-Traffic */
+    vid.muted = true; vid.playsInline = true; vid.setAttribute("playsinline", "");
+    vid.preload = "auto";
+    vid.src = VIDEO_SRC;
+    vid.load();
+    vid.addEventListener("canplaythrough", () => {
+      videoReady = true; clearTimeout(videoFbTimer);
+      console.log("[hero] Video bereit (canplaythrough)");
+      if (pendingStart && gateOpen()) pendingLaunch();
+    }, { once: true });
+    vid.addEventListener("error", () => videoFallback("error"), { once: true });
+  } else {
+    if (videoActive) console.warn("[hero] Video-Pfad gewollt, aber <video>/MP4 nicht verfügbar");
+    videoActive = false;
+    videoOff(); /* Element raus — touch/reduced laden das Video nachweislich nicht */
+  }
   function launch() {
     if (launched) return; launched = true;
-    clearTimeout(seqTimer); clearInterval(dissTimer); clearTimeout(dissTimer);
+    console.log(`[hero] IRIS-START @ ${seqStart ? Math.round(performance.now() - seqStart) : 0} ms (seit KPI-Start)`);
+    clearTimeout(seqTimer); kpiEls.forEach(finishKpiFx);
     startLoop();
     showHdr();
     const bx = innerWidth / 2, by = innerHeight / 2;
@@ -1092,11 +1447,86 @@ export async function initHero(cfg = {}) {
       intro.style.webkitMaskImage = m; intro.style.maskImage = m;
       if (p < 1) rafTick(ir); else intro.style.display = "none";
     })();
-    setTimeout(() => setState("descent"), reduced ? 0 : 140); /* Descent +140 ms */
+    if (videoActive && videoReady) startVideoFlight(); /* v8 §C: Iris öffnet aufs laufende Video — der Descent-Start (+140 ms) entfällt */
+    else setTimeout(() => setState("descent"), reduced ? 0 : 140); /* Descent +140 ms */
+  }
+  /* Änd. 1 (06.07., v3.3): großes „SYSTEM BEREIT" als Abflug-Beat — mittig auf dem freien
+     Intro-Feld, Kurz-Echo des Blueprint-Stacks: Kontur zieht auf (~120 ms), dann Scan-Füllung
+     links→rechts (~220 ms, transform-basiert wie bei den Zahlen), Hold ~450 ms → Iris.
+     Der Schriftzug bleibt stehen und wird von der öffnenden Iris überdeckt (kein eigener Fade).
+     Rückgabe = Verzögerung bis zum Iris-Start:
+       "full" 80+220+450 = 750 ms · "skip" (Esc) 40+110+200 = 350 ms · "reduced" statisch 400 ms */
+  function showReadyWord(mode) {
+    const T = mode === "skip" ? { out: 60, scanDelay: 40, scan: 110, hold: 200 }
+                              : { out: 120, scanDelay: 80, scan: 220, hold: 450 };
+    const wrap = document.createElement("div");
+    Object.assign(wrap.style, {
+      position: "absolute", inset: "0", display: "flex", alignItems: "center",
+      justifyContent: "center", pointerEvents: "none", zIndex: "3"
+    });
+    const word = document.createElement("div");
+    Object.assign(word.style, {
+      position: "relative", fontWeight: "700", textTransform: "uppercase",
+      letterSpacing: ".3em", marginRight: "-.3em", /* Tracking-Ausgleich → optisch exakt mittig */
+      fontSize: "clamp(1.6rem,5vw,3.2rem)", lineHeight: "1.1", whiteSpace: "nowrap"
+    });
+    const txt = "System bereit";
+    const out = document.createElement("span");
+    out.textContent = txt;
+    Object.assign(out.style, { display: "block", color: "transparent", opacity: "0",
+      transition: `opacity ${T.out}ms ease-out`, willChange: "opacity" });
+    out.style.webkitTextStroke = "1.5px rgba(59,174,209,.5)";
+    const clip = document.createElement("span"); /* Clip-Fenster + Gegen-Shift wie bei den Zahlen */
+    Object.assign(clip.style, { position: "absolute", inset: "0", display: "block",
+      overflow: "hidden", transform: "translate3d(-100%,0,0)", willChange: "transform" });
+    const fillEl = document.createElement("span");
+    fillEl.textContent = txt;
+    Object.assign(fillEl.style, { position: "absolute", inset: "0", display: "block",
+      whiteSpace: "nowrap", color: "transparent", transform: "translate3d(100%,0,0)", willChange: "transform" });
+    fillEl.style.backgroundImage = GRAD;
+    fillEl.style.webkitBackgroundClip = "text"; fillEl.style.backgroundClip = "text";
+    const ln = document.createElement("span"); /* Scanlinie */
+    Object.assign(ln.style, {
+      position: "absolute", top: "-.1em", bottom: "-.1em", left: "0", width: "2px",
+      background: "linear-gradient(180deg,transparent,rgba(59,174,209,.95) 18%,rgba(59,174,209,.95) 82%,transparent)",
+      boxShadow: "0 0 6px rgba(59,174,209,.55), 0 0 16px rgba(59,174,209,.3)",
+      opacity: "0", pointerEvents: "none", willChange: "transform, opacity"
+    });
+    clip.appendChild(fillEl);
+    word.append(out, clip, ln);
+    wrap.appendChild(word);
+    intro.appendChild(wrap);
+    console.log(`[hero] Abflug-Beat „SYSTEM BEREIT" (${mode}) @ ${seqStart ? Math.round(performance.now() - seqStart) : 0} ms`);
+    if (mode === "reduced") { /* statisch: beide Ebenen sofort voll, keine Scans/Pulse */
+      out.style.transition = "none"; out.style.opacity = "1";
+      clip.style.transform = "none"; fillEl.style.transform = "none";
+      return 400;
+    }
+    requestAnimationFrame(() => { out.style.opacity = "1"; });
+    setTimeout(() => {
+      const W = word.clientWidth; /* einmalige Messung — im rAF nur Writes */
+      ln.style.opacity = "1";
+      const t0 = performance.now();
+      const step = () => {
+        const p = clamp((performance.now() - t0) / T.scan, 0, 1), h = ((1 - p) * 100).toFixed(3);
+        clip.style.transform = `translate3d(-${h}%,0,0)`;
+        fillEl.style.transform = `translate3d(${h}%,0,0)`;
+        ln.style.transform = `translate3d(${(p * W).toFixed(1)}px,0,0)`;
+        if (p > .7) ln.style.opacity = Math.max(0, (1 - p) / .3).toFixed(3);
+        if (p < 1) rafTick(step);
+      };
+      rafTick(step);
+    }, T.scanDelay);
+    return T.scanDelay + T.scan + T.hold;
+  }
+  function beatAndLaunch() { /* Änd. 1: Herzschlag + großes Wort ZEITGLEICH; Iris nach Build+Hold (~750 ms, Esc-Skip ~350 ms) */
+    if (launched || beatStarted) return; beatStarted = true;
+    heartbeat();
+    setTimeout(launch, showReadyWord(introSkipped ? "skip" : "full"));
   }
   function tryLaunch() {
-    if (loadDone) launch();
-    else { pendingStart = true; progLabel.textContent = "LADE DIGITALEN ZWILLING"; }
+    if (gateOpen()) beatAndLaunch();
+    else { pendingStart = true; if (!loadDone) progLabel.textContent = "LADE DIGITALEN ZWILLING"; }
   }
   function arrive(k) {
     const el = slotIns[k];
@@ -1111,7 +1541,7 @@ export async function initHero(cfg = {}) {
     console.log(`[hero] dock #${k + 1} angekommen @ ${seqStart ? Math.round(performance.now() - seqStart) : 0} ms`);
     if (dockedCount === KPIS.length && seqDone && !launchScheduled) {
       launchScheduled = true;
-      setTimeout(tryLaunch, 322); /* Launch = letzter Flug + Beat 322 ms */
+      setTimeout(tryLaunch, 120); /* Beat nach letzter Ankunft 322 → 120 ms (06.07.): „SYSTEM BEREIT" folgt der letzten Zahl dichter, Iris rückt ~200 ms vor */
     }
   }
   function dock(k, mode) { /* mode: false=normal, true=schnell, "instant"=sofort */
@@ -1132,7 +1562,7 @@ export async function initHero(cfg = {}) {
     const f = document.createElement("div");
     Object.assign(f.style, {
       position: "fixed", left: A.left + "px", top: A.top + "px", zIndex: "12",
-      pointerEvents: "none", fontWeight: "900", lineHeight: ".94", letterSpacing: "-.02em",
+      pointerEvents: "none", fontWeight: "700", lineHeight: ".94", letterSpacing: "-.02em", /* Flug-Klon: gleiches Gewicht wie Draft + Leiste (06.07.) */
       whiteSpace: "nowrap", color: "transparent", transformOrigin: "top left",
       willChange: "transform", fontFamily: "'Titillium Web', system-ui, sans-serif"
     });
@@ -1156,8 +1586,7 @@ export async function initHero(cfg = {}) {
     seqIdx = i;
     if (!seqStart) seqStart = performance.now();
     const o = kpiEls[i];
-    kpiIn(o);
-    dissTimer = setTimeout(() => { dissTimer = runFrames(o.fill, o.frames, 37); }, 205);
+    kpiIn(o); /* startet Stufen 1–3 (Blueprint-Stack) */
     seqTimer = setTimeout(() => {
       dock(i, false);
       if (i + 1 < kpiEls.length) { seqTimer = setTimeout(() => playIdx(i + 1), SEQ.nextDelay); } /* nächste Zahl +60 ms, parallel zum Flug */
@@ -1166,19 +1595,20 @@ export async function initHero(cfg = {}) {
   }
   function advanceSeq() {
     if (launched || seqIdx < 0 || dockedFlags[seqIdx]) return;
-    clearTimeout(seqTimer); clearTimeout(dissTimer); clearInterval(dissTimer);
+    clearTimeout(seqTimer);
     const k = seqIdx;
     const o = kpiEls[k];
-    setMaskFrame(o.fill, o.frames[o.frames.length - 1]);
+    finishKpiFx(o); /* Änd. 2: Count, Scan und Stufen sofort auf Endzustand */
     dock(k, true); /* Schnellflug 280 ms */
     if (k + 1 < kpiEls.length) { seqTimer = setTimeout(() => playIdx(k + 1), SEQ.nextDelay); }
     else seqDone = true;
   }
   function skipIntro() {
     if (launched) return;
+    introSkipped = true; /* Änd. 1: Abflug-Beat erscheint verkürzt (~350 ms), dann Iris */
     seqDone = true;
-    clearTimeout(seqTimer); clearTimeout(dissTimer); clearInterval(dissTimer);
-    kpiEls.forEach(o => { o.k.style.transition = "opacity .15s ease"; o.k.style.opacity = "0"; });
+    clearTimeout(seqTimer);
+    kpiEls.forEach(o => { finishKpiFx(o); o.k.style.transition = "opacity .15s ease"; o.k.style.opacity = "0"; });
     for (let k = 0; k < KPIS.length; k++) { if (!dockedFlags[k]) dock(k, "instant"); }
   }
 
@@ -1225,15 +1655,19 @@ export async function initHero(cfg = {}) {
      erster Live-Frame deckungsgleich mit dem Bake → Ablösung unsichtbar.
      Danach wird NUR bei Scroll-/Resize-Änderung gerendert. */
   const CLIP = 17.77;
+  const OV_SHIFT = .5; /* Überblick-Fenster: Anteil des Hero-Framing-Offsets → Anlage leicht rechts der Mitte (06.07.) */
   const WINDOWS = [[0, 3.55], [3.55, 8.02], [8.02, 10.66], [10.66, 14.22], [14.22, 17.77]];
   const TENTRY = .18; /* Anteil der Tour für Kamera-Überleitung + Rückspul-Beat 17,30 → 0 — Intro-Beat deutlich verlängert (02.07.) */
   const tCards = [0, 1, 2, 3, 4].map(i => $("tcard-" + i));
   const tourIntro = $("tour-intro"), tourQuote = $("tour-quote");
   const rail = $("rail"), railTrack = $("rail-track"), railFill = $("rail-fill");
   const railDots = [0, 1, 2, 3, 4].map(i => $("rd-" + i));
-  let handover = false, lastTourKey = "", tourP = 0, quoteP = 0, sTour = 0, sQuote = 0, tourRafId = null;
-  let poses = null, quotePose = null, camReadHero = "";
-  tourEls = { tCards, rail, railTrack, railFill, railDots };
+  const ovWrap = $("tour-overview"), railLabel = $("rail-label");
+  const ovChips = ovWrap ? [...ovWrap.querySelectorAll("[data-ovchip]")] : [];
+  const ovHead = ovWrap ? ovWrap.querySelector("[data-ovhead]") : null; /* Überblick-Headline (06.07.) */
+  let handover = false, lastTourKey = "", tourP = 0, ovP = 0, quoteP = 0, sTour = 0, sOv = 0, sQuote = 0, tourRafId = null;
+  let poses = null, ovPose = null, quotePose = null, camReadHero = "";
+  tourEls = { tCards, rail, railTrack, railFill, railDots, ovWrap, railLabel };
   layoutChrome();
 
   function buildPoses() { /* 5 Vorschlags-Posen — Feintuning folgt gemeinsam */
@@ -1251,6 +1685,7 @@ export async function initHero(cfg = {}) {
       { pos: P1.clone(), tgt: T1.clone() }                                      /* 5 Twin as a Product — Hero-Pose (Klimax) */
     ];
     quotePose = { pos: T1.clone().add(P1.clone().sub(T1).multiplyScalar(2.86)), tgt: T(0, .10 * D, 0) }; /* Zitat: Kamera weiter weg → Anlage kleiner (Kundenwunsch 02.07.) */
+    ovPose = { pos: T1.clone().add(P1.clone().sub(T1).multiplyScalar(1.55)), tgt: T1.clone() }; /* Überblick-Fenster: sanft aufgezogen, Anlage vollständig im Bild (06.07.) */
     console.log("[tour] Posen-Vorschläge:", poses.map((p, i) => `#${i + 1} pos(${p.pos.toArray().map(v => +v.toFixed(2))}) tgt(${p.tgt.toArray().map(v => +v.toFixed(2))})`).join(" · "));
   }
 
@@ -1279,8 +1714,9 @@ export async function initHero(cfg = {}) {
     if (!handover) return;
     handover = false;
     cancelAnimationFrame(tourRafId); tourRafId = null;
-    sTour = 0; sQuote = 0; /* frisch einsteigen beim nächsten Handover */
-    [tourIntro, tourQuote, rail, ...tCards].forEach(el => { el.style.opacity = "0"; });
+    sTour = 0; sOv = 0; sQuote = 0; /* frisch einsteigen beim nächsten Handover */
+    [tourIntro, tourQuote, rail, ...tCards, ...ovChips, ...(ovHead ? [ovHead] : [])].forEach(el => { el.style.opacity = "0"; });
+    if (railLabel) railLabel.style.opacity = "0";
     cvR.style.opacity = "1"; /* Zitat-Fade zurücksetzen */
     if (camReadHero) camRead.textContent = camReadHero;
     applyViewOffset(1); /* zurück ins Hero-Framing, dann neu baken */
@@ -1291,28 +1727,41 @@ export async function initHero(cfg = {}) {
 
   const stationAt = simT => { for (let i = 4; i >= 0; i--) { if (simT >= WINDOWS[i][0]) return i; } return 0; };
 
+  let tourPrevT = 0; /* dt-Basis für framerate-unabhängige Dämpfung (06.07.) */
   function tourLoop() {
     tourRafId = null;
-    if (!handover || document.hidden) return;
-    if (reduced) { sTour = tourP; sQuote = quoteP; } /* reduced-motion: Werte direkt, kein Nachlauf */
+    if (!handover || document.hidden) { tourPrevT = 0; return; }
+    const nowT = performance.now();
+    const dtT = tourPrevT ? Math.min(.05, (nowT - tourPrevT) / 1000) : .0167;
+    tourPrevT = nowT;
+    if (reduced) { sTour = tourP; sOv = ovP; sQuote = quoteP; } /* reduced-motion: Werte direkt, kein Nachlauf */
     else {
-      sTour += (tourP - sTour) * .08; /* sanfterer Scroll-Scrub (02.07.) */
-      sQuote += (quoteP - sQuote) * .08;
+      /* weicherer, framerate-unabhängiger Scroll-Scrub (06.07.): ≈ .065/Frame @ 60 Hz (vorher fix .08) */
+      const k = 1 - Math.exp(-dtT * 4.0);
+      sTour += (tourP - sTour) * k;
+      sOv += (ovP - sOv) * k;
+      sQuote += (quoteP - sQuote) * k;
     }
     if (Math.abs(tourP - sTour) < 6e-4) sTour = tourP;
+    if (Math.abs(ovP - sOv) < 6e-4) sOv = ovP;
     if (Math.abs(quoteP - sQuote) < 6e-4) sQuote = quoteP;
     renderTour();
-    if (sTour !== tourP || sQuote !== quoteP) tourRafId = requestAnimationFrame(tourLoop);
+    if (sTour !== tourP || sOv !== ovP || sQuote !== quoteP) tourRafId = requestAnimationFrame(tourLoop);
+    else tourPrevT = 0; /* konvergiert — nächster Kick startet mit frischem dt */
   }
   function kickTour() { if (handover && !tourRafId) tourRafId = requestAnimationFrame(tourLoop); }
 
   function renderTour() {
     if (!handover || !model || !poses) return;
-    const tourP = sTour, quoteP = sQuote; /* gedämpfte Werte für alle Visuals */
-    /* Framing-Offset → 0: fährt mit der ersten Kamerafahrt (reines Hero-Framing, Übergang ohne Sprung) */
-    applyViewOffset(tourP < TENTRY ? 1 - easeInOutC(tourP / TENTRY) : 0);
+    const tourP = sTour, ovP = sOv, quoteP = sQuote; /* gedämpfte Werte für alle Visuals */
+    const ovE = easeInOutC(ovP);
+    /* Framing-Offset: Tour-Einstieg 1→0 · Überblick 0→OV_SHIFT (Anlage leicht rechts der Mitte) · Zitat zurück →0 (06.07.) */
+    let vMult = tourP < TENTRY ? 1 - easeInOutC(tourP / TENTRY) : 0;
+    if (ovP > 0) vMult = OV_SHIFT * ovE;
+    if (quoteP > 0) vMult = OV_SHIFT * (1 - easeInOutC(quoteP));
+    applyViewOffset(vMult);
     const mobile = innerWidth < 700;
-    const key = tourP.toFixed(4) + ":" + quoteP.toFixed(4) + ":" + innerWidth + "x" + innerHeight;
+    const key = tourP.toFixed(4) + ":" + ovP.toFixed(4) + ":" + quoteP.toFixed(4) + ":" + innerWidth + "x" + innerHeight;
     if (key === lastTourKey) return;
     lastTourKey = key;
 
@@ -1337,17 +1786,22 @@ export async function initHero(cfg = {}) {
       pos = poses[pa].pos.clone().lerp(poses[pb].pos, e);
       tgt = poses[pa].tgt.clone().lerp(poses[pb].tgt, e);
     }
-    if (quoteP > 0) { /* Zitat-Finale: Kamera zieht auf, Anlage tritt zurück */
+    if (ovP > 0 && ovPose) { /* Überblick-Fenster: Kamera zieht sanft auf die Gesamtansicht (06.07.) */
+      pos = poses[4].pos.clone().lerp(ovPose.pos, ovE);
+      tgt = poses[4].tgt.clone().lerp(ovPose.tgt, ovE);
+    }
+    if (quoteP > 0) { /* Zitat-Finale: Kamera zieht weiter auf, Anlage tritt zurück */
       const qe = easeInOutC(quoteP);
-      pos = poses[4].pos.clone().lerp(quotePose.pos, qe);
-      tgt = poses[4].tgt.clone().lerp(quotePose.tgt, qe);
+      const base = ovPose || poses[4];
+      pos = base.pos.clone().lerp(quotePose.pos, qe);
+      tgt = base.tgt.clone().lerp(quotePose.tgt, qe);
     }
     cam.position.copy(pos); cam.lookAt(tgt);
     setSim(simT);
 
     /* Live-Readout für die Framing-Session (Dev-Werkzeug) */
     const f2 = v => v.toFixed(2);
-    camRead.textContent = `CAM ${f2(pos.x)} / ${f2(pos.y)} / ${f2(pos.z)} · TARGET ${f2(tgt.x)} / ${f2(tgt.y)} / ${f2(tgt.z)} · SIM ${simT.toFixed(2)} S · STATION ${stationAt(simT) + 1}`;
+    camRead.textContent = `CAM ${f2(pos.x)} / ${f2(pos.y)} / ${f2(pos.z)} · TARGET ${f2(tgt.x)} / ${f2(tgt.y)} / ${f2(tgt.z)} · SIM ${simT.toFixed(2)} S · ${ovP > 0 ? "ÜBERBLICK" : "STATION " + (stationAt(simT) + 1)}`;
     camRead.style.opacity = "1";
 
     /* Intro-Block (H2 + Pitch) im Einstiegs-Beat */
@@ -1365,17 +1819,18 @@ export async function initHero(cfg = {}) {
       if (i === 4) op = Math.min((simT - a) / F, 1);
       op = clamp(op, 0, 1);
       if (tourP < TENTRY) op = 0;
+      if (ovP > 0) op = Math.min(op, 1 - easeInOutC(clamp(ovP * 2.5, 0, 1))); /* Station 5 weicht dem Überblick (06.07.) */
       if (quoteP > 0) op = Math.min(op, 1 - easeInOutC(clamp(quoteP * 2.5, 0, 1)));
       const dy = (1 - op) * 24 * (simT < (WINDOWS[i][0] + WINDOWS[i][1]) / 2 ? 1 : -1);
       el.style.opacity = op.toFixed(3);
       el.style.transform = mobile ? `translateY(${dy}px)` : `translateY(calc(-50% + ${dy}px))`;
     });
 
-    /* Progress-Rail */
-    const p = clamp(simT / CLIP, 0, 1);
+    /* Progress-Rail — im Überblick-Fenster: komplett gefüllt, alle 5 Punkte „erledigt“ (06.07.) */
+    const p = ovP > 0 ? 1 : clamp(simT / CLIP, 0, 1);
     if (mobile) railFill.style.width = `calc((100% - 12px) * ${p.toFixed(4)})`;
     else railFill.style.height = `calc((100% - 12px) * ${p.toFixed(4)})`;
-    const act = stationAt(simT);
+    const act = ovP > 0 ? 5 : stationAt(simT);
     railDots.forEach((d, i) => {
       if (i < act) { d.style.background = "#45B347"; d.style.borderColor = "#45B347"; d.style.boxShadow = "none"; }
       else if (i === act) { d.style.background = "#3BAED1"; d.style.borderColor = "#3BAED1"; d.style.boxShadow = "0 0 0 4px rgba(59,174,209,.18)"; }
@@ -1383,6 +1838,26 @@ export async function initHero(cfg = {}) {
     });
     const railOp = Math.min(clamp((tourP - TENTRY * .95) / .04, 0, 1), 1 - easeInOutC(clamp(quoteP * 2.5, 0, 1)));
     rail.style.opacity = railOp.toFixed(3);
+    if (railLabel) railLabel.style.opacity = (reduced ? (ovP > 0 ? 1 : 0) : ovE).toFixed(3);
+
+    /* Überblick: fünf Mehrwert-Chips, gestaffelt einblendend — reduced-motion ohne Stagger (06.07.) */
+    const ovOutQ = 1 - easeInOutC(clamp(quoteP * 2.5, 0, 1));
+    ovChips.forEach((el, i) => {
+      let co;
+      if (reduced) co = ovP > 0 ? 1 : 0;
+      else { const S = .13; co = clamp((ovE - i * S) / (1 - 4 * S), 0, 1); }
+      co = Math.min(co, ovOutQ);
+      el.style.opacity = co.toFixed(3);
+      el.style.transform = reduced ? "none" : `translateY(${((1 - co) * 16).toFixed(1)}px)`;
+    });
+
+    /* Überblick-Headline: erscheint knapp vor den Chips, geht mit ihnen wieder raus (06.07.) */
+    if (ovHead) {
+      let hc = reduced ? (ovP > 0 ? 1 : 0) : clamp(ovE / .5, 0, 1);
+      hc = Math.min(hc, ovOutQ);
+      ovHead.style.opacity = hc.toFixed(3);
+      ovHead.style.transform = reduced ? "none" : `translateY(${((1 - hc) * 16).toFixed(1)}px)`;
+    }
 
     /* Zitat */
     const qe = easeInOutC(clamp((quoteP - .18) / .55, 0, 1));
@@ -1407,9 +1882,22 @@ export async function initHero(cfg = {}) {
     stage.addEventListener("pointerleave", () => { if (state === "live") mask.tr = 0; });
     stage.addEventListener("pointerenter", () => { if (state === "live" && moved) mask.tr = baseRadius(); });
   } else {
+    /* Tap ≠ Scroll (06.07. Mobile-Pass): Ping erst bei echtem Tipp (pointerup,
+       < 10 px Bewegung, < 350 ms Haltezeit) — Swipe-Scrollen durch den Hero bleibt
+       ruhig, kein Ping je Scroll-Ansatz. Ping-Timing selbst unverändert (§0). */
+    let tDown = null;
     addEventListener("pointerdown", e => {
       const tgt = e.target && e.target.closest ? e.target : null;
-      if (state !== "live" || handover || (tgt && tgt.closest("button")) || intro.style.display !== "none") return;
+      if (state !== "live" || handover || (tgt && tgt.closest("button")) || intro.style.display !== "none") { tDown = null; return; }
+      tDown = { x: e.clientX, y: e.clientY, t: performance.now() };
+    });
+    addEventListener("pointerup", e => {
+      if (!tDown) return;
+      const dist = Math.hypot(e.clientX - tDown.x, e.clientY - tDown.y);
+      const held = performance.now() - tDown.t;
+      tDown = null;
+      if (dist > 10 || held > 350) return; /* war Scroll/Drag — kein Ping */
+      if (state !== "live" || handover || intro.style.display !== "none") return;
       hintDismissed = true; /* Hinweis nach erstem Tap */
       tap.active = true; tap.x = e.clientX; tap.y = e.clientY; tap.r = 0;
       ping(e.clientX, e.clientY);
@@ -1425,7 +1913,13 @@ export async function initHero(cfg = {}) {
     });
   }
 
-  function finish() { /* Skip im Descent */
+  function finish() { /* Skip im Descent — gilt auch im Video (v8 §C: Video stoppen/entfernen, Kurz-Descent 1,0 s) */
+    if (state === "video") {
+      videoOff();
+      DUR.descent = 1.0;
+      setState("descent");
+      return;
+    }
     if (state !== "descent") return;
     cam.position.copy(P1); cam.lookAt(T1);
     setSim(17.30);
@@ -1433,7 +1927,7 @@ export async function initHero(cfg = {}) {
     setState("sweep");
   }
   skipBtn.addEventListener("click", finish);
-  addEventListener("keydown", e => { if (e.key === "Enter" && state === "descent") finish(); });
+  addEventListener("keydown", e => { if (e.key === "Enter" && (state === "descent" || state === "video")) finish(); });
 
   /* Taste R: Real-Layer als hochauflösendes PNG (§4) */
   addEventListener("keydown", e => {
@@ -1453,10 +1947,11 @@ export async function initHero(cfg = {}) {
 
   function updateScroll() {
     const vh = innerHeight, y = scrollY;
-    const matLen = vh * 1.6, tourLen = vh * 5.4, quoteLen = vh * 1.2; /* Tour verlängert: Intro-Beat + Stationen entspannter (02.07.) */
+    const matLen = vh * 1.12, tourLen = vh * 3.78, ovLen = vh * .49, quoteLen = vh * .59; /* 30 % schneller (06.07.): × 0,7 — Zitat auf Wunsch nochmals × 0,7 (.84 → .59); Spacer in Hero.dc.html mitgekürzt */
     scrollP = clamp(y / matLen, 0, 1);
     tourP = clamp((y - matLen) / tourLen, 0, 1);
-    quoteP = clamp((y - matLen - tourLen) / quoteLen, 0, 1);
+    ovP = clamp((y - matLen - tourLen) / ovLen, 0, 1);
+    quoteP = clamp((y - matLen - tourLen - ovLen) / quoteLen, 0, 1);
     if (scrollP >= 1 && model && poses) {
       enterLive3D();
       kickTour();
@@ -1494,7 +1989,11 @@ export async function initHero(cfg = {}) {
   load3D().then(() => {
     loadDone = true;
     if (devSkip || pendingJump) { jumpLive(); return; }
-    if (pendingStart) launch();
+    if (videoActive && !videoReady) { /* v8 §C: max. 4 s auf 'canplaythrough' warten, sonst Fallback ohne Video */
+      clearTimeout(videoFbTimer);
+      videoFbTimer = setTimeout(() => { if (videoActive && !videoReady) videoFallback("kein canplaythrough in 4 s"); }, 4000);
+    }
+    if (pendingStart && gateOpen()) pendingLaunch(); /* Änd. 4: gemeinsamer Beat, Iris ~300 ms später */
   }).catch(err => {
     loadError = err;
     console.error("[hero] GLB-Load fehlgeschlagen:", err);
@@ -1511,12 +2010,14 @@ export async function initHero(cfg = {}) {
     get meshCount() { return origMat.size; },
     get mask() { return { ...mask, tap: { ...tap } }; },
     get flags() { return { isTouch, reduced, devSkip, revisit }; },
+    get video() { return { active: videoActive, ready: videoReady, el: !!vid }; },
     get docked() { return { flags: [...dockedFlags], count: dockedCount, barShown, launchScheduled }; },
-    get tour() { return { handover, tourP, quoteP, poses: poses ? poses.map(p => ({ pos: p.pos.toArray(), tgt: p.tgt.toArray() })) : null }; },
+    get tour() { return { handover, tourP, ovP, quoteP, poses: poses ? poses.map(p => ({ pos: p.pos.toArray(), tgt: p.tgt.toArray() })) : null }; },
     renderTour, enterLive3D, exitLive3D,
-    qaTour(tp, qp) { /* QA: Tour-Zustand ohne echtes Scrollen setzen */
-      tourP = clamp(tp, 0, 1); quoteP = clamp(qp || 0, 0, 1); scrollP = 1;
-      sTour = tourP; sQuote = quoteP; sMat = 1;
+    qaTour(tp, qp, op) { /* QA: Tour-Zustand ohne echtes Scrollen setzen — op = Überblick-Fenster (optional; bei qp>0 automatisch 1) */
+      tourP = clamp(tp, 0, 1); quoteP = clamp(qp || 0, 0, 1);
+      ovP = clamp(op !== undefined ? op : (quoteP > 0 ? 1 : 0), 0, 1); scrollP = 1;
+      sTour = tourP; sOv = ovP; sQuote = quoteP; sMat = 1;
       enterLive3D(); lastTourKey = ""; renderTour();
     },
     get barH() { return barH; },

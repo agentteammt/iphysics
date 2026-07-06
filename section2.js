@@ -47,6 +47,8 @@ export function initSection2() {
   const grid = document.getElementById("s2-grid");
   const quote = document.getElementById("s2-quote");
   const trust = document.getElementById("s2-trust");
+  const demoGrid = document.getElementById("demo-grid");
+  const demoBox = document.getElementById("demo");
   const cells = trust ? [...trust.children] : [];
   const mq = matchMedia("(min-width: 861px)");
 
@@ -54,6 +56,10 @@ export function initSection2() {
     const desk = mq.matches;
     if (grid) grid.style.gridTemplateColumns = desk ? "1.02fr 0.98fr" : "1fr";
     if (quote) quote.style.position = desk ? "sticky" : "static";
+    /* Terminbuchung (Änd. 3, 06.07.): Desktop zweispaltig, mobil untereinander — Höhe des
+       Platzhalters bleibt RESERVIERT (kompakt 520/460 px, Kundenwunsch 06.07.), damit das spätere echte Tool keinen Layout-Sprung erzeugt. */
+    if (demoGrid) demoGrid.style.gridTemplateColumns = desk ? "1.04fr 0.96fr" : "1fr";
+    if (demoBox) demoBox.style.height = desk ? "520px" : "460px";
     if (trust) trust.style.gridTemplateColumns = desk ? "1fr 1fr 1fr" : "1fr";
     cells.forEach((c, i) => {
       const last = i === cells.length - 1;

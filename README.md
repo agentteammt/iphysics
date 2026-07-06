@@ -9,12 +9,15 @@ vier Inhaltsabschnitten. Sprache: Deutsch (Sie-Form).
 ```
 index.html                      Seite (Markup + Boot-Logik)
 support.js                      Rendering-Runtime für index.html (muss lokal liegen)
-hero-engine.js                  3D-Hero: Intro, Wireframe→Real, Framing, Tour
+hero-engine.js                  3D-Hero: Intro, Wireframe→Real, Framing, Tour,
+                                Mobile-Layout (Headline oben, Scrim, Tap-Ping)
 section2.js / section3.js /
 section4.js / polish.js         Abschnitts-Logik + Feinschliff
+footer.js                       Footer „Zeichnungs-Schriftfeld“: Eingangs-Draw,
+                                Responsive-Raster, Status-Hover
 image-slot.js                   Bild-Platzhalter-Komponente
 fonts/                          Titillium Web (lokal, DSGVO) + SIL-OFL-Lizenz
-assets/                         Logo, Favicon, OG-Bild, Wasserzeichen
+assets/                         Logo, Favicon, OG-Bild, Poster, Fotos, Intro-Video
 uploads/montagezelle_web_v1.glb 3D-Modell (~9 MB, EXT_meshopt)
 .nojekyll                       GitHub Pages: Dateien unverändert ausliefern
 ```
@@ -43,7 +46,10 @@ python3 -m http.server 8000
 - **`og:image` absolut setzen:** Social-Scraper brauchen die volle URL,
   z. B. `https://<user>.github.io/<repo>/assets/og-hero.jpg` (in `index.html`,
   zwei Stellen: `<meta property="og:image">` und `_seo()`).
-- Rechtliches: Impressum-/Datenschutz-Links im Footer zielen auf `#`.
+- Rechtliches: Impressum-/Datenschutz-Links im Footer zielen auf `#`
+  (Inhalte folgen in Phase 6).
+- Demo-/Kontakt-Ziele: `#demo` ist Platzhalter-Terminbuchung [Offen 7],
+  ROI-Rechner-Link extern (Landbot).
 
 ## Dev-/QA-Hinweise
 
