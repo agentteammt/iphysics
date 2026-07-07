@@ -45,9 +45,16 @@ export async function initHero(cfg = {}) {
   const devSkip = !!cfg.devSkipIntro || qa.includes("skip");
   const revisit = !!sessionStorage.getItem("iph_hero_v4_seen");
 
+  /* Perf-Profil (07.07.): schwache Geräte — statische Heuristik (Kerne/RAM) + Frame-Watchdog
+     im Kantenbau (s. load3D). Steuert Kanten-Deckel und Iris-Taktung; Choreografie-Timings
+     bleiben unangetastet. */
+  let weakFx = (navigator.hardwareConcurrency || 8) <= 4 || (navigator.deviceMemory || 8) <= 4;
+  if (weakFx) console.log("[hero] Perf-Profil reduziert (Kerne/RAM-Heuristik)");
+
   /* Video-Einstieg „Fog-Cut" (Blueprint v8 §C, geändert 06.07.: auch Wiederkehrer): jeder Besuch bei Desktop + voller Motion.
      touch/reduced/devSkip laden das Video weiterhin gar nicht erst. */
   const VIDEO_SRC = "assets/intro-flight.mp4", VIDEO_DESCENT = 1.2; /* Kurz-Descent aus dem Video-Weiß */
+  const VIDEO_TRIM = 0.5; /* 07.07.: die ersten 0,5 s des Flugs überspringen — Einstieg direkt in die Bewegung */
   let videoActive = !isTouch && !reduced && !devSkip;
 
   /* ---------- DOM ---------- */
@@ -69,7 +76,7 @@ export async function initHero(cfg = {}) {
     }
   }
   const hint = $("hint"),
-        camRead = $("cam"), skipBtn = $("skip");
+        camRead = $("cam"), camSub = $("cam-sub"), skipBtn = $("skip");
   const hdr = $("hdr"), hdrNav = $("hdr-nav");
   const specbar = $("specbar");
   const slotIns = [0, 1, 2].map(i => $("sb-in-" + i));
@@ -112,6 +119,10 @@ export async function initHero(cfg = {}) {
     if (foot) foot.style.bottom = (barH + 10) + "px";
     camRead.style.top = (mobile ? 74 : 88) + "px"; /* unter dem fixen Header */
     camRead.style.display = mobile ? "none" : "block"; /* mobil: Platz für die Headline oben */
+    if (camSub) { /* „iPhysics — die Plattform" direkt unter dem CAM-Readout (07.07.) */
+      camSub.style.top = ((mobile ? 74 : 88) + 17) + "px";
+      camSub.style.display = mobile ? "none" : "block";
+    }
 
     /* Mobile-Pass (06.07.): Headline-Block oben unter dem Header statt vertikal mittig —
        das zentrierte Modell (< 600 px kein Rechts-Offset) läuft sonst durch den Text.
@@ -170,10 +181,14 @@ export async function initHero(cfg = {}) {
       const ov = tourEls.ovWrap, ovLbl = tourEls.railLabel;
       if (ov) { /* Überblick-Chips: Desktop links mittig, mobil unten (06.07.) */
         if (mobile) {
-          ov.style.top = "auto"; ov.style.bottom = "18px"; ov.style.transform = "none";
+          ov.style.top = "auto"; ov.style.bottom = "18px"; ov.style.transform = "none"; ov.style.justifyContent = "";
           ov.style.left = "16px"; ov.style.right = "16px"; ov.style.width = "auto";
         } else {
-          ov.style.top = "50%"; ov.style.bottom = "auto"; ov.style.transform = "translateY(-50%)";
+          /* 07.07.: Band statt Viewport-Zentrierung — die Oberkante bleibt klar unter der
+             Plattform-Zeile („iPhysics — die Plattform"), der Inhalt zentriert sich im Feld darunter */
+          ov.style.top = "clamp(150px, 18vh, 210px)"; ov.style.bottom = "44px"; ov.style.transform = "none";
+          ov.style.justifyContent = "flex-start";
+          ov.style.justifyContent = "safe center"; /* overflow-sicher: zentriert bei Platz, pinnt sonst an der Band-Oberkante; ungültig → Fallback flex-start */
           ov.style.left = "clamp(20px, 6vw, 96px)"; ov.style.right = "auto"; ov.style.width = "min(430px, 44vw)";
         }
       }
@@ -439,6 +454,11 @@ export async function initHero(cfg = {}) {
       await new Promise(r => setTimeout(r, 6000));
     }
     const loader = new GLTFLoader();
+    /* 07.07.: Meshopt-Dekodierung in Worker — decodeGltfBufferAsync läuft dann off-main-thread,
+       die KPI-Choreografie behält den Hauptthread. Ohne Worker-Support: synchron wie bisher. */
+    try {
+      if (MeshoptDecoder.useWorkers) MeshoptDecoder.useWorkers(Math.min(4, Math.max(2, (navigator.hardwareConcurrency || 4) - 2)));
+    } catch (e) { console.warn("[hero] Meshopt-Worker nicht verfügbar — Dekodierung im Hauptthread:", e); }
     loader.setMeshoptDecoder(MeshoptDecoder);
     const gltf = await loader.loadAsync(cfg.glbUrl, e => {
       const total = (e.lengthComputable && e.total) ? e.total : GLB_FALLBACK_BYTES;
@@ -536,12 +556,38 @@ export async function initHero(cfg = {}) {
     eligible.forEach(m => { (isDynamic(m.mesh) ? dynamics : statics).push(m); });
     const staticList = statics.slice(0, qa.includes("lowedges") ? 60 : (isTouch ? 400 : 800)), dynList = dynamics.slice(0, qa.includes("lowedges") ? 10 : (isTouch ? 40 : 80));
     const totalN = staticList.length + dynList.length;
-    const VERT_CAP = isTouch ? 1200000 : 2400000, EDGE_TIME_BUDGET = 14000;
+    let VERT_CAP = isTouch ? 1200000 : 2400000, EDGE_TIME_BUDGET = 14000;
+    /* Perf-Profil (07.07.): Kanten-Deckel für schwache Geräte. Die Liste ist nach diag
+       absteigend sortiert — die großen, prägenden Konturen entstehen zuerst, gekappt
+       werden nur Kleinteile. */
+    let capStatic = staticList.length, capDyn = dynList.length;
+    const applyWeakCaps = () => {
+      if (isTouch || qa.includes("lowedges")) return;
+      capStatic = Math.min(capStatic, 420); capDyn = Math.min(capDyn, 48);
+      VERT_CAP = Math.min(VERT_CAP, 1400000); EDGE_TIME_BUDGET = Math.min(EDGE_TIME_BUDGET, 7000);
+    };
+    if (weakFx) applyWeakCaps();
     const tEdges = performance.now();
     let visElapsed = 0; /* Budget zählt nur sichtbare Zeit — Hintergrund-Loads behalten volle Kanten */
-    const CHUNK = () => (document.hidden ? 200 : 12);
+    /* Chunk-Budget (07.07.): solange die KPI-Choreografie läuft, max. ~6 ms Kanten-Arbeit pro
+       Frame — das Intro behält den Hauptthread. Im Wartefall (pendingStart: nur der Balken
+       ist zu sehen) sowie bei devSkip 16 ms, damit es zügig fertig wird. */
+    const CHUNK = () => (document.hidden ? 200 : ((pendingStart || introSkipped || devSkip) ? 16 : 6));
+    let longFrames = 0, frameSamples = 0;
     const yieldFrame = () => new Promise(r => {
-      const id = requestAnimationFrame(() => { clearTimeout(to); r(); });
+      const tY = performance.now();
+      const id = requestAnimationFrame(() => {
+        clearTimeout(to);
+        if (!document.hidden) { /* Frame-Watchdog: ruckelt es trotz Chunking, Kanten-Budget senken */
+          frameSamples++;
+          if (performance.now() - tY > 34) longFrames++;
+          if (!weakFx && frameSamples >= 10 && longFrames / frameSamples > .4) {
+            weakFx = true; applyWeakCaps();
+            console.log("[hero] Perf-Profil reduziert (Frame-Watchdog im Kantenbau)");
+          }
+        }
+        r();
+      });
       const to = setTimeout(() => { cancelAnimationFrame(id); r(); }, 50); /* rAF-Drossel (Hintergrund-Tab) umgehen */
     });
 
@@ -580,9 +626,9 @@ export async function initHero(cfg = {}) {
     /* Phase 1: statische Kanten sammeln (Weltkoordinaten) */
     const chunks = []; let vertTotal = 0, budgetHit = false;
     let i = 0;
-    while (i < staticList.length) {
+    while (i < Math.min(staticList.length, capStatic)) {
       const t0 = performance.now();
-      while (i < staticList.length && performance.now() - t0 < CHUNK()) {
+      while (i < Math.min(staticList.length, capStatic) && performance.now() - t0 < CHUNK()) {
         const m = staticList[i++].mesh;
         try {
           const eg = new THREE.EdgesGeometry(m.geometry, 13); /* 13°: auch glatte Hauben bekommen Konturen */
@@ -604,6 +650,7 @@ export async function initHero(cfg = {}) {
       }
       await yieldFrame();
     }
+    await yieldFrame(); /* Merge (≈2 Mio Verts kopieren + GPU-Upload) bekommt einen eigenen Frame (07.07.) */
     if (chunks.length) {
       const all = new Float32Array(chunks.reduce((s, a) => s + a.length, 0));
       let off = 0;
@@ -624,9 +671,9 @@ export async function initHero(cfg = {}) {
 
     /* Phase 2: Kanten-Kinder für bewegte Meshes */
     let j = 0;
-    while (j < dynList.length && !budgetHit) {
+    while (j < Math.min(dynList.length, capDyn) && !budgetHit) {
       const t0 = performance.now();
-      while (j < dynList.length && performance.now() - t0 < CHUNK()) {
+      while (j < Math.min(dynList.length, capDyn) && performance.now() - t0 < CHUNK()) {
         const m = dynList[j++].mesh;
         try {
           const eg2 = new THREE.EdgesGeometry(m.geometry, 13);
@@ -650,11 +697,29 @@ export async function initHero(cfg = {}) {
     }
     console.log(`[hero] Kanten: ${chunks.length}/${staticList.length} statisch (gemergt, ${Math.round(vertTotal / 1000)}k Verts, 1 Draw Call) + ${j}/${dynList.length} dynamisch (folgen Animation) · CD-Verlauf als Vertex-Farben gebaked (Uint8).`);
 
+    /* Shader-Warm-up (07.07.): beide GL-Kontexte VOR dem ersten sichtbaren Frame kompilieren
+       (compileAsync nutzt KHR_parallel_shader_compile) — sonst friert die erste Messung/der
+       erste Bake auf schwachen iGPUs genau den „SYSTEM BEREIT"-Moment ein. */
+    setProgress(.97);
+    try {
+      if (rReal.compileAsync) await rReal.compileAsync(scene, cam); /* Original-Materialien sind montiert */
+      setWireLook();
+      if (rWire.compileAsync) await rWire.compileAsync(scene, cam);
+      setRealLook();
+    } catch (e) { console.warn("[hero] Shader-Warm-up übersprungen:", e); }
+    await yieldFrame();
+
     /* Erster Bake + Startpose — Reihenfolge: erst Offset berechnen und setzen
-       (resize → computeHeroShift + applyViewOffset), DANN der Runtime-Bake */
+       (resize → computeHeroShift + applyViewOffset), DANN der Runtime-Bake.
+       07.07.: Messung (GPU-Readback), Bake und erster Wire-Frame durch yieldFrame()
+       getrennt — sie teilen sich nicht mehr EINEN Frame. */
     annBox = box.clone(); /* robuste Cluster-Box → Rechtsbündig-Framing + Bemaßung */
     resize(false);
+    setProgress(.98);
+    await yieldFrame();
     bake();
+    setProgress(.99);
+    await yieldFrame();
     setWireLook();
     setSim(15.5);
     cam.position.copy(P0); camT.copy(T0); cam.lookAt(T0);
@@ -1251,6 +1316,9 @@ export async function initHero(cfg = {}) {
   function startScanFx(o) { /* Stufe 3 (320–800 ms): gerichteter Scan + synchroner Count (Änd. 1+2) — strikt rAF, nur transform/opacity */
     const t0 = performance.now(), A = KFX.scan - KFX.spring, over = Math.round(o.target * KFX.over);
     const W = o.num.clientWidth; /* einmalige Messung — im rAF nur noch Writes */
+    let lastAmtT = -1e3; /* 07.07.: Ziffern-Update ~30 Hz — jeder Ziffernwechsel rastert die große
+       Zahl neu (3 Ebenen, text-stroke + background-clip); halbe Rate = halbe Paint-Last,
+       das „Hochzählen" wirkt unverändert schnell. Scan/Reveal bleiben 60 fps (nur transform). */
     o.scan.style.opacity = "1";
     const step = () => {
       if (!o.fx) return;
@@ -1261,7 +1329,7 @@ export async function initHero(cfg = {}) {
       let v; /* easeOutCubic auf den Überschwinger (+4 %), Rückfeder in den letzten 180 ms */
       if (t <= A) v = over * easeOutC(clamp(t / A, 0, 1));
       else v = lerp(over, o.target, easeOutC(clamp((t - A) / KFX.spring, 0, 1)));
-      setAmount(o, v);
+      if (t - lastAmtT >= 30) { setAmount(o, v); lastAmtT = t; }
       if (p < 1) o.fx.raf = requestAnimationFrame(step);
       else { endScan(o); startPunch(o); }
     };
@@ -1318,6 +1386,8 @@ export async function initHero(cfg = {}) {
   let dockedFlags = [false, false, false], dockedCount = 0, launchScheduled = false;
   let barShown = false, seqStart = 0;
   let beatStarted = false, introSkipped = false; /* Änd. 1 (06.07.): Abflug-Beat mit großem „SYSTEM BEREIT" */
+  const READY_BEAT = 60; /* 07.07.: „SYSTEM BEREIT" folgt DIREKT auf das Verschwinden der letzten Zahl (Ankunft im Schriftfeld) */
+  let lastArriveT = 0, pendingQueued = false;
   const miniFrames = makeDissolveFrames(20, 8, 4, 8, 1.0);
 
   /* Abflug-Herzschlag — alle drei Slot-Werte pulsieren einmal SYNCHRON (scale ~1.08,
@@ -1345,7 +1415,15 @@ export async function initHero(cfg = {}) {
   function pendingLaunch() { /* Sonderfall pendingStart (Änd. 1): Balken-Puls, Herzschlag und
        großes „SYSTEM BEREIT" gehen in diesem Moment als EIN gemeinsamer Beat auf; Iris nach
        Build+Hold. reduced: statischer Kurz-Moment (~400 ms), keine Pulse/Scans. */
-    if (launched || beatStarted) return;
+    if (launched || beatStarted || pendingQueued) return;
+    /* 07.07.: Mindest-Beat auch im Wartefall — „SYSTEM BEREIT" frühestens READY_BEAT nach der
+       letzten Ankunft; hat das Laden ohnehin länger gedauert, feuert es sofort (direkt danach). */
+    const waitBeat = introSkipped ? 0 : Math.max(0, READY_BEAT - (performance.now() - lastArriveT));
+    if (lastArriveT && waitBeat > 0) {
+      pendingQueued = true;
+      setTimeout(() => { pendingQueued = false; pendingLaunch(); }, waitBeat);
+      return;
+    }
     if (reduced) {
       beatStarted = true;
       rmList.style.display = "none"; /* harter Cut statt Bewegung — das Wort ersetzt die Liste kurz */
@@ -1423,6 +1501,7 @@ export async function initHero(cfg = {}) {
     vid.load();
     vid.addEventListener("canplaythrough", () => {
       videoReady = true; clearTimeout(videoFbTimer);
+      try { if (VIDEO_TRIM > 0 && vid.currentTime < VIDEO_TRIM) vid.currentTime = VIDEO_TRIM; } catch (e) { /* Seek optional — ohne Trim läuft das Video voll */ }
       console.log("[hero] Video bereit (canplaythrough)");
       if (pendingStart && gateOpen()) pendingLaunch();
     }, { once: true });
@@ -1441,8 +1520,11 @@ export async function initHero(cfg = {}) {
     const bx = innerWidth / 2, by = innerHeight / 2;
     const R0 = performance.now(), IR = Math.hypot(bx, by) * 2.1;
     const IDUR = reduced ? 120 : 620; /* Auto-Iris 620 ms ab Bildschirmmitte — Schriftfeld (z11) überlebt */
+    let irSkip = true;
     (function ir() {
       const p = clamp((performance.now() - R0) / IDUR, 0, 1);
+      /* 07.07.: schwache Geräte zeichnen die Vollbild-Maske nur jeden 2. Frame neu (Ende immer) */
+      if (weakFx && (irSkip = !irSkip) && p < .9) { rafTick(ir); return; }
       const m = `radial-gradient(circle ${easeInQ(p) * IR}px at ${bx}px ${by}px,transparent 0 99%,#000 100%)`;
       intro.style.webkitMaskImage = m; intro.style.maskImage = m;
       if (p < 1) rafTick(ir); else intro.style.display = "none";
@@ -1541,7 +1623,9 @@ export async function initHero(cfg = {}) {
     console.log(`[hero] dock #${k + 1} angekommen @ ${seqStart ? Math.round(performance.now() - seqStart) : 0} ms`);
     if (dockedCount === KPIS.length && seqDone && !launchScheduled) {
       launchScheduled = true;
-      setTimeout(tryLaunch, 120); /* Beat nach letzter Ankunft 322 → 120 ms (06.07.): „SYSTEM BEREIT" folgt der letzten Zahl dichter, Iris rückt ~200 ms vor */
+      lastArriveT = performance.now();
+      /* 07.07.: sobald die letzte Zahl im Schriftfeld verschwunden ist, folgt „SYSTEM BEREIT" direkt */
+      setTimeout(tryLaunch, READY_BEAT);
     }
   }
   function dock(k, mode) { /* mode: false=normal, true=schnell, "instant"=sofort */
@@ -1637,6 +1721,7 @@ export async function initHero(cfg = {}) {
     startLoop();
   }
 
+  if (!devSkip && !reduced) skipBtn.style.display = "block"; /* 07.07.: Skip-Button schon während der Boot-Sequenz sichtbar (z12, über dem Intro) */
   if (devSkip) { pendingStart = false; console.warn("[hero] devSkip aktiv — Intro & KPI-Zahlen übersprungen (Prop devSkipIntro oder QA-Flag 'skip' in sessionStorage iph_qa_flags)"); }
   else if (reduced) {
     /* Reduced Motion: Schriftfeld sofort voll befüllt, kein Flug */
@@ -1719,6 +1804,7 @@ export async function initHero(cfg = {}) {
     if (railLabel) railLabel.style.opacity = "0";
     cvR.style.opacity = "1"; /* Zitat-Fade zurücksetzen */
     if (camReadHero) camRead.textContent = camReadHero;
+    if (camSub) camSub.style.opacity = "0"; /* Plattform-Zeile gehört zur Tour — im Hero ausgeblendet */
     applyViewOffset(1); /* zurück ins Hero-Framing, dann neu baken */
     bake(); /* stellt Bake-Bild (17,30) + Wireframe-Look wieder her */
     startLoop();
@@ -1803,6 +1889,8 @@ export async function initHero(cfg = {}) {
     const f2 = v => v.toFixed(2);
     camRead.textContent = `CAM ${f2(pos.x)} / ${f2(pos.y)} / ${f2(pos.z)} · TARGET ${f2(tgt.x)} / ${f2(tgt.y)} / ${f2(tgt.z)} · SIM ${simT.toFixed(2)} S · ${ovP > 0 ? "ÜBERBLICK" : "STATION " + (stationAt(simT) + 1)}`;
     camRead.style.opacity = "1";
+    /* Plattform-Zeile: erscheint erst mit dem „iPhysics by machineering"-Block (Tour-Einstieg) und bleibt dann stehen (07.07.) */
+    if (camSub) { const sOp = tourP > .006 ? "1" : "0"; if (camSub.style.opacity !== sOp) camSub.style.opacity = sOp; }
 
     /* Intro-Block (H2 + Pitch) im Einstiegs-Beat */
     const ioIn = clamp(tourP / .012, 0, 1);
@@ -1926,7 +2014,10 @@ export async function initHero(cfg = {}) {
     roofs.forEach(g => { g.material.opacity = 0; });
     setState("sweep");
   }
-  skipBtn.addEventListener("click", finish);
+  skipBtn.addEventListener("click", () => {
+    if (!launched) { skipIntro(); return; } /* 07.07.: Button überspringt auch die KPI-Boot-Sequenz (wie Esc/Enter) */
+    if (state === "descent" || state === "video") finish();
+  });
   addEventListener("keydown", e => { if (e.key === "Enter" && (state === "descent" || state === "video")) finish(); });
 
   /* Taste R: Real-Layer als hochauflösendes PNG (§4) */

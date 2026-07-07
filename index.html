@@ -117,8 +117,8 @@
 
     <div id="hint" style="position: absolute; left: 50%; bottom: 76px; transform: translateX(-50%); z-index: 4; font-weight: 600; font-size: 10.5px; letter-spacing: 0.24em; color: #6B7E86; white-space: nowrap; opacity: 0; transition: opacity .8s ease .5s;"></div>
     <div id="cam" style="position: absolute; left: clamp(20px, 6vw, 96px); top: 112px; z-index: 4; font-weight: 600; font-size: 10px; letter-spacing: 0.1em; color: rgba(107,126,134,.75); opacity: 0; transition: opacity .8s ease .7s; user-select: all; -webkit-user-select: all; cursor: text;"></div>
-    <button id="skip" type="button" style="position: absolute; right: clamp(16px, 4vw, 48px); top: 78px; z-index: 9; font-family: 'Titillium Web', sans-serif; font-weight: 700; font-size: 10.5px; letter-spacing: 0.24em; color: #6B7E86; background: rgba(255,255,255,.7); border: 1px solid #D6E7EE; padding: 9px 15px; cursor: pointer; border-radius: 99px; display: none; transition: color .3s, border-color .3s;" style-hover="color: #3BAED1; border-color: #3BAED1" style-focus="outline: 3px solid rgba(59,174,209,.55); outline-offset: 3px">ÜBERSPRINGEN ⏎</button>
-
+    <!-- Plattform-Zeile (07.07.): deutlichere Zeile direkt unter dem CAM-Readout — sichtbar im gesamten 3D-Scroll-Abschnitt (Ein-/Ausblenden synchron zum Readout, hero-engine.js) -->
+    <div id="cam-sub" style="position: absolute; left: clamp(20px, 6vw, 96px); top: 105px; z-index: 4; font-weight: 700; font-size: clamp(15px, 1.5vw, 19px); letter-spacing: 0.02em; color: #6B7E86; opacity: 0; transition: opacity .6s ease; pointer-events: none;">iPhysics — die Plattform</div>
     <!-- ===== Abschnitt 1: Prozess-Tour (§7) — Overlays, vom Scroll-Scrub gesteuert ===== -->
     <div id="tour" data-screen-label="Prozess-Tour" style="position: absolute; inset: 0; z-index: 5; pointer-events: none;">
       <div id="tour-intro" style="position: absolute; left: clamp(20px, 6vw, 96px); top: 50%; transform: translateY(-50%); width: min(500px, 86vw); box-sizing: border-box; opacity: 0; background: rgba(255,255,255,.72); backdrop-filter: blur(6px); -webkit-backdrop-filter: blur(6px); border-radius: 8px; padding: clamp(34px, 5.5vh, 56px) clamp(26px, 2.4vw, 38px);">
@@ -137,7 +137,7 @@
         <span aria-hidden="true" style="position: absolute; left: -2px; bottom: -2px; width: 20px; height: 20px; border-bottom: 2px solid #3FB18F; border-left: 2px solid #3FB18F; filter: drop-shadow(0 0 6px rgba(63,177,143,.65)); animation: iphCorner 2.6s ease-in-out infinite .8s;"></span>
         <span aria-hidden="true" style="position: absolute; right: -2px; bottom: -2px; width: 20px; height: 20px; border-bottom: 2px solid #45B347; border-right: 2px solid #45B347; filter: drop-shadow(0 0 6px rgba(69,179,71,.65)); animation: iphCorner 2.6s ease-in-out infinite 1.2s;"></span>
         <div style="font-weight: 600; font-size: 11px; letter-spacing: 0.3em; color: #10262E;">01 · VERTRIEB</div>
-        <h3 style="margin: 8px 0 0; font-weight: 700; font-size: 21px; line-height: 1.12; letter-spacing: 0.04em; background: linear-gradient(120deg, #3BAED1 10%, #45B347 90%); -webkit-background-clip: text; background-clip: text; -webkit-text-fill-color: transparent; color: #3BAED1;">Die Anlage überzeugt — bevor sie gebaut ist.</h3>
+        <h3 style="margin: 8px 0 0; font-weight: 700; font-size: 21px; line-height: 1.12; letter-spacing: 0.04em; background: linear-gradient(120deg, #3BAED1 10%, #45B347 90%); -webkit-background-clip: text; background-clip: text; -webkit-text-fill-color: transparent; color: #3BAED1;">Die Anlage erleben — bevor sie gebaut ist.</h3>
         <p style="margin: 10px 0 0 0; font-weight: 400; font-size: 15px; line-height: 1.65; color: #10262E;">Noch vor dem Kauf erleben Ihre Kunden ihre Anlage als interaktives 3D-Modell – und sehen ihre Prozesse bereits in Aktion. Kaufentscheidungen werden schneller, sicherer, überzeugender.</p>
       </div>
       <div id="tcard-1" data-screen-label="Station 2 Engineering" style="position: absolute; top: 50%; right: clamp(20px, 6vw, 96px); width: min(400px, 40vw); transform: translateY(-50%); opacity: 0; background: rgba(255,255,255,.78); backdrop-filter: blur(6px); -webkit-backdrop-filter: blur(6px); border-radius: 8px; padding: 26px 28px; pointer-events: auto;">
@@ -146,7 +146,7 @@
         <span aria-hidden="true" style="position: absolute; left: -2px; bottom: -2px; width: 20px; height: 20px; border-bottom: 2px solid #3FB18F; border-left: 2px solid #3FB18F; filter: drop-shadow(0 0 6px rgba(63,177,143,.65)); animation: iphCorner 2.6s ease-in-out infinite .8s;"></span>
         <span aria-hidden="true" style="position: absolute; right: -2px; bottom: -2px; width: 20px; height: 20px; border-bottom: 2px solid #45B347; border-right: 2px solid #45B347; filter: drop-shadow(0 0 6px rgba(69,179,71,.65)); animation: iphCorner 2.6s ease-in-out infinite 1.2s;"></span>
         <div style="font-weight: 600; font-size: 11px; letter-spacing: 0.3em; color: #10262E;">02 · ENGINEERING</div>
-        <h3 style="margin: 8px 0 0; font-weight: 700; font-size: 21px; line-height: 1.12; letter-spacing: 0.04em; background: linear-gradient(120deg, #3BAED1 10%, #45B347 90%); -webkit-background-clip: text; background-clip: text; -webkit-text-fill-color: transparent; color: #3BAED1;">Fehler finden, solange sie nichts kosten.</h3>
+        <h3 style="margin: 8px 0 0; font-weight: 700; font-size: 21px; line-height: 1.12; letter-spacing: 0.04em; background: linear-gradient(120deg, #3BAED1 10%, #45B347 90%); -webkit-background-clip: text; background-clip: text; -webkit-text-fill-color: transparent; color: #3BAED1;">Parallel entwickeln statt nachträglich korrigieren.</h3>
         <p style="margin: 10px 0 0 0; font-weight: 400; font-size: 15px; line-height: 1.65; color: #10262E;">Konstruktion, Elektro und Software arbeiten parallel am selben digitalen Prototyp. Fehler werden früh erkannt.</p>
       </div>
       <div id="tcard-2" data-screen-label="Station 3 Inbetriebnahme" style="position: absolute; top: 50%; left: clamp(20px, 6vw, 96px); width: min(400px, 40vw); transform: translateY(-50%); opacity: 0; background: rgba(255,255,255,.78); backdrop-filter: blur(6px); -webkit-backdrop-filter: blur(6px); border-radius: 8px; padding: 26px 28px; pointer-events: auto;">
@@ -155,7 +155,7 @@
         <span aria-hidden="true" style="position: absolute; left: -2px; bottom: -2px; width: 20px; height: 20px; border-bottom: 2px solid #3FB18F; border-left: 2px solid #3FB18F; filter: drop-shadow(0 0 6px rgba(63,177,143,.65)); animation: iphCorner 2.6s ease-in-out infinite .8s;"></span>
         <span aria-hidden="true" style="position: absolute; right: -2px; bottom: -2px; width: 20px; height: 20px; border-bottom: 2px solid #45B347; border-right: 2px solid #45B347; filter: drop-shadow(0 0 6px rgba(69,179,71,.65)); animation: iphCorner 2.6s ease-in-out infinite 1.2s;"></span>
         <div style="font-weight: 600; font-size: 11px; letter-spacing: 0.3em; color: #10262E;">03 · INBETRIEBNAHME</div>
-        <h3 style="margin: 8px 0 0; font-weight: 700; font-size: 21px; line-height: 1.12; letter-spacing: 0.04em; background: linear-gradient(120deg, #3BAED1 10%, #45B347 90%); -webkit-background-clip: text; background-clip: text; -webkit-text-fill-color: transparent; color: #3BAED1;">Der Ernstfall findet virtuell statt.</h3>
+        <h3 style="margin: 8px 0 0; font-weight: 700; font-size: 21px; line-height: 1.12; letter-spacing: 0.04em; background: linear-gradient(120deg, #3BAED1 10%, #45B347 90%); -webkit-background-clip: text; background-clip: text; -webkit-text-fill-color: transparent; color: #3BAED1;">Inbetriebnahme virtuell testen, bevor die Anlage steht.</h3>
         <p style="margin: 10px 0 0 0; font-weight: 400; font-size: 15px; line-height: 1.65; color: #10262E;">Der echte SPS-Code läuft gegen den digitalen Zwilling, bevor die Anlage physisch existiert. Keine bösen Überraschungen bei der IBN.</p>
       </div>
       <div id="tcard-3" data-screen-label="Station 4 Schulung" style="position: absolute; top: 50%; right: clamp(20px, 6vw, 96px); width: min(400px, 40vw); transform: translateY(-50%); opacity: 0; background: rgba(255,255,255,.78); backdrop-filter: blur(6px); -webkit-backdrop-filter: blur(6px); border-radius: 8px; padding: 26px 28px; pointer-events: auto;">
@@ -164,7 +164,7 @@
         <span aria-hidden="true" style="position: absolute; left: -2px; bottom: -2px; width: 20px; height: 20px; border-bottom: 2px solid #3FB18F; border-left: 2px solid #3FB18F; filter: drop-shadow(0 0 6px rgba(63,177,143,.65)); animation: iphCorner 2.6s ease-in-out infinite .8s;"></span>
         <span aria-hidden="true" style="position: absolute; right: -2px; bottom: -2px; width: 20px; height: 20px; border-bottom: 2px solid #45B347; border-right: 2px solid #45B347; filter: drop-shadow(0 0 6px rgba(69,179,71,.65)); animation: iphCorner 2.6s ease-in-out infinite 1.2s;"></span>
         <div style="font-weight: 600; font-size: 11px; letter-spacing: 0.3em; color: #10262E;">04 · SCHULUNG</div>
-        <h3 style="margin: 8px 0 0; font-weight: 700; font-size: 21px; line-height: 1.12; letter-spacing: 0.04em; background: linear-gradient(120deg, #3BAED1 10%, #45B347 90%); -webkit-background-clip: text; background-clip: text; -webkit-text-fill-color: transparent; color: #3BAED1;">Einsatzbereit, bevor die Anlage steht.</h3>
+        <h3 style="margin: 8px 0 0; font-weight: 700; font-size: 21px; line-height: 1.12; letter-spacing: 0.04em; background: linear-gradient(120deg, #3BAED1 10%, #45B347 90%); -webkit-background-clip: text; background-clip: text; -webkit-text-fill-color: transparent; color: #3BAED1;">Schulung im Voraus — ohne Stillstand der Produktion.</h3>
         <p style="margin: 10px 0 0 0; font-weight: 400; font-size: 15px; line-height: 1.65; color: #10262E;">Ihre Mitarbeiter lernen direkt am digitalen Modell – vor der IBN und parallel zur laufenden Produktion, ohne Stillstand.</p>
       </div>
       <div id="tcard-4" data-screen-label="Station 5 Digital Twin as a Product" style="position: absolute; top: 50%; left: clamp(20px, 6vw, 96px); width: min(400px, 40vw); transform: translateY(-50%); opacity: 0; background: rgba(255,255,255,.78); backdrop-filter: blur(6px); -webkit-backdrop-filter: blur(6px); border-radius: 8px; padding: 26px 28px; pointer-events: auto;">
@@ -173,7 +173,7 @@
         <span aria-hidden="true" style="position: absolute; left: -2px; bottom: -2px; width: 20px; height: 20px; border-bottom: 2px solid #3FB18F; border-left: 2px solid #3FB18F; filter: drop-shadow(0 0 6px rgba(63,177,143,.65)); animation: iphCorner 2.6s ease-in-out infinite .8s;"></span>
         <span aria-hidden="true" style="position: absolute; right: -2px; bottom: -2px; width: 20px; height: 20px; border-bottom: 2px solid #45B347; border-right: 2px solid #45B347; filter: drop-shadow(0 0 6px rgba(69,179,71,.65)); animation: iphCorner 2.6s ease-in-out infinite 1.2s;"></span>
         <div style="font-weight: 600; font-size: 11px; letter-spacing: 0.3em; color: #10262E;">05 · TWIN AS A PRODUCT</div>
-        <h3 style="margin: 8px 0 0; font-weight: 700; font-size: 21px; line-height: 1.12; letter-spacing: 0.04em; background: linear-gradient(120deg, #3BAED1 10%, #45B347 90%); -webkit-background-clip: text; background-clip: text; -webkit-text-fill-color: transparent; color: #3BAED1;">Der Zwilling, den Ihre Kunden mitkaufen.</h3>
+        <h3 style="margin: 8px 0 0; font-weight: 700; font-size: 21px; line-height: 1.12; letter-spacing: 0.04em; background: linear-gradient(120deg, #3BAED1 10%, #45B347 90%); -webkit-background-clip: text; background-clip: text; -webkit-text-fill-color: transparent; color: #3BAED1;">Der digitale Zwilling wird mitgeliefert, nicht nachgerüstet.</h3>
         <p style="margin: 10px 0 0 0; font-weight: 400; font-size: 15px; line-height: 1.65; color: #10262E;">Der digitale Zwilling wird zum mitgelieferten Produkt: Ihre Kunden nutzen ihn für Produktwechsel, Rüstoptimierung und das Onboarding neuer Mitarbeiter.</p>
       </div>
 
@@ -191,26 +191,26 @@
       <!-- Überblick-Fenster (Änd. 2, 06.07.): alle fünf Mehrwerte als kompakte Chips über der Gesamtansicht.
            Einblend-Stagger + Position steuert hero-engine.js (renderTour/layoutChrome). -->
       <div id="tour-overview" data-screen-label="Überblick — alle Mehrwerte" style="position: absolute; left: clamp(20px, 6vw, 96px); top: 50%; transform: translateY(-50%); width: min(430px, 44vw); display: flex; flex-direction: column; gap: 10px;">
-        <div data-ovhead style="font-weight: 700; font-size: clamp(15px, 0.7vw + 9px, 19px); line-height: 1.2; letter-spacing: -0.01em; color: #10262E; opacity: 0; margin-bottom: 2px;">Ihre Vorteile im <span style="background: linear-gradient(120deg, #3BAED1 10%, #45B347 90%); -webkit-background-clip: text; background-clip: text; -webkit-text-fill-color: transparent; color: #3BAED1;">Überblick</span></div>
+        <div data-ovhead style="font-weight: 700; font-size: clamp(15px, 0.7vw + 9px, 19px); line-height: 1.2; letter-spacing: -0.01em; background: linear-gradient(120deg, #3BAED1 10%, #45B347 90%); -webkit-background-clip: text; background-clip: text; -webkit-text-fill-color: transparent; color: #3BAED1; opacity: 0; margin-bottom: 2px;">Ihre Vorteile im Überblick</div>
         <div data-ovchip style="box-sizing: border-box; background: #FFFFFF; border: 1px solid #D6E7EE; border-radius: 12px; padding: 12px 16px; box-shadow: 0 14px 30px -18px rgba(16,38,46,.18); opacity: 0;">
           <div style="font-weight: 600; font-size: 10px; letter-spacing: 0.28em; white-space: nowrap; background: linear-gradient(120deg, #3BAED1 10%, #45B347 90%); -webkit-background-clip: text; background-clip: text; -webkit-text-fill-color: transparent; color: #3BAED1;">01 · VERTRIEB</div>
-          <div style="margin-top: 4px; font-weight: 700; font-size: clamp(11.5px, 0.9vw + 5px, 15.5px); line-height: 1.3; color: #10262E; white-space: nowrap;">Die Anlage überzeugt — bevor sie gebaut ist.</div>
+          <div style="margin-top: 4px; font-weight: 700; font-size: clamp(11.5px, 0.9vw + 5px, 15.5px); line-height: 1.3; color: #10262E;">Die Anlage erleben — bevor sie gebaut ist.</div>
         </div>
         <div data-ovchip style="box-sizing: border-box; background: #FFFFFF; border: 1px solid #D6E7EE; border-radius: 12px; padding: 12px 16px; box-shadow: 0 14px 30px -18px rgba(16,38,46,.18); opacity: 0;">
           <div style="font-weight: 600; font-size: 10px; letter-spacing: 0.28em; white-space: nowrap; background: linear-gradient(120deg, #3BAED1 10%, #45B347 90%); -webkit-background-clip: text; background-clip: text; -webkit-text-fill-color: transparent; color: #3BAED1;">02 · ENGINEERING</div>
-          <div style="margin-top: 4px; font-weight: 700; font-size: clamp(11.5px, 0.9vw + 5px, 15.5px); line-height: 1.3; color: #10262E; white-space: nowrap;">Fehler finden, solange sie nichts kosten.</div>
+          <div style="margin-top: 4px; font-weight: 700; font-size: clamp(11.5px, 0.9vw + 5px, 15.5px); line-height: 1.3; color: #10262E;">Parallel entwickeln statt nachträglich korrigieren.</div>
         </div>
         <div data-ovchip style="box-sizing: border-box; background: #FFFFFF; border: 1px solid #D6E7EE; border-radius: 12px; padding: 12px 16px; box-shadow: 0 14px 30px -18px rgba(16,38,46,.18); opacity: 0;">
           <div style="font-weight: 600; font-size: 10px; letter-spacing: 0.28em; white-space: nowrap; background: linear-gradient(120deg, #3BAED1 10%, #45B347 90%); -webkit-background-clip: text; background-clip: text; -webkit-text-fill-color: transparent; color: #3BAED1;">03 · INBETRIEBNAHME</div>
-          <div style="margin-top: 4px; font-weight: 700; font-size: clamp(11.5px, 0.9vw + 5px, 15.5px); line-height: 1.3; color: #10262E; white-space: nowrap;">Der Ernstfall findet virtuell statt.</div>
+          <div style="margin-top: 4px; font-weight: 700; font-size: clamp(11.5px, 0.9vw + 5px, 15.5px); line-height: 1.3; color: #10262E;">Inbetriebnahme virtuell testen, bevor die Anlage steht.</div>
         </div>
         <div data-ovchip style="box-sizing: border-box; background: #FFFFFF; border: 1px solid #D6E7EE; border-radius: 12px; padding: 12px 16px; box-shadow: 0 14px 30px -18px rgba(16,38,46,.18); opacity: 0;">
           <div style="font-weight: 600; font-size: 10px; letter-spacing: 0.28em; white-space: nowrap; background: linear-gradient(120deg, #3BAED1 10%, #45B347 90%); -webkit-background-clip: text; background-clip: text; -webkit-text-fill-color: transparent; color: #3BAED1;">04 · SCHULUNG</div>
-          <div style="margin-top: 4px; font-weight: 700; font-size: clamp(11.5px, 0.9vw + 5px, 15.5px); line-height: 1.3; color: #10262E; white-space: nowrap;">Einsatzbereit, bevor die Anlage steht.</div>
+          <div style="margin-top: 4px; font-weight: 700; font-size: clamp(11.5px, 0.9vw + 5px, 15.5px); line-height: 1.3; color: #10262E;">Schulung im Voraus — ohne Stillstand der Produktion.</div>
         </div>
         <div data-ovchip style="box-sizing: border-box; background: #FFFFFF; border: 1px solid #D6E7EE; border-radius: 12px; padding: 12px 16px; box-shadow: 0 14px 30px -18px rgba(16,38,46,.18); opacity: 0;">
           <div style="font-weight: 600; font-size: 10px; letter-spacing: 0.28em; white-space: nowrap; background: linear-gradient(120deg, #3BAED1 10%, #45B347 90%); -webkit-background-clip: text; background-clip: text; -webkit-text-fill-color: transparent; color: #3BAED1;">05 · TWIN AS A PRODUCT</div>
-          <div style="margin-top: 4px; font-weight: 700; font-size: clamp(11.5px, 0.9vw + 5px, 15.5px); line-height: 1.3; color: #10262E; white-space: nowrap;">Der Zwilling, den Ihre Kunden mitkaufen.</div>
+          <div style="margin-top: 4px; font-weight: 700; font-size: clamp(11.5px, 0.9vw + 5px, 15.5px); line-height: 1.3; color: #10262E;">Der digitale Zwilling wird mitgeliefert, nicht nachgerüstet.</div>
         </div>
       </div>
 
@@ -238,6 +238,9 @@
     <div id="rm-list" style="display: none; position: absolute; inset: 0; flex-direction: column; align-items: center; justify-content: center; font-weight: 600; font-size: 14px; color: #6B7E86; line-height: 2.2; text-align: center;"></div>
     <div id="intro-foot" style="position: absolute; bottom: 68px; left: 0; right: 0; text-align: center; font-weight: 400; font-size: 10px; letter-spacing: 0.1em; color: #6B7E86; opacity: .65;">Startet automatisch nach der letzten Zahl</div>
   </div>
+
+  <!-- Skip-Button (07.07.): Geschwister des Intros, z12 — über dem Intro-Layer (z9) sichtbar und klickbar; überspringt im Boot die KPI-Sequenz, danach Video/Descent -->
+  <button id="skip" type="button" style="position: fixed; right: clamp(16px, 4vw, 48px); top: 78px; z-index: 12; white-space: nowrap; font-family: 'Titillium Web', sans-serif; font-weight: 700; font-size: 10.5px; letter-spacing: 0.24em; color: #6B7E86; background: rgba(255,255,255,.7); border: 1px solid #D6E7EE; padding: 9px 15px; cursor: pointer; border-radius: 99px; display: none; transition: color .3s, border-color .3s;" style-hover="color: #3BAED1; border-color: #3BAED1" style-focus="outline: 3px solid rgba(59,174,209,.55); outline-offset: 3px">ÜBERSPRINGEN ⏎</button>
 
   <!-- ===== Schriftfeld (persistente KPI-Leiste, über dem Intro-Layer, überlebt die Iris) ===== -->
   <div id="specbar" data-screen-label="Schriftfeld" aria-hidden="true" style="position: fixed; left: 0; right: 0; bottom: 0; height: 58px; z-index: 11; display: flex; align-items: stretch; justify-content: center; padding: 0 clamp(20px, 6vw, 96px); border-top: 1px solid #D6E7EE; background: rgba(251,253,254,.78); opacity: 0; transform: translateY(8px); transition: opacity .45s ease, transform .45s ease; pointer-events: none;">
@@ -494,12 +497,11 @@
             <div data-s3left style="flex: 0 0 auto; box-sizing: border-box; width: clamp(180px, 22vw, 300px); display: flex; flex-direction: column; justify-content: space-between; gap: clamp(28px, 4vh, 44px);">
               <div>
                 <div style="font-weight: 600; font-size: 11px; letter-spacing: 0.32em; text-transform: uppercase; color: #6B7E86;">Phase</div>
-                <div style="margin-top: 8px; font-weight: 900; font-size: clamp(108px, 15vw, 224px); line-height: 0.8; letter-spacing: -0.02em; background: linear-gradient(120deg, #3BAED1, #45B347); -webkit-background-clip: text; background-clip: text; -webkit-text-fill-color: transparent; color: #3BAED1;">1</div>
+                <div style="margin-top: 8px; font-weight: 900; font-size: clamp(30px, 3vw, 46px); line-height: 0.9; letter-spacing: -0.02em; background: linear-gradient(120deg, #3BAED1, #45B347); -webkit-background-clip: text; background-clip: text; -webkit-text-fill-color: transparent; color: #3BAED1;">1</div>
               </div>
-              <div style="display: inline-flex; align-items: center; gap: 15px; align-self: flex-start; background: #FFFFFF; border: 1px solid #D6E7EE; border-radius: 999px; padding: 12px 22px; box-shadow: 0 10px 24px -14px rgba(16,38,46,.22);">
-                <div data-count="40" data-prefix="+" data-suffix="&thinsp;%" style="font-weight: 900; font-size: clamp(23px, 2.3vw, 30px); line-height: 1; letter-spacing: -0.01em; font-variant-numeric: tabular-nums; min-width: 4.4ch; background: linear-gradient(120deg, #3BAED1, #45B347); -webkit-background-clip: text; background-clip: text; -webkit-text-fill-color: transparent; color: #3BAED1;">+40&thinsp;%</div>
-                <div style="width: 1px; align-self: stretch; background: #D6E7EE;"></div>
-                <div style="font-weight: 600; font-size: 9.5px; letter-spacing: 0.18em; text-transform: uppercase; color: #6B7E86; line-height: 1.45; max-width: 130px;">Abschlussquote im Vertrieb</div>
+              <div>
+                <div data-count="40" data-prefix="+" data-suffix="&thinsp;%" style="font-weight: 900; font-size: clamp(42px, 4.6vw, 72px); line-height: 0.95; letter-spacing: -0.02em; font-variant-numeric: tabular-nums; min-width: 4.4ch; background: linear-gradient(120deg, #3BAED1, #45B347); -webkit-background-clip: text; background-clip: text; -webkit-text-fill-color: transparent; color: #3BAED1;">+40&thinsp;%</div>
+                <div style="margin-top: 10px; font-weight: 600; font-size: 10px; letter-spacing: 0.22em; text-transform: uppercase; color: #6B7E86; line-height: 1.5; max-width: 240px;">Abschlussquote im Vertrieb</div>
               </div>
             </div>
             <div data-s3right style="flex: 1 1 auto; box-sizing: border-box; min-width: 0; border-left: 1px solid #D6E7EE; padding-left: clamp(28px, 4vw, 68px); display: flex; flex-direction: column; justify-content: center;">
@@ -516,12 +518,11 @@
             <div data-s3left style="flex: 0 0 auto; box-sizing: border-box; width: clamp(180px, 22vw, 300px); display: flex; flex-direction: column; justify-content: space-between; gap: clamp(28px, 4vh, 44px);">
               <div>
                 <div style="font-weight: 600; font-size: 11px; letter-spacing: 0.32em; text-transform: uppercase; color: #6B7E86;">Phase</div>
-                <div style="margin-top: 8px; font-weight: 900; font-size: clamp(108px, 15vw, 224px); line-height: 0.8; letter-spacing: -0.02em; background: linear-gradient(120deg, #3BAED1, #45B347); -webkit-background-clip: text; background-clip: text; -webkit-text-fill-color: transparent; color: #3BAED1;">2</div>
+                <div style="margin-top: 8px; font-weight: 900; font-size: clamp(30px, 3vw, 46px); line-height: 0.9; letter-spacing: -0.02em; background: linear-gradient(120deg, #3BAED1, #45B347); -webkit-background-clip: text; background-clip: text; -webkit-text-fill-color: transparent; color: #3BAED1;">2</div>
               </div>
-              <div style="display: inline-flex; align-items: center; gap: 15px; align-self: flex-start; background: #FFFFFF; border: 1px solid #D6E7EE; border-radius: 999px; padding: 12px 22px; box-shadow: 0 10px 24px -14px rgba(16,38,46,.22);">
-                <div data-count="50" data-prefix="−" data-suffix="&thinsp;%" style="font-weight: 900; font-size: clamp(23px, 2.3vw, 30px); line-height: 1; letter-spacing: -0.01em; font-variant-numeric: tabular-nums; min-width: 4.4ch; background: linear-gradient(120deg, #3BAED1, #45B347); -webkit-background-clip: text; background-clip: text; -webkit-text-fill-color: transparent; color: #3BAED1;">−50&thinsp;%</div>
-                <div style="width: 1px; align-self: stretch; background: #D6E7EE;"></div>
-                <div style="font-weight: 600; font-size: 9.5px; letter-spacing: 0.18em; text-transform: uppercase; color: #6B7E86; line-height: 1.45; max-width: 130px;">Engineering-Kosten</div>
+              <div>
+                <div data-count="50" data-prefix="−" data-suffix="&thinsp;%" style="font-weight: 900; font-size: clamp(42px, 4.6vw, 72px); line-height: 0.95; letter-spacing: -0.02em; font-variant-numeric: tabular-nums; min-width: 4.4ch; background: linear-gradient(120deg, #3BAED1, #45B347); -webkit-background-clip: text; background-clip: text; -webkit-text-fill-color: transparent; color: #3BAED1;">−50&thinsp;%</div>
+                <div style="margin-top: 10px; font-weight: 600; font-size: 10px; letter-spacing: 0.22em; text-transform: uppercase; color: #6B7E86; line-height: 1.5; max-width: 240px;">Engineering-Kosten</div>
               </div>
             </div>
             <div data-s3right style="flex: 1 1 auto; box-sizing: border-box; min-width: 0; border-left: 1px solid #D6E7EE; padding-left: clamp(28px, 4vw, 68px); display: flex; flex-direction: column; justify-content: center;">
@@ -538,12 +539,11 @@
             <div data-s3left style="flex: 0 0 auto; box-sizing: border-box; width: clamp(180px, 22vw, 300px); display: flex; flex-direction: column; justify-content: space-between; gap: clamp(28px, 4vh, 44px);">
               <div>
                 <div style="font-weight: 600; font-size: 11px; letter-spacing: 0.32em; text-transform: uppercase; color: #6B7E86;">Phase</div>
-                <div style="margin-top: 8px; font-weight: 900; font-size: clamp(108px, 15vw, 224px); line-height: 0.8; letter-spacing: -0.02em; background: linear-gradient(120deg, #3BAED1, #45B347); -webkit-background-clip: text; background-clip: text; -webkit-text-fill-color: transparent; color: #3BAED1;">3</div>
+                <div style="margin-top: 8px; font-weight: 900; font-size: clamp(30px, 3vw, 46px); line-height: 0.9; letter-spacing: -0.02em; background: linear-gradient(120deg, #3BAED1, #45B347); -webkit-background-clip: text; background-clip: text; -webkit-text-fill-color: transparent; color: #3BAED1;">3</div>
               </div>
-              <div style="display: inline-flex; align-items: center; gap: 15px; align-self: flex-start; background: #FFFFFF; border: 1px solid #D6E7EE; border-radius: 999px; padding: 12px 22px; box-shadow: 0 10px 24px -14px rgba(16,38,46,.22);">
-                <div data-count="75" data-prefix="−" data-suffix="&thinsp;%" style="font-weight: 900; font-size: clamp(23px, 2.3vw, 30px); line-height: 1; letter-spacing: -0.01em; font-variant-numeric: tabular-nums; min-width: 4.4ch; background: linear-gradient(120deg, #3BAED1, #45B347); -webkit-background-clip: text; background-clip: text; -webkit-text-fill-color: transparent; color: #3BAED1;">−75&thinsp;%</div>
-                <div style="width: 1px; align-self: stretch; background: #D6E7EE;"></div>
-                <div style="font-weight: 600; font-size: 9.5px; letter-spacing: 0.18em; text-transform: uppercase; color: #6B7E86; line-height: 1.45; max-width: 130px;">Inbetriebnahmezeit</div>
+              <div>
+                <div data-count="75" data-prefix="−" data-suffix="&thinsp;%" style="font-weight: 900; font-size: clamp(42px, 4.6vw, 72px); line-height: 0.95; letter-spacing: -0.02em; font-variant-numeric: tabular-nums; min-width: 4.4ch; background: linear-gradient(120deg, #3BAED1, #45B347); -webkit-background-clip: text; background-clip: text; -webkit-text-fill-color: transparent; color: #3BAED1;">−75&thinsp;%</div>
+                <div style="margin-top: 10px; font-weight: 600; font-size: 10px; letter-spacing: 0.22em; text-transform: uppercase; color: #6B7E86; line-height: 1.5; max-width: 240px;">Inbetriebnahmezeit</div>
               </div>
             </div>
             <div data-s3right style="flex: 1 1 auto; box-sizing: border-box; min-width: 0; border-left: 1px solid #D6E7EE; padding-left: clamp(28px, 4vw, 68px); display: flex; flex-direction: column; justify-content: center;">
@@ -560,12 +560,11 @@
             <div data-s3left style="flex: 0 0 auto; box-sizing: border-box; width: clamp(180px, 22vw, 300px); display: flex; flex-direction: column; justify-content: space-between; gap: clamp(28px, 4vh, 44px);">
               <div>
                 <div style="font-weight: 600; font-size: 11px; letter-spacing: 0.32em; text-transform: uppercase; color: #6B7E86;">Phase</div>
-                <div style="margin-top: 8px; font-weight: 900; font-size: clamp(108px, 15vw, 224px); line-height: 0.8; letter-spacing: -0.02em; background: linear-gradient(120deg, #3BAED1, #45B347); -webkit-background-clip: text; background-clip: text; -webkit-text-fill-color: transparent; color: #3BAED1;">4</div>
+                <div style="margin-top: 8px; font-weight: 900; font-size: clamp(30px, 3vw, 46px); line-height: 0.9; letter-spacing: -0.02em; background: linear-gradient(120deg, #3BAED1, #45B347); -webkit-background-clip: text; background-clip: text; -webkit-text-fill-color: transparent; color: #3BAED1;">4</div>
               </div>
-              <div style="display: inline-flex; align-items: center; gap: 15px; align-self: flex-start; background: #FFFFFF; border: 1px solid #D6E7EE; border-radius: 999px; padding: 12px 22px; box-shadow: 0 10px 24px -14px rgba(16,38,46,.22);">
-                <div data-count="60" data-prefix="−" data-suffix="&thinsp;%" style="font-weight: 900; font-size: clamp(23px, 2.3vw, 30px); line-height: 1; letter-spacing: -0.01em; font-variant-numeric: tabular-nums; min-width: 4.4ch; background: linear-gradient(120deg, #3BAED1, #45B347); -webkit-background-clip: text; background-clip: text; -webkit-text-fill-color: transparent; color: #3BAED1;">−60&thinsp;%</div>
-                <div style="width: 1px; align-self: stretch; background: #D6E7EE;"></div>
-                <div style="font-weight: 600; font-size: 9.5px; letter-spacing: 0.18em; text-transform: uppercase; color: #6B7E86; line-height: 1.45; max-width: 130px;">Reisekosten</div>
+              <div>
+                <div data-count="60" data-prefix="−" data-suffix="&thinsp;%" style="font-weight: 900; font-size: clamp(42px, 4.6vw, 72px); line-height: 0.95; letter-spacing: -0.02em; font-variant-numeric: tabular-nums; min-width: 4.4ch; background: linear-gradient(120deg, #3BAED1, #45B347); -webkit-background-clip: text; background-clip: text; -webkit-text-fill-color: transparent; color: #3BAED1;">−60&thinsp;%</div>
+                <div style="margin-top: 10px; font-weight: 600; font-size: 10px; letter-spacing: 0.22em; text-transform: uppercase; color: #6B7E86; line-height: 1.5; max-width: 240px;">Reisekosten</div>
               </div>
             </div>
             <div data-s3right style="flex: 1 1 auto; box-sizing: border-box; min-width: 0; border-left: 1px solid #D6E7EE; padding-left: clamp(28px, 4vw, 68px); display: flex; flex-direction: column; justify-content: center;">
@@ -732,14 +731,14 @@
       <!-- Abschluss: Querverlinkung + finale CTA-Karte -->
       <div style="margin-top: clamp(48px, 7vh, 96px); display: flex; flex-direction: column; gap: clamp(14px, 1.6vw, 20px);">
 
-        <div data-reveal data-screen-label="Querverlinkung machineering" style="box-sizing: border-box; display: flex; flex-direction: column; background: #FFFFFF; border: 1px solid #D6E7EE; border-radius: 20px; transition: transform .28s ease, box-shadow .28s ease;" style-hover="transform: translateY(-3px); border-color: transparent; background: linear-gradient(#FFFFFF, #FFFFFF) padding-box, linear-gradient(120deg, #3BAED1, #45B347) border-box; box-shadow: 0 24px 48px -30px rgba(16,38,46,.28)">
+        <div data-reveal data-screen-label="Querverlinkung machineering" style="box-sizing: border-box; display: flex; flex-direction: column; background: linear-gradient(120deg, #3BAED1, #45B347); border: 1px solid transparent; border-radius: 20px; transition: transform .28s ease, box-shadow .28s ease;" style-hover="transform: translateY(-3px); box-shadow: 0 26px 52px -28px rgba(59,174,209,.55)">
           <a href="#" style="display: flex; align-items: center; justify-content: space-between; gap: 18px; padding: clamp(22px, 3vw, 30px) clamp(24px, 3.4vw, 38px); text-decoration: none;" style-focus="outline: 3px solid rgba(59,174,209,.55); outline-offset: 3px">
-            <span style="font-weight: 700; font-size: clamp(17px, 1.8vw, 21px); line-height: 1.3; color: #33505B;">machineering — Simulation aus einer Hand</span>
-            <span aria-hidden="true" style="font-weight: 700; font-size: clamp(18px, 1.9vw, 22px); color: #3BAED1;">→</span>
+            <span style="font-weight: 700; font-size: clamp(17px, 1.8vw, 21px); line-height: 1.3; color: #FFFFFF;">machineering — Simulation aus einer Hand</span>
+            <span aria-hidden="true" style="font-weight: 700; font-size: clamp(18px, 1.9vw, 22px); color: #FFFFFF;">→</span>
           </a>
           <!-- Querverlinkung iPhysics-Leistungen (Änd. 4, 06.07.) -->
-          <div style="border-top: 1px solid #D6E7EE; padding: clamp(14px, 1.8vw, 18px) clamp(24px, 3.4vw, 38px);">
-            <a href="https://www.machineering.com/produkte/iphysics/" target="_blank" rel="noopener" style="display: inline-flex; align-items: center; gap: 10px; font-weight: 600; font-size: clamp(14px, 1.4vw, 16px); color: #6B7E86; text-decoration: none; transition: color .25s ease, gap .25s ease;" style-hover="color: #3BAED1; gap: 16px" style-focus="outline: 3px solid rgba(59,174,209,.55); outline-offset: 3px">Alle iPhysics-Leistungen im Überblick <span aria-hidden="true" style="color: #3BAED1;">→</span></a>
+          <div style="border-top: 1px solid rgba(255,255,255,.4); padding: clamp(14px, 1.8vw, 18px) clamp(24px, 3.4vw, 38px);">
+            <a href="https://www.machineering.com/produkte/iphysics/" target="_blank" rel="noopener" style="display: inline-flex; align-items: center; gap: 10px; font-weight: 600; font-size: clamp(14px, 1.4vw, 16px); color: rgba(255,255,255,.88); text-decoration: none; transition: color .25s ease, gap .25s ease;" style-hover="color: #FFFFFF; gap: 16px" style-focus="outline: 3px solid rgba(59,174,209,.55); outline-offset: 3px">Alle iPhysics-Leistungen im Überblick <span aria-hidden="true" style="color: #FFFFFF;">→</span></a>
           </div>
         </div>
 
