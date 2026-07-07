@@ -132,7 +132,7 @@ export async function initHero(cfg = {}) {
     if (uiCenter) {
       const h1 = uiCenter.querySelector("h1");
       if (mobile) {
-        uiCenter.style.top = "calc(64px + 4vh)";
+        uiCenter.style.top = "calc(78px + 4vh)";
         uiCenter.style.transform = "none";
         uiCenter.style.left = "20px";
         uiCenter.style.right = "20px";
@@ -189,7 +189,7 @@ export async function initHero(cfg = {}) {
           ov.style.top = "clamp(150px, 18vh, 210px)"; ov.style.bottom = "44px"; ov.style.transform = "none";
           ov.style.justifyContent = "flex-start";
           ov.style.justifyContent = "safe center"; /* overflow-sicher: zentriert bei Platz, pinnt sonst an der Band-Oberkante; ungültig → Fallback flex-start */
-          ov.style.left = "clamp(20px, 6vw, 96px)"; ov.style.right = "auto"; ov.style.width = "min(430px, 44vw)";
+          ov.style.left = "clamp(20px, 6vw, 96px)"; ov.style.right = "auto"; ov.style.width = "min(500px, 46vw)";
         }
       }
       if (ovLbl) {
@@ -826,7 +826,7 @@ export async function initHero(cfg = {}) {
   ann.appendChild(annDom);
 
   /* Element 2 — Passermarken: Rahmen-Ecken der Zeichnungsfläche zwischen
-     Header (64 px) und Schriftfeld (barH) — berühren Logo/Skip/Leiste nicht. */
+     Header (78 px) und Schriftfeld (barH) — berühren Logo/Skip/Leiste nicht. */
   const cornerEls = [0, 1, 2, 3].map(i => {
     const d = document.createElement("div");
     Object.assign(d.style, {
@@ -841,7 +841,7 @@ export async function initHero(cfg = {}) {
   });
   function layoutCorners() {
     const side = Math.round(clamp(innerWidth * .04, 16, 32)) + "px";
-    const top = (64 + 13) + "px", bot = (barH + 13) + "px";
+    const top = (78 + 13) + "px", bot = (barH + 13) + "px";
     cornerEls[0].style.top = top; cornerEls[0].style.left = side;
     cornerEls[1].style.top = top; cornerEls[1].style.right = side;
     cornerEls[2].style.bottom = bot; cornerEls[2].style.left = side;
