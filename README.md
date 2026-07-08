@@ -57,9 +57,15 @@ python3 -m http.server 8000
 
 ## Dev-/QA-Hinweise
 
-- `window.__hero` = Dev-API (Zustände, `qaTour(p, q)`, `heroTrim`, `framingLog`).
+- `window.__hero` = Dev-API (Zustände, `qaTour(p, q)`, `heroTrim`, `framingLog`,
+  `perf` = GPU-/DPR-Status des Render-Governors).
 - QA-Flags via `sessionStorage.iph_qa_flags` (kommasepariert):
-  `reduced`, `touch`, `skip` (Intro überspringen), `lowedges` (schneller Kantenbau).
+  `reduced`, `touch`, `skip` (Intro überspringen), `lowedges` (schneller Kantenbau),
+  `slowload` (GLB-Start +6 s), `nostill` (Real-Standbild aus),
+  `weak` (reduziertes Perf-Profil erzwingen — DPR-Stufen/Governor testen).
+- Performance: adaptives Profil — GPU-Probe beim Start (iGPU/Software-GL),
+  DPR-Stufenleiter mit Laufzeit-Governor (misst echte Frames, senkt bei Ruckeln
+  die Renderauflösung stufenweise), Schaltungen werden in die Konsole geloggt.
 - Hero-Framing: Anlage rechtsbündig an der Content-Kante — Sichtkanten-Messung,
   Feinjustage über `HERO_TRIM` in `hero-engine.js` (oder live `__hero.heroTrim = -8`).
 

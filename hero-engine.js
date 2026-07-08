@@ -51,6 +51,26 @@ export async function initHero(cfg = {}) {
   let weakFx = (navigator.hardwareConcurrency || 8) <= 4 || (navigator.deviceMemory || 8) <= 4;
   if (weakFx) console.log("[hero] Perf-Profil reduziert (Kerne/RAM-Heuristik)");
 
+  /* GPU-Probe (08.07.): Kerne/RAM sehen die Grafikkarte nicht — ein Wegwerf-Kontext liest den
+     Renderer-String. Software-Rasterizer (SwiftShader/llvmpipe) und typische iGPUs (Intel HD/UHD/
+     Iris, AMD-APUs) starten direkt im reduzierten Profil und auf einer niedrigeren DPR-Stufe.
+     Zusätzlich misst der Render-Governor (s. Hauptschleife) echte Frame-Zeiten und schaltet zur
+     Laufzeit weiter runter — Choreografie-Timings bleiben unangetastet, nur Auflösung/Ambient. */
+  let gpuStr = "", gpuSoft = false;
+  try {
+    const pcv = document.createElement("canvas");
+    const pgl = pcv.getContext("webgl2") || pcv.getContext("webgl");
+    if (pgl) {
+      const dbg = pgl.getExtension("WEBGL_debug_renderer_info");
+      gpuStr = String(pgl.getParameter(dbg ? dbg.UNMASKED_RENDERER_WEBGL : pgl.RENDERER) || "");
+      gpuSoft = /swiftshader|llvmpipe|softpipe|software|basic render/i.test(gpuStr);
+      const weakGpu = gpuSoft || /u?hd graphics|iris|vega \d|radeon\(tm\) graphics|mali|adreno|powervr/i.test(gpuStr);
+      if (weakGpu && !weakFx) { weakFx = true; console.log("[hero] Perf-Profil reduziert (GPU: " + gpuStr + ")"); }
+      const lose = pgl.getExtension("WEBGL_lose_context"); if (lose) lose.loseContext();
+    }
+  } catch (e) {}
+  if (qa.includes("weak") && !weakFx) { weakFx = true; console.log("[hero] Perf-Profil reduziert (QA-Flag)"); }
+
   /* Video-Einstieg „Fog-Cut" (Blueprint v8 §C, geändert 06.07.: auch Wiederkehrer): jeder Besuch bei Desktop + voller Motion.
      touch/reduced/devSkip laden das Video weiterhin gar nicht erst. */
   const VIDEO_SRC = "assets/intro-flight.mp4", VIDEO_DESCENT = 1.2; /* Kurz-Descent aus dem Video-Weiß */
@@ -69,7 +89,7 @@ export async function initHero(cfg = {}) {
       const rc = o.line.getBoundingClientRect();
       const lx = mx - rc.left, ly = my - rc.top;
       let rr = r;
-      if (rr < 1 || lx < -rr * 1.2 || ly < -rr * 1.2 || lx > rc.width + rr * 1.2 || ly > rc.height + rr * 1.2) rr = 0;
+      if (rr < 1 || lx < -rr * 1.2 || ly < -rr * 1.6 || lx > rc.width + rr * 1.2 || ly > rc.height + rr * 1.6) rr = 0; /* 08.07.: vertikal 1.6 — Cluster reicht jetzt bis 1.53 r */
       if (CLIP_EVENODD) { /* 08.07. (1c): Bildmarken-Cluster statt Kreis */
         let holes = "";
         if (rr) for (const q of lensRectsPx(lx, ly, rr)) holes += rectPath(q);
@@ -207,14 +227,17 @@ export async function initHero(cfg = {}) {
   }
 
   /* ---------- Bildmarken-Linse (08.07., Variante 1c) ----------
-     Formgeometrie in Einheiten des Linsenradius r: blaues Quadrat-Paar mittig,
-     graue Diagonal-Quadrate oben rechts / unten links (Logo-Bildmarke).
+     Formgeometrie in Einheiten des Linsenradius r — exakt aus assets/machineering.svg
+     uebernommen: VIER GLEICH GROSSE Quadrate (SVG 31.43) auf striktem Raster
+     (Pitch 38.83 => Fuge 23.5 % der Kantenlaenge; 08.07. auf Kundenwunsch halbiert
+     => Fuge 11.8 %, Pitch .984). Blau-Paar mittig, Grau oben
+     buendig ueber dem rechten, Grau unten buendig unter dem linken Quadrat.
      Gilt fuer Reveal-Maske, Chrome, Headline-Linse und Ping. */
   const LENS_RECTS = [
-    { cx: -.505, cy: 0, s: .95, main: 1 },
-    { cx: .505, cy: 0, s: .95, main: 1 },
-    { cx: .505, cy: -.775, s: .48 },
-    { cx: -.575, cy: .775, s: .48 }
+    { cx: -.492, cy: 0, s: .88, main: 1 },
+    { cx: .492, cy: 0, s: .88, main: 1 },
+    { cx: .492, cy: -.984, s: .88 },
+    { cx: -.492, cy: .984, s: .88 }
   ];
   const lensRectsPx = (x, y, r) => LENS_RECTS.map(q => {
     const s = q.s * r;
@@ -251,14 +274,21 @@ export async function initHero(cfg = {}) {
   lensDot.style.boxShadow = "0 0 8px rgba(69,179,71,.6)";
 
   /* ---------- Renderer / Kamera ---------- */
-  const DPR = Math.min(window.devicePixelRatio || 1, isTouch ? 1.5 : 2);
-  const rReal = new THREE.WebGLRenderer({ canvas: cvR, antialias: true, preserveDrawingBuffer: true });
-  const rWire = new THREE.WebGLRenderer({ canvas: cvW, antialias: true });
+  /* DPR-Leiter (08.07.): Startstufe nach Geräteklasse, der Render-Governor schaltet bei gemessenem
+     Ruckeln stufenweise runter — Auflösung ist der größte Einzelhebel (Fill-Rate sinkt quadratisch:
+     2.0 → 1.5 spart ~44 % Pixel, → 1.2 ~64 %). powerPreference zwingt Dual-GPU-Laptops auf die
+     schnelle Karte statt auf die Strom-Spar-iGPU. */
+  const DPR_STEPS = isTouch ? [1.5, 1.25, 1] : [2, 1.5, 1.2, 1];
+  let dprIx = gpuSoft ? DPR_STEPS.length - 1 : (weakFx ? 1 : 0);
+  const effDPR = () => Math.min(window.devicePixelRatio || 1, DPR_STEPS[dprIx]);
+  const AA = !gpuSoft; /* MSAA auf Software-Rasterizern ist unbezahlbar — dort aus */
+  const rReal = new THREE.WebGLRenderer({ canvas: cvR, antialias: AA, preserveDrawingBuffer: true, powerPreference: "high-performance" });
+  const rWire = new THREE.WebGLRenderer({ canvas: cvW, antialias: AA, powerPreference: "high-performance" });
   rReal.outputColorSpace = THREE.SRGBColorSpace;
   rReal.toneMapping = THREE.ACESFilmicToneMapping;
   rReal.toneMappingExposure = 1.1;
   rWire.outputColorSpace = THREE.SRGBColorSpace;
-  rReal.setPixelRatio(DPR); rWire.setPixelRatio(DPR);
+  rReal.setPixelRatio(effDPR()); rWire.setPixelRatio(effDPR());
   rReal.setClearColor(0xF8F8F8, 1); rWire.setClearColor(0xFBFDFE, 1); /* Real-Hintergrund #F8F8F8 (Kundenwunsch 02.07.) */
 
   const cam = new THREE.PerspectiveCamera(42, 1, .1, 500);
@@ -600,13 +630,15 @@ export async function initHero(cfg = {}) {
     /* Perf-Profil (07.07.): Kanten-Deckel für schwache Geräte. Die Liste ist nach diag
        absteigend sortiert — die großen, prägenden Konturen entstehen zuerst, gekappt
        werden nur Kleinteile. */
-    let capStatic = staticList.length, capDyn = dynList.length;
+    let capStatic = staticList.length, capDyn = dynList.length, buildWeak = false; /* buildWeak: nur Build-Budgets, NICHT das Runtime-Profil */
     const applyWeakCaps = () => {
       if (isTouch || qa.includes("lowedges")) return;
       capStatic = Math.min(capStatic, 420); capDyn = Math.min(capDyn, 48);
-      VERT_CAP = Math.min(VERT_CAP, 1400000); EDGE_TIME_BUDGET = Math.min(EDGE_TIME_BUDGET, 7000);
+      VERT_CAP = Math.min(VERT_CAP, 1100000); EDGE_TIME_BUDGET = Math.min(EDGE_TIME_BUDGET, 7000);
+      /* Software-GL: jedes Linien-Vertex läuft über die CPU — nur die prägenden Großkonturen */
+      if (gpuSoft) { capStatic = Math.min(capStatic, 200); capDyn = Math.min(capDyn, 24); VERT_CAP = Math.min(VERT_CAP, 500000); }
     };
-    if (weakFx) applyWeakCaps();
+    if (weakFx) { buildWeak = true; applyWeakCaps(); }
     const tEdges = performance.now();
     let visElapsed = 0; /* Budget zählt nur sichtbare Zeit — Hintergrund-Loads behalten volle Kanten */
     /* Chunk-Budget (07.07.): solange die KPI-Choreografie läuft, max. ~6 ms Kanten-Arbeit pro
@@ -614,21 +646,31 @@ export async function initHero(cfg = {}) {
        ist zu sehen) sowie bei devSkip 16 ms, damit es zügig fertig wird. */
     const CHUNK = () => (document.hidden ? 200 : ((pendingStart || introSkipped || devSkip) ? 16 : 6));
     let longFrames = 0, frameSamples = 0;
+    /* 08.07.: Yield ohne Timer-Drossel. In verdeckten/versteckten Frames feuert rAF nicht
+       und setTimeout wird bis auf 1/min geklemmt — der Kantenbau stand damit praktisch still.
+       MessageChannel-Hops sind ungedrosselt: sie takten eine ~45-ms-Uhr als Fallback; im
+       sichtbaren Tab gewinnt weiterhin rAF (Frame-Pacing + Watchdog unverändert). */
+    const yChan = new MessageChannel();
+    let yCb = null;
+    yChan.port1.onmessage = () => { const cb = yCb; if (cb && cb()) yChan.port2.postMessage(0); };
     const yieldFrame = () => new Promise(r => {
-      const tY = performance.now();
+      let done = false;
+      const t0 = performance.now();
+      const fin = () => { if (done) return; done = true; clearTimeout(to); cancelAnimationFrame(id); r(); };
       const id = requestAnimationFrame(() => {
-        clearTimeout(to);
         if (!document.hidden) { /* Frame-Watchdog: ruckelt es trotz Chunking, Kanten-Budget senken */
           frameSamples++;
-          if (performance.now() - tY > 34) longFrames++;
-          if (!weakFx && frameSamples >= 10 && longFrames / frameSamples > .4) {
-            weakFx = true; applyWeakCaps();
-            console.log("[hero] Perf-Profil reduziert (Frame-Watchdog im Kantenbau)");
+          if (performance.now() - t0 > 34) longFrames++;
+          if (!buildWeak && frameSamples >= 10 && longFrames / frameSamples > .4) {
+            buildWeak = true; applyWeakCaps(); /* misst Lade-Congestion (Video-Decode + GLB-Parse), nicht GL-Render-Speed — darf das Runtime-Sparprofil (weakFx) NICHT schalten (08.07., entkoppelt) */
+            console.log("[hero] Kanten-Budget reduziert (Frame-Watchdog im Kantenbau — Runtime-Profil unangetastet)");
           }
         }
-        r();
+        fin();
       });
-      const to = setTimeout(() => { cancelAnimationFrame(id); r(); }, 50); /* rAF-Drossel (Hintergrund-Tab) umgehen */
+      const to = setTimeout(fin, 50); /* normaler Fallback, solange Timer nicht geklemmt sind */
+      yCb = () => { if (done) return false; if (performance.now() - t0 >= 45) { fin(); return false; } return true; };
+      yChan.port2.postMessage(0);
     });
 
     /* Verlaufs-Skala über die Cluster-Box (Achse/Bias: EDGE_GRAD_* oben). Farben als
@@ -780,7 +822,7 @@ export async function initHero(cfg = {}) {
       g.material.transparent = true; g.material.opacity = 0;
       envWire.add(g); return g;
     });
-    pN = isTouch ? 260 : 600;
+    pN = gpuSoft ? 140 : (isTouch ? 260 : (weakFx ? 340 : 600));
     pArr = new Float32Array(pN * 3);
     pTop = minY + dist * 2.2; pBot = minY + dist * .12;
     for (let i = 0; i < pN; i++) {
@@ -1085,10 +1127,13 @@ export async function initHero(cfg = {}) {
   }
   function setState(s) {
     state = s; tState = perf();
+    govGraceUntil = performance.now() + 1800; /* Governor: Einschwingphase nach jedem State-Wechsel nicht werten */
     console.log(`[hero] state → ${s} @ sim ${simTime.toFixed(2)}`);
     if (s === "descent" || s === "video") skipBtn.style.display = "block"; /* Skip gilt auch während des Videos (v8 §C) */
     if (s === "sweep" || s === "live") skipBtn.style.display = "none";
     if (s === "live") {
+      if (needRealBake) { rReal.setPixelRatio(effDPR()); bake(); needRealBake = false; } /* Governor-Step aus dem Flug: Real-Canvas vor der Linsen-Einblendung neu baken */
+      liveDirty = 10; /* ein paar Frames zeichnen, danach ist Live im reduzierten Profil GL-statisch */
       showHUD();
       revealAnnotations();
       if (!isTouch) { lensEl.style.opacity = "1"; lensScan.style.opacity = "1"; lensDot.style.opacity = "1"; }
@@ -1098,12 +1143,54 @@ export async function initHero(cfg = {}) {
     }
   }
 
+  /* ---------- Render-Governor (08.07.) ----------
+     Misst ECHTE Frame-Abstände (nur Frames, in denen WebGL wirklich gezeichnet hat) und senkt
+     bei anhaltendem Ruckeln die Renderauflösung stufenweise (DPR_STEPS). Greift überall dort,
+     wo Heuristik + GPU-Probe versagen — der eine Rechner, auf dem es trotzdem holpert. */
+  let liveDirty = 0, needRealBake = false, tourLow = false;
+  let govN = 0, govSlow = 0, govCool = 0, govBad = 0, govStepN = 0, govGraceUntil = 0;
+  function setTourLow(low) { /* Tour-Scrub mit 1x rendern (Coasting) — in Bewegung unsichtbar */
+    if (tourLow === low || (low && effDPR() <= 1.01)) return;
+    tourLow = low;
+    rReal.setPixelRatio(low ? 1 : effDPR());
+    lastTourKey = ""; /* nächster renderTour-Frame malt sicher neu */
+  }
+  function stepDownDPR(src) {
+    if (dprIx >= DPR_STEPS.length - 1) return false;
+    dprIx++; govStepN++;
+    rWire.setPixelRatio(effDPR());
+    /* Stufe 1 senkt NUR die Auflösung; erst eine ZWEITE Governor-Stufe schaltet das Sparprofil
+       (Ambient-Freeze, Live-statisch, Tour-Coasting) — einmalige Congestion degradiert so nie
+       dauerhaft die Effekte (08.07., Verifier-Befund). */
+    if (govStepN >= 2 && !weakFx) { weakFx = true; console.log("[hero] Perf-Profil reduziert (Governor, 2. Stufe)"); }
+    if (handover) { if (!tourLow) { rReal.setPixelRatio(effDPR()); lastTourKey = ""; renderTour(); } }
+    else if (state === "live") { rReal.setPixelRatio(effDPR()); bake(); }
+    else needRealBake = true; /* im Flug: Real-Canvas erst vor der Linsen-Einblendung neu baken */
+    liveDirty = Math.max(liveDirty, 3);
+    console.log("[hero] Render-Governor: Ruckeln gemessen (" + src + ") → Renderauflösung " + effDPR().toFixed(2) + "x");
+    return true;
+  }
+  function govSample(raw, src) {
+    if (document.hidden) return;
+    if (performance.now() < govGraceUntil) { govN = 0; govSlow = 0; return; } /* Gnadenfrist nach State-Wechsel/Tab-Rückkehr: Post-Intro-Settling (Annotations, Pings, Hydration) nicht werten */
+    if (govCool > 0) { govCool--; return; }
+    if (raw > .25) return; /* Tab-Rückkehr/GC-Ausreißer nicht werten */
+    govN++; if (raw > .034) govSlow++; /* unter ~29 fps gilt als ruckelig */
+    if (govN >= 40) {
+      if (govSlow / govN > .5) {
+        govBad++; /* erst ZWEI schlechte Fenster in Folge steppen — ein gutes Fenster resettet */
+        if (govBad >= 2 && stepDownDPR(src)) { govBad = 0; govCool = 30; }
+      } else govBad = 0;
+      govN = 0; govSlow = 0;
+    }
+  }
+
   /* ---------- Hauptschleife ---------- */
   let last = perf(), rafId = null;
   function startLoop() { if (!rafId) { last = perf(); loop(); } }
   function loop() {
     rafId = requestAnimationFrame(loop);
-    const now = perf(), dt = Math.min(.05, now - last); last = now;
+    const now = perf(), rawDt = now - last, dt = Math.min(.05, rawDt); last = now;
     const t = now - tState;
 
     if (state === "descent") {
@@ -1152,10 +1239,13 @@ export async function initHero(cfg = {}) {
         mask.ty = innerHeight * .44;
         mask.tr = (baseRadius() * .8) + Math.sin(now * 1.2) * 8;
       }
-      wireLine.opacity = .82 + .08 * Math.sin(now * 1.7);
-      if (pGeo) {
-        for (let i = 0; i < pN; i++) { pArr[i * 3 + 1] -= dist * .005 * dt; if (pArr[i * 3 + 1] < pBot) pArr[i * 3 + 1] += (pTop - pBot); }
-        pGeo.attributes.position.needsUpdate = true;
+      if (weakFx) { wireLine.opacity = .86; } /* reduziertes Profil: Ambient eingefroren → Live-Zustand GL-statisch (s. Render-Entscheid unten) */
+      else {
+        wireLine.opacity = .82 + .08 * Math.sin(now * 1.7);
+        if (pGeo) {
+          for (let i = 0; i < pN; i++) { pArr[i * 3 + 1] -= dist * .005 * dt; if (pArr[i * 3 + 1] < pBot) pArr[i * 3 + 1] += (pTop - pBot); }
+          pGeo.attributes.position.needsUpdate = true;
+        }
       }
     }
 
@@ -1195,7 +1285,16 @@ export async function initHero(cfg = {}) {
       lensEl.style.opacity = lo; lensScan.style.opacity = lo; lensDot.style.opacity = lo;
     }
 
-    if (sp < .999 && model) rWire.render(scene, cam); /* nach Materialize on-demand (§5) */
+    /* Render-Entscheid (08.07.): Im reduzierten Profil ist der Live-Zustand GL-statisch — Kamera
+       steht, Sim eingefroren, Ambient aus. Linse/Maske/Typo laufen als reines CSS mit vollen fps
+       weiter; WebGL zeichnet nur bei Änderung (Materialize-Scroll, Resize, Zustandswechsel).
+       Auf starken Geräten unverändert jeder Frame. */
+    const liveStatic = weakFx && state === "live" && sMat === scrollP && liveDirty <= 0;
+    if (liveDirty > 0) liveDirty--;
+    if (sp < .999 && model && !liveStatic) {
+      rWire.render(scene, cam); /* nach Materialize on-demand (§5) */
+      govSample(rawDt, "Hero"); /* nur Frames mit echtem GL-Render füttern den Governor */
+    }
   }
 
   /* ---------- Pixel-Dissolve-Maskenframes (§3) — nur noch Mini-Dissolve beim Andocken (Änd. 1: die große Zahl nutzt jetzt den Blueprint-Stack) ---------- */
@@ -1815,6 +1914,226 @@ export async function initHero(cfg = {}) {
   tourEls = { tCards, rail, railTrack, railFill, railDots, ovWrap, railLabel };
   layoutChrome();
 
+  /* ===== Real-Standbild (08.07., Stufe 1): „Der Zwilling wird real" =====
+     Nach Station 5 wischt ein fotorealistisches Standbild über die Anlage —
+     Hero-Grammatik (Zeichnung → Modell → Realität), ohne Cursor: Wipe mit
+     Verlaufs-Sweep, scroll-gesteuert, reversibel. Das Bild ist per Cluster-Box-
+     Projektion an die Kamera gekoppelt und folgt Dolly (Überblick/Zitat) und
+     Framing-Offset auf jedem Viewport. Stufe 1 = Platzhalter: eigener Render-
+     Frame (freigestellt, transparent) mit leichter Foto-Anmutung per CSS-Filter.
+     Finales Foto = Drop-in: REAL_STILL.src + .ref setzen (Stufe 2).
+     QA-Flag 'nostill' deaktiviert den Beat für A/B-Vergleich. */
+  const STILL_WIN = .42;  /* Wipe fertig bei ovP = 0,42 — Vorteile erscheinen „am realen Produkt" */
+  const STILL_PAD = .07;  /* Sweep-Anlauf über die Box hinaus (Anteil Boxbreite) */
+  /* 3+1-Choreografie (08.07. III): Licht-Angleichung → Scan → Shutter-Blitz → Cut */
+  const FL_LIGHT = .16;   /* Licht-Angleichung fertig bei ovP = 0,16 */
+  const FL_A = .14, FL_MID = .21, FL_B = .30; /* Blitz: Fenster + Peak (Cut-Punkt) */
+  /* Stufe 4 (08.07. VI): Realfoto vom Kunden in Photoshop passgenau auf das exportierte
+     Quellframe montiert — gleiche Leinwand 2587×1512, Foto-Raum == Quell-Raum.
+     ref.box = projizierte Cluster-Box des Quellframes (QB0 {320.6, 364.28, 1801.8, 1174.32}),
+     korrigiert um die gemessene PS-Rest-Abweichung (Dunkel-Bounds beider Bilder,
+     Beleg screenshots/qa-ps-align.png): kx 1,0204 · ky 1,0045 · Offset −33/−37 px.
+     Damit landet der Foto-Inhalt exakt auf der Render-Anlage — Cut ohne Sprung.
+     Kantenmaske löst die Hallen-Ränder in den Szenen-Hintergrund auf (Kundenwunsch). */
+  const REAL_STILL = {
+    src: "assets/montagezelle-real.webp",
+    ref: { w: 2587, h: 1512, box: { x: 276, y: 326.8, w: 1838.6, h: 1179.6 } },
+    content: { cx: 1305, right: 1790 }, /* Maschinen-Masse im Foto (px) — Anker für die Panel-Position (08.07. VII) */
+    blend: "fade",
+    mask: "radial-gradient(ellipse 1060px 740px at 1305px 855px, #000 56%, rgba(0,0,0,.85) 78%, transparent 99.5%)"
+  };
+  const noStill = qa.includes("nostill");
+  let stillState = null; /* { w0, h0, box0 } — Bildraum-Kalibrierung; bei Resize invalidiert */
+  const stillWrap = document.createElement("div");
+  Object.assign(stillWrap.style, { position: "absolute", left: "0", top: "0", transformOrigin: "0 0", opacity: "0", pointerEvents: "none", willChange: "transform, opacity" });
+  stillWrap.setAttribute("aria-hidden", "true");
+  const stillImg = document.createElement("img");
+  stillImg.id = "still-img"; /* QA-Handle */
+  stillImg.alt = ""; stillImg.decoding = "sync"; stillImg.loading = "eager";
+  Object.assign(stillImg.style, { position: "absolute", left: "0", top: "0", width: "100%", height: "100%", display: "block" });
+  const stillBar = document.createElement("div");
+  Object.assign(stillBar.style, { position: "absolute", width: "2.5px", background: "linear-gradient(180deg,#3BAED1,#45B347)", boxShadow: "0 0 14px rgba(59,174,209,.5)", opacity: "0" });
+  stillWrap.append(stillImg, stillBar);
+  stage.insertBefore(stillWrap, cvW.nextSibling); /* über den Canvases, unter Tour-UI/Ann/Rings (DOM-Ordnung, kein z-index) */
+  /* Shutter-Blitz: weicher Luminanz-Bloom über der Szene, unter dem Tour-UI (08.07. III) */
+  const stillFlash = document.createElement("div");
+  stillFlash.id = "still-flash"; /* QA-Handle */
+  Object.assign(stillFlash.style, { position: "absolute", inset: "0", background: "radial-gradient(circle at 60% 50%, #FFFFFF 0%, rgba(255,255,255,.96) 46%, rgba(248,252,253,.9) 100%)", opacity: "0", pointerEvents: "none" });
+  stage.insertBefore(stillFlash, stillWrap.nextSibling);
+
+  /* Licht-Angleichung: Studio → Hallenstimmung des Fotos (heller, wärmer, Raster aus,
+     Kontaktschatten weicher). Lazy eingesammelt, Basiswerte gemerkt, g=0 stellt exakt zurück —
+     Hero-Look bleibt unangetastet (exitLive3D setzt zurück). */
+  let stillFx = null;
+  const collectStillFx = () => {
+    if (stillFx) return;
+    const lights = [];
+    let grid = null, shadow = null;
+    [envReal, envWire].forEach(env => env.traverse(o => {
+      if (o.isLight) lights.push({ l: o, i0: o.intensity, c0: o.color.clone() });
+      else if (o.type === "GridHelper" && !grid) grid = { g: o, o0: o.material.opacity };
+      else if (o.isMesh && o.material && o.material.transparent && o.material.map && !shadow) shadow = { m: o, o0: o.material.opacity };
+    }));
+    stillFx = { lights, grid, shadow, warm: new THREE.Color(0xFFF3E2), g: -1 };
+  };
+  function applyStillFx(g) {
+    if (!stillFx) { if (g <= 0) return; collectStillFx(); }
+    if (Math.abs(stillFx.g - g) < .001) return;
+    stillFx.g = g;
+    stillFx.lights.forEach(e => { e.l.intensity = e.i0 * (1 + .3 * g); e.l.color.copy(e.c0).lerp(stillFx.warm, .3 * g); });
+    if (stillFx.grid) stillFx.grid.g.material.opacity = stillFx.grid.o0 * (1 - g);
+    if (stillFx.shadow) stillFx.shadow.m.material.opacity = stillFx.shadow.o0 * (1 - .35 * g);
+  }
+
+  function projectClusterRect(c, w, h) { /* Cluster-Box → Screen-Rechteck (CSS-px) */
+    const v = new THREE.Vector3();
+    let x0 = 1 / 0, y0 = 1 / 0, x1 = -1 / 0, y1 = -1 / 0;
+    for (let i = 0; i < 8; i++) {
+      v.set(i & 1 ? annBox.max.x : annBox.min.x,
+            i & 2 ? annBox.max.y : annBox.min.y,
+            i & 4 ? annBox.max.z : annBox.min.z).project(c);
+      const sx = (v.x * .5 + .5) * w, sy = (1 - (v.y * .5 + .5)) * h;
+      if (sx < x0) x0 = sx; if (sx > x1) x1 = sx;
+      if (sy < y0) y0 = sy; if (sy > y1) y1 = sy;
+    }
+    return { x: x0, y: y0, w: Math.max(1, x1 - x0), h: Math.max(1, y1 - y0) };
+  }
+
+  function bakeStill(vMultRestore) { /* Kalibrier-Frame in Schluss-Pose (Pose 5, ohne Offset, Sim-Ende) */
+    if (!model || !annBox || !poses) return;
+    setTourLow(false); /* Standbild-Bake immer in voller Stufe — Coasting greift danach wieder */
+    if (REAL_STILL.src && REAL_STILL.ref) { /* Stufe 3: finales Foto mit gebakten Konstanten */
+      stillState = { w0: REAL_STILL.ref.w, h0: REAL_STILL.ref.h, box0: { ...REAL_STILL.ref.box } };
+      stillImg.src = REAL_STILL.src;
+      stillImg.style.filter = "none";
+      if (REAL_STILL.mask) { stillImg.style.webkitMaskImage = REAL_STILL.mask; stillImg.style.maskImage = REAL_STILL.mask; }
+    } else { /* Stufe 1: Platzhalter = eigener Render, freigestellt (Env-Optik aus, Studiolicht AN, Alpha-Grund, Fog bleibt = deckungsgleich) */
+      const w = innerWidth, h = innerHeight;
+      const prevPos = cam.position.clone(), prevQ = cam.quaternion.clone(), prevSim = simTime;
+      const prevVis = model.visible; model.visible = true; /* Bake braucht die Anlage — auch nach Resize im Voll-Real-Zustand */
+      const prevClear = rReal.getClearColor(new THREE.Color()), prevAlpha = rReal.getClearAlpha();
+      /* Umgebung ausblenden, LICHTER anlassen: das Studiolicht hängt in den env-Gruppen —
+         Gruppen-visible=false würde unbeleuchtet-schwarz baken (Verifier-Befund 08.07.).
+         Deshalb nur Nicht-Licht-Kinder verstecken (rekursiv, falls Lichter in Untergruppen). */
+      const envHidden = [];
+      const hideNonLights = g => g.children.forEach(o => {
+        if (o.isLight) return;
+        let hasLight = false;
+        o.traverse(n => { if (n.isLight) hasLight = true; });
+        if (hasLight) { hideNonLights(o); return; }
+        envHidden.push([o, o.visible]); o.visible = false;
+      });
+      hideNonLights(envWire); hideNonLights(envReal);
+      cam.clearViewOffset();
+      cam.position.copy(poses[4].pos); cam.lookAt(poses[4].tgt); cam.updateMatrixWorld(true);
+      setSim(CLIP - .001);
+      rReal.setClearColor(0x000000, 0);
+      rReal.render(scene, cam);
+      const src = cvR.toDataURL("image/png");
+      const box0 = projectClusterRect(cam, w, h);
+      rReal.setClearColor(prevClear, prevAlpha);
+      envHidden.forEach(([o, v]) => { o.visible = v; });
+      model.visible = prevVis;
+      applyViewOffset(vMultRestore);
+      cam.position.copy(prevPos); cam.quaternion.copy(prevQ); cam.updateMatrixWorld(true);
+      setSim(prevSim);
+      if (![box0.x, box0.y, box0.w, box0.h].every(isFinite) || box0.w < 3 || box0.h < 3) {
+        console.warn("[still] Bake verworfen — ungültige Box (Viewport/Aspect noch nicht bereit):", box0);
+        return; /* stillState bleibt null → nächster Frame versucht es erneut */
+      }
+      stillState = { w0: w, h0: h, box0 };
+      stillImg.src = src;
+      stillImg.style.webkitMaskImage = stillImg.style.maskImage = "none"; /* Platzhalter ist freigestellt — keine Maske */
+      stillImg.style.filter = "contrast(1.07) saturate(1.16) sepia(.05)"; /* Platzhalter-„Foto"-Anmutung — entfällt mit echtem Asset */
+      console.log(`[still] Platzhalter gebakt @${w}×${h} · Box ${box0.x.toFixed(0)}/${box0.y.toFixed(0)} ${box0.w.toFixed(0)}×${box0.h.toFixed(0)}`);
+    }
+    stillWrap.style.width = stillState.w0 + "px"; stillWrap.style.height = stillState.h0 + "px";
+    lastTourKey = ""; /* Canvas zeigt Bake-Frame — nächster renderTour-Frame malt sicher neu */
+  }
+
+  function updateStill(ovP, quoteP, qe) { /* pro Frame: Tracking + Wipe + Sweep (gedämpfte Werte) */
+    const active = !noStill && (ovP > 0 || quoteP > 0) && stillState;
+    if (!active) {
+      if (stillWrap.style.opacity !== "0") { stillWrap.style.opacity = "0"; stillBar.style.opacity = "0"; stillFlash.style.opacity = "0"; }
+      applyStillFx(0);
+      if (model && !model.visible) model.visible = true; /* Rückweg: Anlage wieder rendern */
+      return;
+    }
+    cam.updateMatrixWorld(true);
+    const vw = innerWidth, vh = innerHeight;
+    const b = projectClusterRect(cam, vw, vh), b0 = stillState.box0;
+    const fadeMode = REAL_STILL.blend === "fade" && REAL_STILL.src;
+    /* Tracking (08.07. VI): Foto-Raum == Quell-Raum (PS-Montage), Korrektur in box0 gebakt.
+       Strikt uniform — Originalproportionen in jeder Phase (Kundenwunsch 08.07. V).
+       Höhe + Bodenlinie führen, horizontal auf die Render-Anlage zentriert. */
+    let trk;
+    if (fadeMode) {
+      const su = b.h / b0.h;
+      trk = { sx: su, sy: su, tx: (b.x + b.w / 2) - (b0.x + b0.w / 2) * su, ty: b.y - b0.y * su };
+    } else { /* deckungsgleiches Asset (Platzhalter/Wipe): Box → Box */
+      const tsx = b.w / b0.w, tsy = b.h / b0.h;
+      trk = { sx: tsx, sy: tsy, tx: b.x - b0.x * tsx, ty: b.y - b0.y * tsy };
+    }
+    let plc = trk;
+    if (fadeMode) {
+      /* Panel-Choreografie (08.07. II, Kundenwunsch): Der Fade startet höhengleich auf dem
+         Kamera-Tracking, wächst mit dem Einblenden zum Vollhöhen-Panel an der rechten
+         Bildschirmkante — im Überblick KEINE Verkleinerung. Der Zoom-out kommt erst im
+         Zitat-Fenster: Panel → zurück aufs Tracking (Anlage tritt hinter das Zitat zurück). */
+      const S = vh / stillState.h0; /* uniform: Bildhöhe = Viewporthöhe */
+      /* Panel-Anker (08.07. VII, Kundenwunsch): Die Maschine wandert nach rechts und deckt
+         den großen Freiraum — Drift um 75 % des Spielraums zwischen „zentriert" und
+         „rechtsbündig", nie links der Mitte (schützt schmale Viewports). */
+      const ct = REAL_STILL.content || { cx: stillState.w0 / 2, right: stillState.w0 };
+      const txC = vw * .5 - ct.cx * S;
+      const txR = vw * .98 - ct.right * S;
+      const pan = { sx: S, sy: S, tx: txC + .75 * Math.max(0, txR - txC), ty: 0 };
+      const aIn = reduced ? easeInOutC(clamp(ovP / STILL_WIN, 0, 1)) : easeInOutC(clamp((ovP - .30) / .32, 0, 1)); /* Cut bei .21 auf Tracking, HALTEN bis .30, dann Wachstum zum Panel (08.07. IV) */
+      const aOut = easeInOutC(clamp(quoteP / .55, 0, 1));
+      const mix = (A, B, e) => ({ sx: lerp(A.sx, B.sx, e), sy: lerp(A.sy, B.sy, e), tx: lerp(A.tx, B.tx, e), ty: lerp(A.ty, B.ty, e) });
+      plc = mix(mix(trk, pan, aIn), trk, aOut);
+    }
+    stillWrap.style.transform = `translate(${plc.tx.toFixed(2)}px, ${plc.ty.toFixed(2)}px) scale(${plc.sx.toFixed(4)}, ${plc.sy.toFixed(4)})`;
+    const r = easeInOutC(clamp(ovP / STILL_WIN, 0, 1));
+    /* Blend fertig → Render-Anlage ganz aus: kein Doppelbild/Halo unter dem Foto.
+       Boden, Raster + Kontaktschatten liegen in envReal und bleiben stehen (08.07.).
+       3+1-Modus: Cut exakt am Blitz-Peak. */
+    model.visible = (fadeMode && !reduced) ? ovP < FL_MID : r < .999;
+    const dim = 1 - qe * .6; /* wie cvR: Anlage tritt im Zitat zurück */
+    if (reduced || fadeMode) {
+      stillImg.style.clipPath = "none";
+      if (reduced) { /* reduced-motion: ruhiger Crossfade, kein Blitz */
+        stillWrap.style.opacity = dim.toFixed(3);
+        stillImg.style.opacity = r.toFixed(3);
+        stillBar.style.opacity = "0";
+        stillFlash.style.opacity = "0";
+        applyStillFx(r);
+      } else { /* 3+1: Licht-Angleichung → Scan bis zum Blitz → Shutter-Cut aufs Foto */
+        applyStillFx(easeInOutC(clamp(ovP / FL_LIGHT, 0, 1)));
+        stillWrap.style.opacity = dim.toFixed(3); /* Wrapper sichtbar — trägt Balken schon VOR dem Cut (08.07. IV) */
+        stillImg.style.opacity = clamp((ovP - FL_MID) / .02, 0, 1).toFixed(3);
+        const bb = b0; /* Scan-Balken über der Anlagen-Box (Wrapper-Raum = Foto-px) */
+        const rb = clamp(ovP / FL_MID, 0, 1);
+        const m = bb.w * STILL_PAD, rx = (bb.x - m) + rb * (bb.w + 2 * m);
+        stillBar.style.left = (rx - 1.25).toFixed(2) + "px";
+        stillBar.style.top = (bb.y + bb.h * .06).toFixed(2) + "px";
+        stillBar.style.height = (bb.h * .88).toFixed(2) + "px";
+        stillBar.style.opacity = (Math.sin(Math.PI * rb) * .9).toFixed(3);
+        const f = clamp((ovP - FL_A) / (FL_B - FL_A), 0, 1);
+        stillFlash.style.opacity = (Math.pow(Math.sin(Math.PI * f), 1.4) * .95).toFixed(3);
+      }
+    } else {
+      const m = b0.w * STILL_PAD, rx = (b0.x - m) + r * (b0.w + 2 * m);
+      stillImg.style.clipPath = `inset(0 ${Math.max(0, stillState.w0 - rx).toFixed(2)}px 0 0)`;
+      stillImg.style.opacity = "1";
+      stillWrap.style.opacity = dim.toFixed(3);
+      stillBar.style.left = (rx - 1.25).toFixed(2) + "px";
+      stillBar.style.top = (b0.y - b0.h * .06).toFixed(2) + "px";
+      stillBar.style.height = (b0.h * 1.12).toFixed(2) + "px";
+      stillBar.style.opacity = (Math.sin(Math.PI * r) * .95).toFixed(3); /* Sweep: auf mitte Wipe, aus an den Enden */
+    }
+  }
+
   function buildPoses() { /* 5 Vorschlags-Posen — Feintuning folgt gemeinsam */
     const sph = (azDeg, elDeg, d) => {
       const a = azDeg * Math.PI / 180, e = elDeg * Math.PI / 180;
@@ -1837,6 +2156,7 @@ export async function initHero(cfg = {}) {
   function enterLive3D() {
     if (handover || !model) return;
     handover = true;
+    govGraceUntil = performance.now() + 1800; /* Tour-Einstieg: Settling nicht werten */
     cancelAnimationFrame(rafId); rafId = null; /* Hero-Loop aus — ab jetzt on-demand */
     /* Materialize-Endzustand erzwingen (Schutz bei Scroll-Sprüngen: Loop könnte mitten im Fade gecancelt werden) */
     heroUI.style.opacity = "0"; heroUI.style.transform = "translateY(-44px)";
@@ -1853,6 +2173,7 @@ export async function initHero(cfg = {}) {
     ann.style.opacity = "0";
     sMat = 1;
     lastTourKey = "";
+    if (REAL_STILL.src && !stillImg.getAttribute("src")) stillImg.src = REAL_STILL.src; /* Foto früh laden — der Blend kommt erst Sekunden später */
     console.log("[tour] Übergabe: Bake → Live-Rendering");
   }
   function exitLive3D() {
@@ -1861,12 +2182,18 @@ export async function initHero(cfg = {}) {
     cancelAnimationFrame(tourRafId); tourRafId = null;
     sTour = 0; sOv = 0; sQuote = 0; /* frisch einsteigen beim nächsten Handover */
     [tourIntro, tourQuote, rail, ...tCards, ...ovChips, ...(ovHead ? [ovHead] : [])].forEach(el => { el.style.opacity = "0"; });
+    stillWrap.style.opacity = "0"; stillBar.style.opacity = "0"; stillFlash.style.opacity = "0"; /* Real-Standbild gehört zur Tour */
+    applyStillFx(0); /* Studio-Licht exakt zurück — vor bake() */
+    if (model && !model.visible) model.visible = true; /* Anlage zurück für Hero-Bake */
     if (railLabel) railLabel.style.opacity = "0";
     cvR.style.opacity = "1"; /* Zitat-Fade zurücksetzen */
     if (camReadHero) camRead.textContent = camReadHero;
     if (camSub) camSub.style.opacity = "0"; /* Plattform-Zeile gehört zur Tour — im Hero ausgeblendet */
     applyViewOffset(1); /* zurück ins Hero-Framing, dann neu baken */
+    setTourLow(false); /* volle Auflösung für Bake + Hero */
     bake(); /* stellt Bake-Bild (17,30) + Wireframe-Look wieder her */
+    liveDirty = 6;
+    govGraceUntil = performance.now() + 1800; /* Rückstieg in den Hero: Settling nicht werten */
     startLoop();
     console.log("[tour] Übergabe zurück: Live → Bake/Wireframe");
   }
@@ -1891,9 +2218,13 @@ export async function initHero(cfg = {}) {
     if (Math.abs(tourP - sTour) < 6e-4) sTour = tourP;
     if (Math.abs(ovP - sOv) < 6e-4) sOv = ovP;
     if (Math.abs(quoteP - sQuote) < 6e-4) sQuote = quoteP;
+    /* Coasting (08.07., reduziertes Profil): während des Scrubs mit 1x rendern — in Bewegung
+       unsichtbar, spart >50 % Fill-Rate. Beim Konvergieren ein letzter Frame in voller Stufe. */
+    if (weakFx && (Math.abs(tourP - sTour) > .012 || Math.abs(ovP - sOv) > .04 || Math.abs(quoteP - sQuote) > .04)) setTourLow(true);
     renderTour();
+    govSample(dtT, "Tour");
     if (sTour !== tourP || sOv !== ovP || sQuote !== quoteP) tourRafId = requestAnimationFrame(tourLoop);
-    else tourPrevT = 0; /* konvergiert — nächster Kick startet mit frischem dt */
+    else { tourPrevT = 0; if (tourLow) { setTourLow(false); renderTour(); } } /* konvergiert — letzter Frame scharf */
   }
   function kickTour() { if (handover && !tourRafId) tourRafId = requestAnimationFrame(tourLoop); }
 
@@ -1947,7 +2278,7 @@ export async function initHero(cfg = {}) {
 
     /* Live-Readout für die Framing-Session (Dev-Werkzeug) */
     const f2 = v => v.toFixed(2);
-    camRead.textContent = `CAM ${f2(pos.x)} / ${f2(pos.y)} / ${f2(pos.z)} · TARGET ${f2(tgt.x)} / ${f2(tgt.y)} / ${f2(tgt.z)} · SIM ${simT.toFixed(2)} S · ${ovP > 0 ? "ÜBERBLICK" : "STATION " + (stationAt(simT) + 1)}`;
+    camRead.textContent = `CAM ${f2(pos.x)} / ${f2(pos.y)} / ${f2(pos.z)} · TARGET ${f2(tgt.x)} / ${f2(tgt.y)} / ${f2(tgt.z)} · SIM ${simT.toFixed(2)} S · ${ovP > 0 ? "ÜBERBLICK" : "STATION " + (stationAt(simT) + 1)}${!noStill && (ovP > 0 || quoteP > 0) ? " · FOTO " + Math.round(easeInOutC(clamp(ovP / STILL_WIN, 0, 1)) * 100) + " %" : ""}`;
     camRead.style.opacity = "1";
     /* Plattform-Zeile: erscheint erst mit dem „iPhysics by machineering"-Block (Tour-Einstieg) und bleibt dann stehen (07.07.) */
     if (camSub) { const sOp = tourP > .006 ? "1" : "0"; if (camSub.style.opacity !== sOp) camSub.style.opacity = sOp; }
@@ -2012,6 +2343,10 @@ export async function initHero(cfg = {}) {
     tourQuote.style.opacity = qe.toFixed(3);
     tourQuote.style.transform = `translate(-50%, -50%) translateY(${(1 - qe) * 28}px)`;
     cvR.style.opacity = (1 - qe * .6).toFixed(3); /* Anlage tritt zurück: Deckkraft ↓ für Lesbarkeit des Zitats (Kundenwunsch 02.07.) */
+
+    /* Real-Standbild: Bake bei Bedarf, dann Tracking + Wipe (08.07.) */
+    if (!noStill && (ovP > 0 || quoteP > 0) && !stillState) bakeStill(vMult);
+    updateStill(ovP, quoteP, qe);
 
     rReal.render(scene, cam); /* on-demand: genau ein Frame pro Änderung */
   }
@@ -2096,6 +2431,27 @@ export async function initHero(cfg = {}) {
     }
   });
 
+  /* Taste F: Quellframe für die Foto-Generierung (Stufe 2) — Pose 5, Sim-Ende, hi-res.
+     Lädt PNG + Kalibrier-JSON herunter und stellt die Ansicht danach zurück. */
+  addEventListener("keydown", e => {
+    if ((e.key === "f" || e.key === "F") && model && poses) {
+      const ref = api.qaStillFrame();
+      const pr = rReal.getPixelRatio();
+      rReal.setPixelRatio(Math.min(3, pr * 2));
+      lastTourKey = ""; renderTour(); /* gleicher Zustand, höhere Auflösung */
+      const url = cvR.toDataURL("image/png");
+      rReal.setPixelRatio(pr);
+      const a = document.createElement("a");
+      a.href = url; a.download = "real-still-quellframe.png"; a.click();
+      const blob = new Blob([JSON.stringify({ hinweis: "Kalibrier-Konstanten für REAL_STILL.ref — CSS-px des Aufnahme-Viewports. Zusammen mit dem generierten Foto zurückgeben.", ref }, null, 2)], { type: "application/json" });
+      const j = document.createElement("a");
+      j.href = URL.createObjectURL(blob); j.download = "real-still-ref.json"; j.click();
+      api.qaStillFrame(true);
+      dispatchEvent(new Event("scroll")); /* zurück auf echten Scroll-Zustand */
+      console.log("[still] Quellframe exportiert:", JSON.stringify(ref));
+    }
+  });
+
   function updateScroll() {
     const vh = innerHeight, y = scrollY;
     const matLen = vh * 1.12, tourLen = vh * 3.78, ovLen = vh * .49, quoteLen = vh * .59; /* 30 % schneller (06.07.): × 0,7 — Zitat auf Wunsch nochmals × 0,7 (.84 → .59); Spacer in Hero.dc.html mitgekürzt */
@@ -2119,12 +2475,14 @@ export async function initHero(cfg = {}) {
     cam.aspect = w / h; cam.updateProjectionMatrix();
     computeHeroShift(); /* Resize: neu projizieren → neu berechnen → unten neu baken */
     if (!handover) applyViewOffset(1); /* Tour setzt den Offset pro Frame (renderTour) */
+    rReal.setPixelRatio(tourLow ? Math.min(effDPR(), 1) : effDPR()); rWire.setPixelRatio(effDPR()); /* Browser-Zoom ändert devicePixelRatio — aktuelle Stufe neu anwenden */
     rReal.setSize(w, h); rWire.setSize(w, h);
     layoutChrome(); /* Slot-Layout/Logo/Readout — Flugziele bleiben nach Resize pixelgenau */
+    stillState = null; /* Real-Standbild: Kalibrierung viewport-gebunden → beim nächsten Bedarf neu baken */
     projectAnnotations(); /* Anker + Bemaßung neu projizieren (Kamera bleibt P1/T1) */
     if (rebake && model) {
       if (handover) { lastTourKey = ""; updateScroll(); } /* Tour: aktueller Frame neu, kein Bake-Flip */
-      else { bake(); if (!rafId) rWire.render(scene, cam); }
+      else { bake(); liveDirty = 6; if (!rafId) rWire.render(scene, cam); }
     }
   }
   addEventListener("resize", () => { clearTimeout(rsTimer); rsTimer = setTimeout(() => resize(true), 150); });
@@ -2132,8 +2490,7 @@ export async function initHero(cfg = {}) {
 
   document.addEventListener("visibilitychange", () => {
     if (document.hidden) { cancelAnimationFrame(rafId); rafId = null; cancelAnimationFrame(tourRafId); tourRafId = null; }
-    else if (handover) kickTour();
-    else startLoop(); /* in der Tour wird nur on-demand gerendert */
+    else { govGraceUntil = performance.now() + 1800; if (handover) kickTour(); else startLoop(); } /* Tab-Rückkehr: Gnadenfrist, dann on-demand/Loop */
   });
 
   /* ---------- Laden anstoßen ---------- */
@@ -2161,10 +2518,26 @@ export async function initHero(cfg = {}) {
     get meshCount() { return origMat.size; },
     get mask() { return { ...mask, tap: { ...tap } }; },
     get flags() { return { isTouch, reduced, devSkip, revisit }; },
+    get perf() { return { weakFx, gpu: gpuStr, soft: gpuSoft, dpr: effDPR(), dprIx, steps: DPR_STEPS, tourLow, aa: AA }; },
+    set dprStep(i) { dprIx = clamp(i, 0, DPR_STEPS.length - 1); rReal.setPixelRatio(effDPR()); rWire.setPixelRatio(effDPR());
+      if (model) { if (handover) { lastTourKey = ""; renderTour(); } else { bake(); liveDirty = 4; if (!rafId) rWire.render(scene, cam); } } },
     get video() { return { active: videoActive, ready: videoReady, el: !!vid }; },
     get docked() { return { flags: [...dockedFlags], count: dockedCount, barShown, launchScheduled }; },
     get tour() { return { handover, tourP, ovP, quoteP, poses: poses ? poses.map(p => ({ pos: p.pos.toArray(), tgt: p.tgt.toArray() })) : null }; },
     renderTour, enterLive3D, exitLive3D,
+    get still() { return { ready: !!stillState, noStill, cfg: REAL_STILL, state: stillState ? { w0: stillState.w0, h0: stillState.h0, box0: { ...stillState.box0 } } : null }; },
+    rebakeStill() { stillState = null; lastTourKey = ""; renderTour(); },
+    qaStillFrame(restore) { /* Asset-Werkzeug (Stufe 2): Quellframe-Zustand für die Foto-Generierung.
+       Pose 5 ohne Offset, Sim-Ende, volle Szene, Chrome aus → Screenshot = img2img-Vorlage.
+       Rückgabe: Kalibrier-Konstanten (CSS-px) für REAL_STILL.ref · restore=true stellt das Chrome wieder her. */
+      const chrome = [camRead, camSub, skipBtn, hdr, progress, specbar, hint, rail, railLabel, ovWrap, tourIntro, tourQuote, ...tCards, stillWrap, rings, ann].filter(Boolean);
+      if (restore) { chrome.forEach(el => { el.style.visibility = ""; }); this.qaTour(1, 0, .0001); return null; }
+      this.qaTour(1, 0, .0001); /* Pose 5, vMult ≈ 0, Sim-Ende — Bake läuft, Box-Konstanten entstehen */
+      chrome.forEach(el => { el.style.visibility = "hidden"; });
+      const ref = stillState ? { w: stillState.w0, h: stillState.h0, box: { x: +stillState.box0.x.toFixed(1), y: +stillState.box0.y.toFixed(1), w: +stillState.box0.w.toFixed(1), h: +stillState.box0.h.toFixed(1) } } : null;
+      console.log("[still] Quellframe-Ref:", JSON.stringify(ref));
+      return ref;
+    },
     qaTour(tp, qp, op) { /* QA: Tour-Zustand ohne echtes Scrollen setzen — op = Überblick-Fenster (optional; bei qp>0 automatisch 1) */
       tourP = clamp(tp, 0, 1); quoteP = clamp(qp || 0, 0, 1);
       ovP = clamp(op !== undefined ? op : (quoteP > 0 ? 1 : 0), 0, 1); scrollP = 1;
@@ -2173,7 +2546,7 @@ export async function initHero(cfg = {}) {
     },
     get barH() { return barH; },
     slotIns, specbar,
-    cam, P0, P1, T0, T1, scene, THREE,
+    cam, P0, P1, T0, T1, scene, THREE, rReal,
     get model() { return model; },
     skipIntro, advanceSeq, finishDescent: finish, launch, jumpLive, bake,
     projectAnnotations, revealAnnotations, applyViewOffset, computeHeroShift,

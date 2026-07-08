@@ -1,0 +1,13 @@
+{
+  "zweck": "Kalibrier-Konstanten für das Real-Standbild (REAL_STILL in hero-engine.js)",
+  "quellframe": "assets/real-still-quellframe.png — Pose 5 (Hero-Pose), Sim-Ende 17,77 s, ohne Framing-Offset, Real-Look, 2587×1512 (Viewport 924×540 CSS-px × 2,8)",
+  "quell_cluster_box_px": { "x": 320.6, "y": 364.28, "w": 1801.8, "h": 1174.32 },
+  "stufe4_asset": {
+    "datei": "assets/montagezelle-real.webp (aus uploads/real-still-quellframe-real-maschine.png — vom Kunden in Photoshop passgenau auf das Quellframe montiert, gleiche Leinwand 2587×1512)",
+    "ps_rest_abweichung": { "kx": 1.0204, "ky": 1.0045, "offset_px": [-33, -37], "methode": "Dunkel-Bounds beider Bilder (Schwelle 120, Perzentil 0,6–99,4 %), Beleg screenshots/qa-ps-align.png" },
+    "ref_box_foto_px": { "x": 276, "y": 326.8, "w": 1838.6, "h": 1179.6, "hinweis": "= Quell-Cluster-Box, um die PS-Rest-Abweichung korrigiert — Foto-Inhalt landet exakt auf der Render-Anlage" },
+    "blend": "fade — Cut im Shutter-Blitz (3+1-Choreografie), Platzierung strikt uniform (Höhe + Bodenlinie führen, x zentriert)",
+    "panel_anker": "content { cx: 1305, right: 1790 } (Maschinen-Masse, Foto-px) — Panel driftet 75 % Richtung rechtsbündig (vw·0,98), nie links der Mitte"
+  },
+  "asset_tausch": "Neues Foto: auf dieselbe 2587×1512-Leinwand des Quellframes montieren, als WebP speichern, ggf. Rest-Abweichung neu messen (Skript-Vorlage im Chat 08.07.) und ref.box anpassen."
+}
