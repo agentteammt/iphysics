@@ -5,7 +5,8 @@
    · Stacked-Cards per position:sticky — natives Scrollen, KEIN
      Scroll-Hijacking. Vier Karten stapeln sich; die vorherige skaliert
      beim Überdecken sanft auf ~0,96 zurück und bleibt oben angeschnitten.
-   · KPI-Chips zählen beim Aktivwerden hoch (+40 / −50 / −75 / −60 %).
+   · KPI-Chips zählen beim Aktivwerden hoch (+40 / −50 / −75 / −60 %);
+     der Messring-Bogen (data-s3ring) wächst synchron mit.
    · Mobil: Karten einfach untereinander, kein Stacking, keine Skalierung.
    · prefers-reduced-motion / QA-Flag "reduced": Werte statisch, kein Scale.
    ============================================================ */
@@ -18,8 +19,12 @@ export function initSection3() {
   const reduce = matchMedia("(prefers-reduced-motion: reduce)").matches || qa.includes("reduced");
 
   /* ---------- KPI Count-ups (Vorzeichen + Suffix aus data-*) ---------- */
-  const setVal = (el, n) =>
+  const setVal = (el, n) => {
     el.textContent = (el.dataset.prefix || "") + Math.round(n) + (el.dataset.suffix || "");
+    const ring = el.closest("[data-s3ring]");
+    if (ring) ring.style.background =
+      "conic-gradient(from 0deg, #3BAED1 0%, #45B347 " + n + "%, #E7F0F4 " + n + "% 100%)";
+  };
 
   function countUp(el) {
     const target = parseFloat(el.dataset.count);

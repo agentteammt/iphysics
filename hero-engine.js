@@ -69,10 +69,17 @@ export async function initHero(cfg = {}) {
       const rc = o.line.getBoundingClientRect();
       const lx = mx - rc.left, ly = my - rc.top;
       let rr = r;
-      if (rr < 1 || lx < -rr || ly < -rr || lx > rc.width + rr || ly > rc.height + rr) rr = 0;
-      o.inv.style.clipPath = rr ? `circle(${rr}px at ${lx}px ${ly}px)` : "circle(0px at -200px -200px)";
-      const m = rr ? `radial-gradient(circle ${rr}px at ${lx}px ${ly}px, transparent 0 98%, #000 100%)` : "none";
-      o.base.style.webkitMaskImage = m; o.base.style.maskImage = m;
+      if (rr < 1 || lx < -rr * 1.2 || ly < -rr * 1.2 || lx > rc.width + rr * 1.2 || ly > rc.height + rr * 1.2) rr = 0;
+      if (CLIP_EVENODD) { /* 08.07. (1c): Bildmarken-Cluster statt Kreis */
+        let holes = "";
+        if (rr) for (const q of lensRectsPx(lx, ly, rr)) holes += rectPath(q);
+        o.inv.style.clipPath = rr ? `path("${holes}")` : "circle(0px at -200px -200px)";
+        o.base.style.clipPath = rr ? `path(evenodd, "M-60 -60H${(rc.width + 60).toFixed(1)}V${(rc.height + 60).toFixed(1)}H-60Z${holes}")` : "none";
+      } else { /* Fallback ohne evenodd-Support: Kreis wie bisher */
+        o.inv.style.clipPath = rr ? `circle(${rr}px at ${lx}px ${ly}px)` : "circle(0px at -200px -200px)";
+        const m = rr ? `radial-gradient(circle ${rr}px at ${lx}px ${ly}px, transparent 0 98%, #000 100%)` : "none";
+        o.base.style.webkitMaskImage = m; o.base.style.maskImage = m;
+      }
     }
   }
   const hint = $("hint"),
@@ -101,10 +108,10 @@ export async function initHero(cfg = {}) {
       const val = el.querySelector("[data-sb-val]");
       const lbl = el.querySelector("[data-sb-lbl]");
       const col = el.parentElement;
-      if (val) val.style.fontSize = mobile ? "13px" : "15px";
+      if (val) val.style.fontSize = mobile ? "13px" : "clamp(15px, 0.95vw, 19px)";
       if (lbl) { /* Mobile-Pass (06.07.): Labels bleiben sichtbar — kompakt, umbruchfähig */
         lbl.style.display = "block";
-        lbl.style.fontSize = mobile ? "7.5px" : "9px";
+        lbl.style.fontSize = mobile ? "7.5px" : "clamp(9px, 0.58vw, 11px)";
         lbl.style.letterSpacing = mobile ? "0.14em" : "0.22em";
         lbl.style.whiteSpace = mobile ? "normal" : "nowrap";
         lbl.style.lineHeight = mobile ? "1.3" : "normal";
@@ -143,8 +150,8 @@ export async function initHero(cfg = {}) {
         uiCenter.style.transform = "translateY(-50%)";
         uiCenter.style.left = "clamp(20px, 6vw, 96px)";
         uiCenter.style.right = "auto";
-        uiCenter.style.maxWidth = "min(780px, 86vw)";
-        if (h1) h1.style.fontSize = "clamp(1.7rem, 4.6vw, 3.4rem)";
+        uiCenter.style.maxWidth = "min(920px, 86vw)";
+        if (h1) h1.style.fontSize = "clamp(1.7rem, 4.6vw, 4.5rem)";
       }
     }
     if (scrim) scrim.style.opacity = mobile ? "1" : "0";
@@ -157,7 +164,7 @@ export async function initHero(cfg = {}) {
           el.style.top = "auto"; el.style.bottom = "18px";
           el.style.left = "16px"; el.style.right = "16px"; el.style.width = "auto";
         } else {
-          el.style.top = "50%"; el.style.bottom = "auto"; el.style.width = "min(400px, 40vw)";
+          el.style.top = "50%"; el.style.bottom = "auto"; el.style.width = "min(clamp(400px, 30vw, 560px), 40vw)";
           if (i % 2 === 0) { el.style.left = "clamp(20px, 6vw, 96px)"; el.style.right = "auto"; }
           else { el.style.right = "clamp(20px, 6vw, 96px)"; el.style.left = "auto"; }
         }
@@ -189,7 +196,7 @@ export async function initHero(cfg = {}) {
           ov.style.top = "clamp(150px, 18vh, 210px)"; ov.style.bottom = "44px"; ov.style.transform = "none";
           ov.style.justifyContent = "flex-start";
           ov.style.justifyContent = "safe center"; /* overflow-sicher: zentriert bei Platz, pinnt sonst an der Band-Oberkante; ungültig → Fallback flex-start */
-          ov.style.left = "clamp(20px, 6vw, 96px)"; ov.style.right = "auto"; ov.style.width = "min(500px, 46vw)";
+          ov.style.left = "clamp(20px, 6vw, 96px)"; ov.style.right = "auto"; ov.style.width = "min(clamp(500px, 34vw, 640px), 46vw)";
         }
       }
       if (ovLbl) {
@@ -199,15 +206,48 @@ export async function initHero(cfg = {}) {
     }
   }
 
-  /* Linsen-Optik (JS-gesetzt: Vendor-Masken) */
-  const lensMask = "radial-gradient(closest-side,transparent calc(100% - 3px),#000 calc(100% - 2px))";
-  lensEl.style.background = GRAD;
-  lensEl.style.webkitMaskImage = lensMask; lensEl.style.maskImage = lensMask;
+  /* ---------- Bildmarken-Linse (08.07., Variante 1c) ----------
+     Formgeometrie in Einheiten des Linsenradius r: blaues Quadrat-Paar mittig,
+     graue Diagonal-Quadrate oben rechts / unten links (Logo-Bildmarke).
+     Gilt fuer Reveal-Maske, Chrome, Headline-Linse und Ping. */
+  const LENS_RECTS = [
+    { cx: -.505, cy: 0, s: .95, main: 1 },
+    { cx: .505, cy: 0, s: .95, main: 1 },
+    { cx: .505, cy: -.775, s: .48 },
+    { cx: -.575, cy: .775, s: .48 }
+  ];
+  const lensRectsPx = (x, y, r) => LENS_RECTS.map(q => {
+    const s = q.s * r;
+    return { x: x + q.cx * r - s / 2, y: y + q.cy * r - s / 2, w: s, h: s };
+  });
+  const rectPath = q => `M${q.x.toFixed(1)} ${q.y.toFixed(1)}h${q.w.toFixed(1)}v${q.h.toFixed(1)}h${(-q.w).toFixed(1)}Z`;
+  const CLIP_EVENODD = typeof CSS !== "undefined" && CSS.supports && CSS.supports("clip-path", 'path(evenodd, "M0 0H4V4H0Z")');
+  if (!CLIP_EVENODD) console.warn("[hero] clip-path path(evenodd) nicht verfuegbar - Linsen-Fallback: Kreis");
+
+  /* Linsen-Chrome: Rahmen als Kinder von #lens (Basis r=190; der Loop skaliert weiter via scale(mr/190)) */
+  lensEl.style.width = "0"; lensEl.style.height = "0"; lensEl.style.margin = "0";
   lensEl.style.filter = "drop-shadow(0 2px 10px rgba(59,174,209,.35))";
-  lensScan.style.background = "repeating-linear-gradient(0deg,rgba(59,174,209,.16) 0 1px,transparent 1px 7px)";
-  const scanMask = "radial-gradient(circle at 50% 50%,#000 52%,transparent 70%)";
-  lensScan.style.webkitMaskImage = scanMask; lensScan.style.maskImage = scanMask;
+  lensScan.style.display = "none"; /* Scan-Textur liegt jetzt IN den blauen Fenstern */
+  {
+    const R = 190, BW = 2.5;
+    const mkDiv = (parent, st) => { const d = document.createElement("div"); d.style.position = "absolute"; d.style.pointerEvents = "none"; Object.assign(d.style, st); parent.appendChild(d); return d; };
+    const GRADS = [["#3BAED1", "#3FB18F"], ["#3FB18F", "#45B347"]];
+    lensRectsPx(0, 0, R).forEach((q, i) => {
+      const box = mkDiv(lensEl, { left: q.x + "px", top: q.y + "px", width: q.w + "px", height: q.h + "px", boxSizing: "border-box" });
+      if (LENS_RECTS[i].main) {
+        const a = GRADS[i][0], b = GRADS[i][1];
+        mkDiv(box, { left: "0", top: "0", right: "0", height: BW + "px", background: `linear-gradient(90deg,${a},${b})` });
+        mkDiv(box, { left: "0", bottom: "0", right: "0", height: BW + "px", background: `linear-gradient(90deg,${a},${b})` });
+        mkDiv(box, { left: "0", top: "0", bottom: "0", width: BW + "px", background: a });
+        mkDiv(box, { right: "0", top: "0", bottom: "0", width: BW + "px", background: b });
+        mkDiv(box, { left: BW + "px", top: BW + "px", right: BW + "px", bottom: BW + "px", background: "repeating-linear-gradient(0deg,rgba(59,174,209,.16) 0 1px,transparent 1px 7px)" });
+      } else {
+        box.style.border = "2px solid #BDBCBC";
+      }
+    });
+  }
   lensDot.style.background = GRAD;
+  lensDot.style.borderRadius = "0"; /* quadratischer Zentrier-Punkt */
   lensDot.style.boxShadow = "0 0 8px rgba(69,179,71,.6)";
 
   /* ---------- Renderer / Kamera ---------- */
@@ -787,11 +827,19 @@ export async function initHero(cfg = {}) {
   /* ---------- Maskensteuerung ---------- */
   const mask = { x: innerWidth / 2, y: innerHeight / 2, r: 0, tx: innerWidth / 2, ty: innerHeight / 2, tr: 0, mult: 1 };
   const tap = { active: false, x: 0, y: 0, r: 0 };
-  const baseRadius = () => Math.min(190, innerWidth * .17);
+  const baseRadius = () => Math.min(143, innerWidth * .128); /* 08.07.: Linse ~25 % kleiner (vorher 190 / .17) */
   function setMask(x, y, r) {
-    const s = `radial-gradient(circle ${Math.max(0, r)}px at ${x}px ${y}px,transparent 0 62%,rgba(0,0,0,.45) 80%,#000 96%)`;
-    cvW.style.webkitMaskImage = s; cvW.style.maskImage = s;
-    ann.style.webkitMaskImage = s; ann.style.maskImage = s; /* Zeichnungs-Overlays weichen der Reality-Lens */
+    if (CLIP_EVENODD) { /* 08.07. (1c): Loch-Cluster in Bildmarken-Form, kantenscharf */
+      let d = `M0 0H${innerWidth}V${innerHeight}H0Z`;
+      if (r > 0) for (const q of lensRectsPx(x, y, r)) d += rectPath(q);
+      const cp = `path(evenodd, "${d}")`;
+      cvW.style.clipPath = cp;
+      ann.style.clipPath = cp; /* Zeichnungs-Overlays weichen der Reality-Lens */
+    } else { /* Fallback: Kreis, Radius deckt den Cluster ab */
+      const s = `radial-gradient(circle ${Math.max(0, r * 1.12)}px at ${x}px ${y}px,transparent 0 62%,rgba(0,0,0,.45) 80%,#000 96%)`;
+      cvW.style.webkitMaskImage = s; cvW.style.maskImage = s;
+      ann.style.webkitMaskImage = s; ann.style.maskImage = s;
+    }
   }
   function ping(x, y) {
     if (reduced) return;
@@ -799,7 +847,7 @@ export async function initHero(cfg = {}) {
     const d = document.createElement("div");
     Object.assign(d.style, {
       position: "absolute", left: x + "px", top: y + "px", width: "24px", height: "24px",
-      border: "1.5px solid #3BAED1", borderRadius: "50%", transform: "translate(-50%,-50%)",
+      border: "1.5px solid #3BAED1", borderRadius: "0", transform: "translate(-50%,-50%)", /* 08.07.: Ping quadratisch (Bildmarke) */
       opacity: ".85", animation: "iphPing 1.4s cubic-bezier(.2,.6,.3,1) forwards", pointerEvents: "none"
     });
     rings.appendChild(d);
@@ -868,11 +916,11 @@ export async function initHero(cfg = {}) {
     Object.assign(d.style, {
       position: "absolute", left: x + "px", top: y + "px",
       transform: anchor === "l" ? "translate(0,-50%)" : anchor === "r" ? "translate(-100%,-50%)" : "translate(-50%,-50%)",
-      fontWeight: "600", fontSize: "9.5px", letterSpacing: ".2em", textTransform: "uppercase",
+      fontWeight: "600", fontSize: "clamp(9.5px, 0.62vw, 13px)", letterSpacing: ".2em", textTransform: "uppercase",
       color: LBL_COL, lineHeight: "1.55", whiteSpace: "nowrap",
       textAlign: anchor === "l" ? "left" : anchor === "r" ? "right" : "center"
     });
-    d.innerHTML = lines.map((t, i) => i ? `<div style="font-size:8.5px;opacity:.8">${t}</div>` : `<div>${t}</div>`).join("");
+    d.innerHTML = lines.map((t, i) => i ? `<div style="font-size:clamp(8.5px, 0.55vw, 11.5px);opacity:.8">${t}</div>` : `<div>${t}</div>`).join("");
     annDom.appendChild(d);
     return d;
   }
@@ -1000,7 +1048,7 @@ export async function initHero(cfg = {}) {
         const l = document.createElement("div");
         Object.assign(l.style, {
           position: "absolute", left: "16px", top: "50%", transform: "translateY(-50%)",
-          fontWeight: "600", fontSize: "9.5px", letterSpacing: ".2em", textTransform: "uppercase",
+          fontWeight: "600", fontSize: "clamp(9.5px, 0.62vw, 13px)", letterSpacing: ".2em", textTransform: "uppercase",
           color: LBL_COL, whiteSpace: "nowrap"
         });
         l.textContent = n.lbl;
@@ -1078,7 +1126,7 @@ export async function initHero(cfg = {}) {
         roofs.forEach(g => { g.material.opacity = 0; });
         setState(reduced ? "live" : "sweep");
         if (reduced) {
-          mask.x = mask.tx = innerWidth / 2; mask.y = mask.ty = innerHeight * .46;
+          mask.x = mask.tx = innerWidth * .75; mask.y = mask.ty = innerHeight * .46;
           mask.r = mask.tr = isTouch ? 0 : baseRadius();
         }
       }
@@ -1086,13 +1134,13 @@ export async function initHero(cfg = {}) {
     else if (state === "sweep") {
       /* Einfahrt von links → Stopp Bildschirmmitte (§0) */
       const k = clamp(t / DUR.sweep, 0, 1), e = easeOutC(k);
-      const x = lerp(-.12, .5, e) * innerWidth, y = innerHeight * .46;
+      const x = lerp(1.12, .75, e) * innerWidth, y = innerHeight * .46; /* 08.07.: Sweep von rechts, Ruheposition rechts der Mitte (75 %) */
       mask.x = mask.tx = x; mask.y = mask.ty = y;
       mask.r = mask.tr = baseRadius() * (.6 + .4 * e);
       if (k >= 1) {
-        ping(innerWidth * .5, innerHeight * .46);
-        setTimeout(() => ping(innerWidth * .5, innerHeight * .46), 170); /* Doppel-Ping, Versatz 170 ms */
-        mask.tx = innerWidth * .5; mask.ty = innerHeight * .46; mask.tr = baseRadius();
+        ping(innerWidth * .75, innerHeight * .46);
+        setTimeout(() => ping(innerWidth * .75, innerHeight * .46), 170); /* Doppel-Ping, Versatz 170 ms */
+        mask.tx = innerWidth * .75; mask.ty = innerHeight * .46; mask.tr = baseRadius();
         setState("live");
       }
     }
@@ -1100,7 +1148,7 @@ export async function initHero(cfg = {}) {
       showHUD();
       if (isTouch && !tap.active) {
         /* Mobile-Ambient: ruhige Drift um die Mitte + Radius-Breathing (§0) */
-        mask.tx = innerWidth * (.5 + Math.sin(now * .25) * .08);
+        mask.tx = innerWidth * (.75 + Math.sin(now * .25) * .05);
         mask.ty = innerHeight * .44;
         mask.tr = (baseRadius() * .8) + Math.sin(now * 1.2) * 8;
       }
@@ -1283,11 +1331,12 @@ export async function initHero(cfg = {}) {
     const lbl = document.createElement("div");
     lbl.textContent = label;
     Object.assign(lbl.style, {
-      fontWeight: "600", fontSize: "clamp(1.025rem,2.25vw,1.35rem)", letterSpacing: "min(.34em, .82vw)", /* +25 %; Tracking schmilzt nur unter ~700 px, damit die Zeile mobil nicht umbricht (06.07.) */
+      fontWeight: "600", fontSize: "clamp(1.025rem,2.25vw,1.6rem)", letterSpacing: "min(.34em, .82vw)", /* +25 %; Tracking schmilzt nur unter ~700 px, damit die Zeile mobil nicht umbricht (06.07.) */
       whiteSpace: "nowrap",
       color: "#6B7E86", opacity: "0", transform: "translateY(18px)",
       transition: `opacity .52s ${EASE} .3s,transform .52s ${EASE} .3s`
     });
+    k.style.contain = "layout paint"; /* 08.07.: Zaehl-Repaints bleiben im KPI-Feld */
     k.append(num, lbl);
     seqEl.appendChild(k);
     const o = { k, num, draft, outSpans, draftSpans, fillSpans, fillClip, fill, scan, lbl,
@@ -1329,7 +1378,7 @@ export async function initHero(cfg = {}) {
       let v; /* easeOutCubic auf den Überschwinger (+4 %), Rückfeder in den letzten 180 ms */
       if (t <= A) v = over * easeOutC(clamp(t / A, 0, 1));
       else v = lerp(over, o.target, easeOutC(clamp((t - A) / KFX.spring, 0, 1)));
-      if (t - lastAmtT >= 30) { setAmount(o, v); lastAmtT = t; }
+      if (t - lastAmtT >= (weakFx ? 66 : 30)) { setAmount(o, v); lastAmtT = t; } /* 08.07.: schwache Geraete ~15 Hz - halbe Paint-Last, gleicher Eindruck */
       if (p < 1) o.fx.raf = requestAnimationFrame(step);
       else { endScan(o); startPunch(o); }
     };
@@ -1385,7 +1434,7 @@ export async function initHero(cfg = {}) {
   let seqIdx = -1, seqTimer = null, seqDone = false, launched = false, pendingStart = false;
   let dockedFlags = [false, false, false], dockedCount = 0, launchScheduled = false;
   let barShown = false, seqStart = 0;
-  let beatStarted = false, introSkipped = false; /* Änd. 1 (06.07.): Abflug-Beat mit großem „SYSTEM BEREIT" */
+  let beatStarted = false, introSkipped = false, readyShownAt = 0, readyDelay = 0; /* Änd. 1 (06.07.): Abflug-Beat mit großem „SYSTEM BEREIT" */
   const READY_BEAT = 60; /* 07.07.: „SYSTEM BEREIT" folgt DIREKT auf das Verschwinden der letzten Zahl (Ankunft im Schriftfeld) */
   let lastArriveT = 0, pendingQueued = false;
   const miniFrames = makeDissolveFrames(20, 8, 4, 8, 1.0);
@@ -1415,7 +1464,8 @@ export async function initHero(cfg = {}) {
   function pendingLaunch() { /* Sonderfall pendingStart (Änd. 1): Balken-Puls, Herzschlag und
        großes „SYSTEM BEREIT" gehen in diesem Moment als EIN gemeinsamer Beat auf; Iris nach
        Build+Hold. reduced: statischer Kurz-Moment (~400 ms), keine Pulse/Scans. */
-    if (launched || beatStarted || pendingQueued) return;
+    if (launched || pendingQueued) return;
+    if (beatStarted) { systemReadyPulse(); beatAndLaunch(); return; } /* 08.07.: Wort steht bereits (kam direkt nach der letzten Zahl) - Puls + Iris nach Rest-Beat */
     /* 07.07.: Mindest-Beat auch im Wartefall — „SYSTEM BEREIT" frühestens READY_BEAT nach der
        letzten Ankunft; hat das Laden ohnehin länger gedauert, feuert es sofort (direkt danach). */
     const waitBeat = introSkipped ? 0 : Math.max(0, READY_BEAT - (performance.now() - lastArriveT));
@@ -1550,7 +1600,7 @@ export async function initHero(cfg = {}) {
     Object.assign(word.style, {
       position: "relative", fontWeight: "700", textTransform: "uppercase",
       letterSpacing: ".3em", marginRight: "-.3em", /* Tracking-Ausgleich → optisch exakt mittig */
-      fontSize: "clamp(1.6rem,5vw,3.2rem)", lineHeight: "1.1", whiteSpace: "nowrap"
+      fontSize: "clamp(1.6rem,5vw,4.2rem)", lineHeight: "1.1", whiteSpace: "nowrap"
     });
     const txt = "System bereit";
     const out = document.createElement("span");
@@ -1602,13 +1652,23 @@ export async function initHero(cfg = {}) {
     return T.scanDelay + T.scan + T.hold;
   }
   function beatAndLaunch() { /* Änd. 1: Herzschlag + großes Wort ZEITGLEICH; Iris nach Build+Hold (~750 ms, Esc-Skip ~350 ms) */
+    if (launched) return;
+    showBeat();
+    setTimeout(launch, Math.max(0, readyShownAt + readyDelay - performance.now())); /* Iris fruehestens nach Build+Hold des Worts */
+  }
+  function showBeat() { /* 08.07.: Wort + Herzschlag vom Lade-Gate entkoppelt - erscheint direkt nach der letzten Zahl */
     if (launched || beatStarted) return; beatStarted = true;
     heartbeat();
-    setTimeout(launch, showReadyWord(introSkipped ? "skip" : "full"));
+    readyDelay = showReadyWord(introSkipped ? "skip" : "full");
+    readyShownAt = performance.now();
   }
   function tryLaunch() {
-    if (gateOpen()) beatAndLaunch();
-    else { pendingStart = true; if (!loadDone) progLabel.textContent = "LADE DIGITALEN ZWILLING"; }
+    if (gateOpen()) { beatAndLaunch(); return; }
+    /* 08.07.: nicht mehr aufs Laden warten - das Wort kommt direkt nach der letzten Zahl;
+       nur die Iris (braucht GLB/ggf. Video) wartet aufs Gate (siehe pendingLaunch). */
+    pendingStart = true;
+    showBeat();
+    if (!loadDone) progLabel.textContent = "LADE DIGITALEN ZWILLING";
   }
   function arrive(k) {
     const el = slotIns[k];
@@ -1715,7 +1775,7 @@ export async function initHero(cfg = {}) {
     cam.position.copy(P1); cam.lookAt(T1);
     setSim(17.30);
     roofs.forEach(g => { g.material.opacity = 0; });
-    mask.x = mask.tx = innerWidth / 2; mask.y = mask.ty = innerHeight * .46;
+    mask.x = mask.tx = innerWidth * .75; mask.y = mask.ty = innerHeight * .46;
     mask.r = mask.tr = isTouch ? 0 : baseRadius();
     setState("live");
     startLoop();

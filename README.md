@@ -8,6 +8,8 @@ vier Inhaltsabschnitten. Sprache: Deutsch (Sie-Form).
 
 ```
 index.html                      Seite (Markup + Boot-Logik)
+datenschutz.html                Datenschutzerklärung
+impressum.html                  Impressum
 support.js                      Rendering-Runtime für index.html (muss lokal liegen)
 hero-engine.js                  3D-Hero: Intro, Wireframe→Real, Framing, Tour,
                                 Mobile-Layout (Headline oben, Scrim, Tap-Ping)
@@ -46,8 +48,10 @@ python3 -m http.server 8000
 - **`og:image` absolut setzen:** Social-Scraper brauchen die volle URL,
   z. B. `https://<user>.github.io/<repo>/assets/og-hero.jpg` (in `index.html`,
   zwei Stellen: `<meta property="og:image">` und `_seo()`).
-- Rechtliches: Impressum-/Datenschutz-Links im Footer zielen auf `#`
-  (Inhalte folgen in Phase 6).
+- Rechtliches: Impressum/Datenschutz sind eigene Seiten (Inhalte übernommen von
+  machineering.com — Dienste-Liste im Datenschutz und Bildrechte im Impressum
+  vor Go-Live fachlich prüfen; „Google Analytics deaktivieren“-Opt-Out ist noch
+  ohne Funktion).
 - Demo-/Kontakt-Ziele: `#demo` ist Platzhalter-Terminbuchung [Offen 7],
   ROI-Rechner-Link extern (Landbot).
 
