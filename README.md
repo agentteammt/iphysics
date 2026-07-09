@@ -19,8 +19,9 @@ footer.js                       Footer „Zeichnungs-Schriftfeld“: Eingangs-Dr
                                 Responsive-Raster, Status-Hover
 image-slot.js                   Bild-Platzhalter-Komponente
 fonts/                          Titillium Web (lokal, DSGVO) + SIL-OFL-Lizenz
-assets/                         Logo, Favicon, OG-Bild, Poster, Fotos, Intro-Video
-uploads/montagezelle_web_v1.glb 3D-Modell (~9 MB, EXT_meshopt)
+assets/                         Logo, Favicon, OG-Bild, Poster, Fotos, Intro-Video,
+                                3D-Modelle montagezelle_web_v2.glb (Desktop, 5,3 MB)
+                                + _v2_mobile.glb (touch, 3,4 MB) — EXT_meshopt
 .nojekyll                       GitHub Pages: Dateien unverändert ausliefern
 ```
 

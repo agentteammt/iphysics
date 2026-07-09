@@ -30,7 +30,7 @@ const GRAD = "linear-gradient(120deg,#3BAED1 10%,#45B347 90%)";
 let HERO_TRIM = 0; /* px — manuelle Feinjustage in der Framing-Session */
 const PAD_RIGHT = w => clamp(w * .06, 20, 96); /* rechte Rasterlinie = linkes Hero-Padding clamp(20px,6vw,96px) */
 let heroShiftPx = 0; /* berechnet in computeHeroShift() — nach Settle-Framing und bei jedem Resize */
-const GLB_FALLBACK_BYTES = 9.41e6;
+const GLB_FALLBACK_BYTES = { desktop: 5.3e6, mobile: 3.38e6 }; /* B6 (09.07.): v2-Dateigrößen für den Fortschritts-Fallback */
 
 export async function initHero(cfg = {}) {
   if (window.__hero) { console.warn("[hero] bereits initialisiert"); return window.__hero; }
@@ -71,11 +71,17 @@ export async function initHero(cfg = {}) {
   } catch (e) {}
   if (qa.includes("weak") && !weakFx) { weakFx = true; console.log("[hero] Perf-Profil reduziert (QA-Flag)"); }
 
+  /* Save-Data-/Netz-Weiche (09.07., Perf-Audit A5): Datensparmodus oder 2G → kein Intro-Video
+     (spart ~3 MB) und direkt ins Sparprofil. Choreografie-Timings (§0) bleiben unangetastet. */
+  const conn = navigator.connection || {};
+  const slowNet = !!conn.saveData || /(^|-)2g/.test(String(conn.effectiveType || ""));
+  if (slowNet && !weakFx) { weakFx = true; console.log("[hero] Perf-Profil reduziert (Save-Data/2G)"); }
+
   /* Video-Einstieg „Fog-Cut" (Blueprint v8 §C, geändert 06.07.: auch Wiederkehrer): jeder Besuch bei Desktop + voller Motion.
      touch/reduced/devSkip laden das Video weiterhin gar nicht erst. */
   const VIDEO_SRC = "assets/intro-flight.mp4", VIDEO_DESCENT = 1.2; /* Kurz-Descent aus dem Video-Weiß */
   const VIDEO_TRIM = 0.5; /* 07.07.: die ersten 0,5 s des Flugs überspringen — Einstieg direkt in die Bewegung */
-  let videoActive = !isTouch && !reduced && !devSkip;
+  let videoActive = !isTouch && !reduced && !devSkip && !slowNet;
 
   /* ---------- DOM ---------- */
   const stage = $("stage"), cvR = $("cv-real"), cvW = $("cv-wire");
@@ -530,8 +536,13 @@ export async function initHero(cfg = {}) {
       if (MeshoptDecoder.useWorkers) MeshoptDecoder.useWorkers(Math.min(4, Math.max(2, (navigator.hardwareConcurrency || 4) - 2)));
     } catch (e) { console.warn("[hero] Meshopt-Worker nicht verfügbar — Dekodierung im Hauptthread:", e); }
     loader.setMeshoptDecoder(MeshoptDecoder);
-    const gltf = await loader.loadAsync(cfg.glbUrl, e => {
-      const total = (e.lengthComputable && e.total) ? e.total : GLB_FALLBACK_BYTES;
+    /* B6 (09.07.): Lade-Weiche — touch lädt die _mobile-Variante (−64 %), sonst Desktop (−44 %).
+       Decoder, Cluster-Box, Kantenbau (13°, Welt-Größen-Sortierung, 800+80), Bemaßung und
+       Framing-Scan bleiben unangetastet. */
+    const glbUrl = (isTouch && cfg.glbUrlMobile) ? cfg.glbUrlMobile : cfg.glbUrl;
+    const glbFallback = (isTouch && cfg.glbUrlMobile) ? GLB_FALLBACK_BYTES.mobile : GLB_FALLBACK_BYTES.desktop;
+    const gltf = await loader.loadAsync(glbUrl, e => {
+      const total = (e.lengthComputable && e.total) ? e.total : glbFallback;
       setProgress(clamp(e.loaded / total, 0, 1) * .8);
     });
     model = gltf.scene;
@@ -1040,12 +1051,20 @@ export async function initHero(cfg = {}) {
       arrowHead(g, a2, b2); arrowHead(g, b2, a2);
       annFade(annLabel(lp.x, lp.y, labelLines, "c"), delay + .38);
     };
-    /* Zellenmaße aus der robusten Cluster-Box (echte Werte in mm).
+    /* Zellenmaße: Maßlinien/Anker aus der robusten Cluster-Box — die MASSZAHLEN sind seit B6
+       (09.07.) auf die abgenommenen v1-Werte gepinnt: das v2-Repack (Simplify) verschiebt die
+       Cluster-Box um wenige mm (5.494 → Label wäre „5.490“), die Typenschild-Maße der Anlage
+       ändern sich dadurch natürlich nicht. Drift-Wächter warnt ab 25 mm (falsches Asset).
        Nach dem HERO_SHIFT sitzt die Bemaßung auf den OBERKANTEN (rechts der
        Anlage ist kein Platz mehr); Höhe erscheint nur, wenn rechts Raum ist. */
-    dim(V(mn.x, mx.y, mx.z), V(mx.x, mx.y, mx.z), V(0, 1, 0), .55, [fmtMM(size.x)], .85);            /* Breite, vordere Oberkante */
-    dim(V(mn.x, mx.y, mn.z), V(mn.x, mx.y, mx.z), V(0, 1, 0), .55, [fmtMM(size.z)], 1.0);            /* Tiefe, linke Oberkante */
-    dim(V(mx.x, mn.y, mn.z), V(mx.x, mx.y, mn.z), V(1, 0, 0), .3, [fmtMM(size.y), "Z-ACHSE"], 1.15); /* Höhe, hintere rechte Kante */
+    const DIM_LOCK = { x: "4.830", y: "1.930", z: "5.500" };
+    {
+      const drift = Math.max(Math.abs(size.x - 4.83), Math.abs(size.y - 1.93), Math.abs(size.z - 5.5));
+      if (drift > .025) console.warn("[ann] Bemaßungs-Drift " + (drift * 1000).toFixed(0) + " mm gegen Typenschild — Asset prüfen (Box " + [size.x, size.y, size.z].map(v => v.toFixed(3)).join(" × ") + " m; gemessen wäre " + [fmtMM(size.x), fmtMM(size.y), fmtMM(size.z)].join(" × ") + ")");
+    }
+    dim(V(mn.x, mx.y, mx.z), V(mx.x, mx.y, mx.z), V(0, 1, 0), .55, [DIM_LOCK.x], .85);            /* Breite, vordere Oberkante */
+    dim(V(mn.x, mx.y, mn.z), V(mn.x, mx.y, mx.z), V(0, 1, 0), .55, [DIM_LOCK.z], 1.0);            /* Tiefe, linke Oberkante */
+    dim(V(mx.x, mn.y, mn.z), V(mx.x, mx.y, mn.z), V(1, 0, 0), .3, [DIM_LOCK.y, "Z-ACHSE"], 1.15); /* Höhe, hintere rechte Kante */
 
     /* Callout „ZELLE 01" mit Fahnenlinie — nach oben links, weg vom Tiefen-Maß */
     (() => {

@@ -15,7 +15,30 @@
 <meta property="og:image:width" content="1200">
 <meta property="og:image:height" content="630">
 <meta name="twitter:card" content="summary_large_image">
-<link rel="preload" href="uploads/montagezelle_web_v1.glb" as="fetch" crossorigin>
+<script>
+/* B6 (09.07.): GLB-Preload gerätespezifisch — gleiche Weiche wie hero-engine.js (isTouch).
+   QA-Simulationen (touch-Flag/Prop) sieht dieses frühe Preload nicht — dort lädt ggf. doppelt, nur QA. */
+(function () {
+  var touch = matchMedia("(pointer:coarse)").matches || "ontouchstart" in window;
+  var l = document.createElement("link");
+  l.rel = "preload"; l.as = "fetch"; l.crossOrigin = "";
+  l.href = touch ? "assets/montagezelle_web_v2_mobile.glb" : "assets/montagezelle_web_v2.glb";
+  document.head.appendChild(l);
+})();
+</script>
+<!-- Perf-Audit A1 (09.07.): Ladekette parallelisieren — Preconnect + Preload/Modulepreload
+     entkoppeln die seriellen Hops support.js → React (unpkg) → hero-engine → three (jsdelivr).
+     SRI/crossorigin der React-Preloads MUSS zu support.js loadScript() passen (anonymous+integrity),
+     sonst lädt der Browser doppelt. Vor Go-Live (Selbst-Hosting) auf eigene Pfade umstellen. -->
+<link rel="preconnect" href="https://unpkg.com" crossorigin>
+<link rel="preconnect" href="https://cdn.jsdelivr.net" crossorigin>
+<link rel="preload" as="script" href="https://unpkg.com/react@18.3.1/umd/react.production.min.js" crossorigin="anonymous" integrity="sha384-DGyLxAyjq0f9SPpVevD6IgztCFlnMF6oW/XQGmfe+IsZ8TqEiDrcHkMLKI6fiB/Z">
+<link rel="preload" as="script" href="https://unpkg.com/react-dom@18.3.1/umd/react-dom.production.min.js" crossorigin="anonymous" integrity="sha384-gTGxhz21lVGYNMcdJOyq01Edg0jhn/c22nsx0kyqP0TxaV5WVdsSH1fSDUf5YJj1">
+<link rel="modulepreload" href="./hero-engine.js">
+<link rel="modulepreload" href="https://cdn.jsdelivr.net/npm/three@0.160.0/+esm">
+<link rel="modulepreload" href="https://cdn.jsdelivr.net/npm/three@0.160.0/examples/jsm/loaders/GLTFLoader.js/+esm">
+<link rel="modulepreload" href="https://cdn.jsdelivr.net/npm/three@0.160.0/examples/jsm/libs/meshopt_decoder.module.js">
+<link rel="preload" as="image" href="assets/intro-grid.webp" fetchpriority="high">
 <script type="application/ld+json">
 {"@context":"https://schema.org","@type":"FAQPage","mainEntity":[
 {"@type":"Question","name":"Was ist virtuelle Inbetriebnahme (VIBN)?","acceptedAnswer":{"@type":"Answer","text":"Bei der virtuellen Inbetriebnahme wird der reale SPS-Code gegen ein physikbasiertes Simulationsmodell der Anlage getestet – noch bevor die Maschine gebaut ist. Mit iPhysics laufen Steuerungscode und digitaler Zwilling parallel, sodass Fehler am Bildschirm auffallen statt in der Werkshalle."}},
@@ -39,6 +62,7 @@
   <link rel="icon" type="image/png" href="assets/favicon.png">
   <link rel="preload" href="fonts/TitilliumWeb-Black.ttf" as="font" type="font/ttf" crossorigin="">
   <link rel="preload" href="fonts/TitilliumWeb-SemiBold.ttf" as="font" type="font/ttf" crossorigin="">
+  <link rel="preload" href="fonts/TitilliumWeb-Bold.ttf" as="font" type="font/ttf" crossorigin="">
   <script src="image-slot.js"></script>
   <style>
     html { scroll-behavior: smooth; }
@@ -623,7 +647,7 @@
 
         <!-- Inhaber-Bild (06.07.) — bricht die Textwand nach „Inhabergeführt“ -->
         <div data-s4tile="" data-reveal="" data-reveal-delay="40" data-span="2" data-screen-label="Bild · Inhaber" style="grid-column: span 2; position: relative; box-sizing: border-box; min-height: clamp(250px, 32vh, 340px); border: 1px solid #D6E7EE; border-radius: 20px; overflow: hidden; background: #F1F4F5;">
-          <img src="assets/machineering-inhaber.jpg" alt="Die Inhaber der machineering GmbH — inhabergeführter Anbieter für virtuelle Inbetriebnahme aus München" loading="lazy" decoding="async" style="position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; object-position: 50% 0%;">
+          <img src="assets/machineering-inhaber.webp" alt="Die Inhaber der machineering GmbH — inhabergeführter Anbieter für virtuelle Inbetriebnahme aus München" loading="lazy" decoding="async" style="position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; object-position: 50% 0%;">
         </div>
 
         <!-- USP 2 -->
@@ -755,7 +779,7 @@
             <a href="#" style="display: inline-flex; align-items: center; gap: 12px; font-weight: 700; font-size: clamp(15px, 1.4vw, 17px); letter-spacing: 0.01em; color: #FFFFFF; background: linear-gradient(120deg, #3BAED1, #45B347); padding: 16px 30px; border-radius: 999px; text-decoration: none; box-shadow: 0 16px 32px -12px rgba(59,174,209,.5); transition: transform .2s ease, box-shadow .2s ease;" style-hover="transform: translateY(-2px); box-shadow: 0 22px 44px -14px rgba(59,174,209,.6)" style-focus="outline: 3px solid rgba(59,174,209,.55); outline-offset: 3px">Alle Module &amp; Details <span aria-hidden="true">→</span></a>
           </div>
           <div style="flex: 1 1 340px; position: relative; min-height: clamp(280px, 32vw, 440px); overflow: hidden;">
-            <img src="assets/iphysics-remote-devices.png" alt="iPhysics Simulationssoftware auf Tablet und Smartphone — virtuelle Inbetriebnahme am digitalen Zwilling, mobil in Echtzeit" loading="lazy" decoding="async" style="position: absolute; inset: 0; width: 100%; height: 100%; object-fit: contain; object-position: center bottom; box-sizing: border-box; padding: clamp(18px, 2.4vw, 32px) clamp(16px, 2vw, 28px) 0 0;">
+            <img src="assets/iphysics-remote-devices.webp" alt="iPhysics Simulationssoftware auf Tablet und Smartphone — virtuelle Inbetriebnahme am digitalen Zwilling, mobil in Echtzeit" loading="lazy" decoding="async" style="position: absolute; inset: 0; width: 100%; height: 100%; object-fit: contain; object-position: center bottom; box-sizing: border-box; padding: clamp(18px, 2.4vw, 32px) clamp(16px, 2vw, 28px) 0 0;">
           </div>
         </div>
 
@@ -1048,7 +1072,8 @@ class Component extends DCLogic {
     this._flags = this._readFlags();
     import("./hero-engine.js")
       .then(m => m.initHero({
-        glbUrl: "uploads/montagezelle_web_v1.glb",
+        glbUrl: "assets/montagezelle_web_v2.glb",
+        glbUrlMobile: "assets/montagezelle_web_v2_mobile.glb",
         devSkipIntro: !!this.props.devSkipIntro,
         forceReduced: !!this.props.simReduced,
         forceTouch: !!this.props.simTouch
