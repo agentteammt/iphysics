@@ -227,7 +227,7 @@
           const row = s.avail && s.avail[s.selTime];
           if (!row || row.slot_id == null) { s.error = "Dieser Termin ist nicht mehr verfügbar."; s.selTime = null; }
           else {
-            const r = await window.KIWBooking.bookSlot(s.selDate, row.slot_id, f.name.trim(), f.email.trim(), f.company.trim(), f.note.trim());
+            const r = await window.KIWBooking.bookSlot(s.selDate, row.slot_id, f.name.trim(), f.email.trim(), f.company.trim(), f.note.trim(), (typeof location !== "undefined" ? location.href : ""));
             if (r === "ok") s.done = true;
             else if (r === "full") { s.error = "Dieser Termin ist gerade belegt. Bitte anderen wählen."; s.selTime = null; await this.loadAvail(); }
             else s.error = "Dieser Termin ist nicht mehr verfügbar.";

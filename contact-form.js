@@ -52,6 +52,31 @@ export function initContactForm() {
   const thanks = document.getElementById("cf-thanks-name");
   let busy = false;
 
+  /* Versand-Anbindung (Supabase Edge Function „contact") — sonst Demo-Beat. */
+  const liveMail = () => !!(window.KIWBooking && window.KIWBooking.configured && window.KIWBooking.configured() && window.KIWBooking.sendContact);
+  const val = id => { const el = document.getElementById(id); return el ? (el.value || "") : ""; };
+  function gather() {
+    return {
+      topic: topic ? topic.value : "",
+      name: val("cf-name"), company: val("cf-firma"),
+      email: val("cf-mail"), phone: val("cf-tel"), message: val("cf-msg"),
+      pageUrl: (typeof location !== "undefined" ? location.href : ""),
+    };
+  }
+  function showError(msg) {
+    let box = document.getElementById("cf-error");
+    if (!box) {
+      box = document.createElement("div");
+      box.id = "cf-error";
+      box.setAttribute("role", "alert");
+      box.style.cssText = "color:#C0392B;font-weight:600;font-size:13px;line-height:1.5;";
+      if (send && send.parentNode) send.parentNode.insertBefore(box, send.nextSibling);
+      else form.appendChild(box);
+    }
+    box.textContent = msg;
+  }
+  function clearError() { const box = document.getElementById("cf-error"); if (box) box.textContent = ""; }
+
   function showDone() {
     const nameEl = document.getElementById("cf-name");
     const raw = ((nameEl && nameEl.value) || "").trim();
@@ -80,22 +105,36 @@ export function initContactForm() {
     if (busy) return;
     if (!form.reportValidity()) return;
     busy = true;
+    clearError();
     if (send) send.setAttribute("aria-busy", "true");
-    if (reduced) {
-      showDone();
+
+    const finish = ok => {
       busy = false;
       if (send) send.removeAttribute("aria-busy");
-      return;
-    }
-    if (labelEl) labelEl.textContent = "Wird übermittelt …";
+      if (ok) { showDone(); restoreSendBtn(); }
+      else {
+        if (labelEl) labelEl.textContent = "Nachricht senden";
+        if (arrowEl) arrowEl.style.opacity = "1";
+        if (fillEl) { fillEl.style.transition = "none"; fillEl.style.width = "0%"; requestAnimationFrame(() => { fillEl.style.transition = "width 1s ease"; }); }
+        showError("Nachricht konnte nicht gesendet werden. Bitte sp\u00e4ter erneut versuchen oder direkt an u.zenker@team-mt.de schreiben.");
+      }
+    };
+
+    const send_ = () => {
+      if (liveMail()) {
+        window.KIWBooking.sendContact(gather())
+          .then(r => finish(r === "ok"))
+          .catch(() => finish(false));
+      } else {
+        finish(true); // Demo: kein Backend konfiguriert
+      }
+    };
+
+    if (reduced) { send_(); return; }
+    if (labelEl) labelEl.textContent = "Wird \u00fcbermittelt \u2026";
     if (arrowEl) arrowEl.style.opacity = "0";
     if (fillEl) fillEl.style.width = "100%";
-    setTimeout(() => {
-      showDone();
-      busy = false;
-      if (send) send.removeAttribute("aria-busy");
-      restoreSendBtn();
-    }, 1000);
+    setTimeout(send_, 1000);
   });
 
   /* „Weitere Nachricht" — Overlay schließen, Blatt leeren */
