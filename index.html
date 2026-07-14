@@ -64,6 +64,7 @@
   <link rel="preload" href="fonts/TitilliumWeb-SemiBold.ttf" as="font" type="font/ttf" crossorigin="">
   <link rel="preload" href="fonts/TitilliumWeb-Bold.ttf" as="font" type="font/ttf" crossorigin="">
   <script src="image-slot.js"></script>
+  <script src="./roi-widget.js"></script>
   <style>
     html { scroll-behavior: smooth; }
     body { margin: 0; background: #FBFDFE; overflow-x: hidden; }
@@ -406,16 +407,17 @@
         </div>
       </div>
 
-      <!-- ROI-Störer (06.07.) — kurzer Weckruf zwischen Referenz und Terminbuchung. Ziel: Landbot-ROI-Rechner (extern, neuer Tab). -->
-      <div id="roi-teaser" data-reveal="" data-screen-label="ROI-Störer" style="margin-top: clamp(88px, 12vh, 156px); position: relative; overflow: hidden; border-radius: 22px; background: linear-gradient(120deg, #3BAED1, #45B347); box-shadow: 0 34px 90px -34px rgba(59,174,209,.5); padding: clamp(30px, 4.5vw, 56px) clamp(26px, 4vw, 64px); display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 24px 44px;">
+      <!-- ROI-Störer (14.07.) — kurzer Weckruf zwischen Referenz und Terminbuchung. Ziel: Landbot-ROI-Rechner als eingebettetes Fenster (roi-widget.js) — bleibt auf der Seite. -->
+      <div id="roi-teaser" data-reveal="" data-screen-label="ROI-Störer" style="margin-top: clamp(88px, 12vh, 156px); position: relative; overflow: hidden; border-radius: 22px; background: linear-gradient(120deg, #3BAED1, #45B347); box-shadow: 0 34px 90px -34px rgba(59,174,209,.5); padding: clamp(30px, 4.5vw, 56px) clamp(26px, 4vw, 64px); display: grid; grid-template-columns: minmax(0, 1fr) auto; align-items: center; gap: 28px 56px;">
         <div aria-hidden="true" style="position: absolute; top: -60%; left: -6%; width: 480px; height: 480px; border-radius: 50%; background: radial-gradient(circle, rgba(255,255,255,.16), rgba(255,255,255,0) 70%); pointer-events: none;"></div>
         <div style="position: relative; max-width: 620px;">
           <div style="font-weight: 600; font-size: 11px; letter-spacing: 0.3em; color: rgba(255,255,255,.85);">ROI-RECHNER</div>
-          <div style="margin-top: 10px; font-weight: 700; font-size: clamp(1.25rem, 2.4vw, 1.9rem); line-height: 1.25; color: #FFFFFF; text-wrap: balance;">Berechnen auch Sie Ihr Einsparpotenzial – in 2 Minuten.</div>
+          <div style="margin-top: 10px; font-weight: 700; font-size: clamp(1.25rem, 2.4vw, 1.9rem); line-height: 1.25; color: #FFFFFF; text-wrap: balance;">Was spart Ihnen die virtuelle Inbetriebnahme?</div>
+          <div style="margin-top: 12px; font-weight: 400; font-size: clamp(1rem, 1.5vw, 1.12rem); line-height: 1.55; color: rgba(255,255,255,.88); text-wrap: pretty;">Berechnen auch Sie Ihr Einsparpotenzial – in 2 Minuten.</div>
         </div>
         <div style="position: relative; display: flex; flex-direction: column; gap: 9px; align-items: flex-start;">
-          <a href="https://chats.landbot.io/v3/H-913817-VJIW6RKUF4Z91UGF/index.html" target="_blank" rel="noopener" style="display: inline-flex; align-items: center; gap: 12px; font-weight: 700; font-size: clamp(15px, 1.4vw, 17px); letter-spacing: 0.01em; color: #10262E; background: #FFFFFF; padding: 16px 30px; border-radius: 999px; text-decoration: none; box-shadow: 0 16px 32px -12px rgba(16,38,46,.35); transition: transform .2s ease, box-shadow .2s ease;" style-hover="transform: translateY(-2px); box-shadow: 0 22px 44px -14px rgba(16,38,46,.4)" style-focus="outline: 3px solid rgba(255,255,255,.8); outline-offset: 3px">Einsparpotenzial berechnen <span aria-hidden="true" style="color: #3BAED1;">→</span></a>
-          <div style="font-weight: 400; font-size: 12px; color: rgba(255,255,255,.75);">Öffnet in neuem Tab</div>
+          <button id="roi-open" type="button" style="font-family: 'Titillium Web', sans-serif; display: inline-flex; align-items: center; gap: 12px; font-weight: 700; font-size: clamp(15px, 1.4vw, 17px); letter-spacing: 0.01em; color: #10262E; background: #FFFFFF; border: none; padding: 16px 30px; border-radius: 999px; cursor: pointer; box-shadow: 0 16px 32px -12px rgba(16,38,46,.35); transition: transform .2s ease, box-shadow .2s ease;" style-hover="transform: translateY(-2px); box-shadow: 0 22px 44px -14px rgba(16,38,46,.4)" style-focus="outline: 3px solid rgba(255,255,255,.8); outline-offset: 3px">ROI berechnen <span aria-hidden="true" style="color: #3BAED1;">→</span></button>
+          <div style="font-weight: 400; font-size: 12px; color: rgba(255,255,255,.75);">Öffnet sich direkt hier auf der Seite</div>
         </div>
       </div>
 
