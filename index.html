@@ -43,7 +43,7 @@
 {"@context":"https://schema.org","@type":"FAQPage","mainEntity":[
 {"@type":"Question","name":"Was ist virtuelle Inbetriebnahme (VIBN)?","acceptedAnswer":{"@type":"Answer","text":"Bei der virtuellen Inbetriebnahme wird der reale SPS-Code gegen ein physikbasiertes Simulationsmodell der Anlage getestet – noch bevor die Maschine gebaut ist. Mit iPhysics laufen Steuerungscode und digitaler Zwilling parallel, sodass Fehler am Bildschirm auffallen statt in der Werkshalle."}},
 {"@type":"Question","name":"Was ist der Unterschied zwischen virtueller Inbetriebnahme und einem digitalen Zwilling?","acceptedAnswer":{"@type":"Answer","text":"Der digitale Zwilling ist das physikbasierte Modell der Anlage – die virtuelle Inbetriebnahme ist eine seiner wichtigsten Anwendungen. iPhysics nutzt denselben Zwilling zusätzlich für Vertrieb, Engineering und Schulung."}},
-{"@type":"Question","name":"Mit welchen Steuerungen funktioniert virtuelle Inbetriebnahme mit iPhysics?","acceptedAnswer":{"@type":"Answer","text":"iPhysics ist herstellerunabhängig und bindet Steuerungen über OPC UA, PROFINET, EtherCAT oder Modbus an – egal ob Siemens, Beckhoff, B&R oder Rockwell. Kein Vendor-Lock-in."}},
+{"@type":"Question","name":"Mit welchen Steuerungen funktioniert virtuelle Inbetriebnahme mit iPhysics?","acceptedAnswer":{"@type":"Answer","text":"iPhysics ist herstellerunabhängig und bindet Steuerungen über OPC UA, PROFINET, EtherCAT, ADS oder REST an – egal ob Siemens, Beckhoff, B&R oder Rockwell. Kein Vendor-Lock-in."}},
 {"@type":"Question","name":"Welche Vorteile bietet virtuelle Inbetriebnahme?","acceptedAnswer":{"@type":"Answer","text":"Bis zu 80 % der Fehler werden erkannt, bevor das Team überhaupt anreist – das senkt die Inbetriebnahmezeit um bis zu 75 %. Mehrere Maschinen lassen sich parallel testen, ganz ohne Stillstand laufender Linien."}},
 {"@type":"Question","name":"Was kostet iPhysics – mieten oder kaufen?","acceptedAnswer":{"@type":"Answer","text":"iPhysics ist modular aufgebaut: Miete ab 300 €/Monat oder Kauf ab 5.000 €. Optionale Module (CAD, PLC, Robotics, IoT u. a.) lassen sich individuell dazubuchen."}},
 {"@type":"Question","name":"Was bedeutet „Digital Twin as a Product“?","acceptedAnswer":{"@type":"Answer","text":"Der digitale Zwilling wird nicht nach der Inbetriebnahme entsorgt, sondern an den Kunden mitgeliefert – für Produktwechsel, Rüstoptimierung und das Onboarding neuer Mitarbeiter, auch lange nach dem Kauf."}},
@@ -290,8 +290,8 @@
   </div>
 
   <!-- ===== Scrollstrecke ===== -->
-  <!-- Scrollstrecke (06.07.): 112vh Materialize + 378vh Prozess-Tour + 49vh Überblick + 59vh Zitat (nochmals ×0,7) + Auslauf -->
-  <div id="scrollspace" aria-hidden="true" style="height: 698vh;"></div>
+  <!-- Scrollstrecke (13.07.): 112vh Materialize + 460vh Prozess-Tour (Tour entschleunigt) + 49vh Überblick + 59vh Zitat + Auslauf -->
+  <div id="scrollspace" aria-hidden="true" style="height: 780vh;"></div>
 
   <!-- ================================================================
        Referenz-Band (06.07.) — Wordmark-Laufband vor der Referenz.
@@ -302,24 +302,39 @@
   <section id="s2-logos" data-screen-label="Referenz-Band" style="position: relative; z-index: 12; background: #FFFFFF; border-bottom: 1px solid #D6E7EE; padding: clamp(36px, 5vh, 60px) 0;">
     <div style="text-align: center; padding: 0 clamp(20px, 6vw, 96px); font-weight: 600; font-size: 11px; letter-spacing: 0.3em; text-transform: uppercase; color: #6B7E86;">Referenzen</div>
     <div style="margin-top: clamp(20px, 3vh, 30px); overflow: hidden; -webkit-mask-image: linear-gradient(90deg, transparent, #000 10%, #000 90%, transparent); mask-image: linear-gradient(90deg, transparent, #000 10%, #000 90%, transparent);">
-      <div data-marquee="" style="display: flex; width: max-content; animation: iphMarquee 52s linear infinite reverse; will-change: transform;">
-        <div style="display: flex; gap: 14px; padding-right: 14px;">
-          <span style="display: inline-flex; align-items: center; padding: 12px 26px; border: 1px solid #D6E7EE; border-radius: 999px; background: #FFFFFF; font-weight: 700; font-size: 13px; letter-spacing: 0.14em; text-transform: uppercase; color: #10262E; white-space: nowrap;">Krones</span>
-          <span style="display: inline-flex; align-items: center; padding: 12px 26px; border: 1px solid #D6E7EE; border-radius: 999px; background: #FFFFFF; font-weight: 700; font-size: 13px; letter-spacing: 0.14em; text-transform: uppercase; color: #10262E; white-space: nowrap;">Weber Food Technology</span>
-          <span style="display: inline-flex; align-items: center; padding: 12px 26px; border: 1px solid #D6E7EE; border-radius: 999px; background: #FFFFFF; font-weight: 700; font-size: 13px; letter-spacing: 0.14em; text-transform: uppercase; color: #10262E; white-space: nowrap;">Krones</span>
-          <span style="display: inline-flex; align-items: center; padding: 12px 26px; border: 1px solid #D6E7EE; border-radius: 999px; background: #FFFFFF; font-weight: 700; font-size: 13px; letter-spacing: 0.14em; text-transform: uppercase; color: #10262E; white-space: nowrap;">Weber Food Technology</span>
-          <span style="display: inline-flex; align-items: center; padding: 12px 26px; border: 1px solid #D6E7EE; border-radius: 999px; background: #FFFFFF; font-weight: 600; font-size: 13px; letter-spacing: 0.06em; color: #6B7E86; white-space: nowrap;">u. v. m.</span>
+      <div data-marquee="" style="display: flex; width: max-content; animation: iphMarquee 78s linear infinite reverse; will-change: transform;">
+        <div style="display: flex; gap: 16px; padding-right: 16px;">
+          <span style="display: inline-flex; align-items: center; justify-content: center; height: 76px; box-sizing: border-box; padding: 18px 30px; border: 1px solid #D6E7EE; border-radius: 20px; background: #FFFFFF;"><img src="assets/ref-krones.png" alt="Krones" loading="lazy" decoding="async" style="max-height: 38px; max-width: 200px; width: auto; object-fit: contain; display: block;"></span>
+          <span style="display: inline-flex; align-items: center; justify-content: center; height: 76px; box-sizing: border-box; padding: 18px 30px; border: 1px solid #D6E7EE; border-radius: 20px; background: #FFFFFF;"><img src="assets/ref-syntegon.png" alt="Syntegon — Processing & Packaging" loading="lazy" decoding="async" style="max-height: 38px; max-width: 200px; width: auto; object-fit: contain; display: block;"></span>
+          <span style="display: inline-flex; align-items: center; justify-content: center; height: 76px; box-sizing: border-box; padding: 18px 30px; border: 1px solid #D6E7EE; border-radius: 20px; background: #FFFFFF;"><img src="assets/ref-beumer.png" alt="BEUMER Group" loading="lazy" decoding="async" style="max-height: 38px; max-width: 200px; width: auto; object-fit: contain; display: block;"></span>
+          <span style="display: inline-flex; align-items: center; justify-content: center; height: 76px; box-sizing: border-box; padding: 18px 30px; border: 1px solid #D6E7EE; border-radius: 20px; background: #FFFFFF;"><img src="assets/ref-harrohoefliger.png" alt="Harro Höfliger" loading="lazy" decoding="async" style="max-height: 38px; max-width: 200px; width: auto; object-fit: contain; display: block;"></span>
+          <span style="display: inline-flex; align-items: center; justify-content: center; height: 76px; box-sizing: border-box; padding: 18px 30px; border: 1px solid #D6E7EE; border-radius: 20px; background: #FFFFFF;"><img src="assets/ref-hahn.png" alt="HAHN Automation Group" loading="lazy" decoding="async" style="max-height: 38px; max-width: 200px; width: auto; object-fit: contain; display: block;"></span>
+          <span style="display: inline-flex; align-items: center; justify-content: center; height: 76px; box-sizing: border-box; padding: 18px 30px; border: 1px solid #D6E7EE; border-radius: 20px; background: #FFFFFF;"><img src="assets/ref-somic.png" alt="Somic" loading="lazy" decoding="async" style="max-height: 38px; max-width: 200px; width: auto; object-fit: contain; display: block;"></span>
+          <span style="display: inline-flex; align-items: center; justify-content: center; height: 76px; box-sizing: border-box; padding: 18px 30px; border: 1px solid #D6E7EE; border-radius: 20px; background: #FFFFFF;"><img src="assets/ref-strama.png" alt="Strama-MPS" loading="lazy" decoding="async" style="max-height: 38px; max-width: 200px; width: auto; object-fit: contain; display: block;"></span>
+          <span style="display: inline-flex; align-items: center; justify-content: center; height: 76px; box-sizing: border-box; padding: 18px 30px; border: 1px solid #D6E7EE; border-radius: 20px; background: #FFFFFF;"><img src="assets/ref-fill.png" alt="Fill — Your Future" loading="lazy" decoding="async" style="max-height: 38px; max-width: 200px; width: auto; object-fit: contain; display: block;"></span>
+          <span style="display: inline-flex; align-items: center; justify-content: center; height: 76px; box-sizing: border-box; padding: 18px 30px; border: 1px solid #D6E7EE; border-radius: 20px; background: #FFFFFF;"><img src="assets/ref-ags.png" alt="AGS Engineering" loading="lazy" decoding="async" style="max-height: 38px; max-width: 200px; width: auto; object-fit: contain; display: block;"></span>
+          <span style="display: inline-flex; align-items: center; justify-content: center; height: 76px; box-sizing: border-box; padding: 18px 30px; border: 1px solid #D6E7EE; border-radius: 20px; background: #FFFFFF;"><img src="assets/ref-framag.png" alt="Framag" loading="lazy" decoding="async" style="max-height: 38px; max-width: 200px; width: auto; object-fit: contain; display: block;"></span>
+          <span style="display: inline-flex; align-items: center; justify-content: center; height: 76px; box-sizing: border-box; padding: 18px 30px; border: 1px solid #D6E7EE; border-radius: 20px; background: #FFFFFF;"><img src="assets/ref-sonplas.png" alt="Sonplas" loading="lazy" decoding="async" style="max-height: 38px; max-width: 200px; width: auto; object-fit: contain; display: block;"></span>
+          <span style="display: inline-flex; align-items: center; justify-content: center; height: 76px; box-sizing: border-box; padding: 18px 30px; border: 1px solid #D6E7EE; border-radius: 20px; background: #FFFFFF;"><img src="assets/ref-nexgen.png" alt="NexGen Wafer Systems" loading="lazy" decoding="async" style="max-height: 38px; max-width: 200px; width: auto; object-fit: contain; display: block;"></span>
+          <span style="display: inline-flex; align-items: center; justify-content: center; height: 76px; box-sizing: border-box; padding: 18px 30px; border: 1px solid #D6E7EE; border-radius: 20px; background: #FFFFFF;"><img src="assets/ref-abb-technikerschule.png" alt="ABB Technikerschule" loading="lazy" decoding="async" style="max-height: 38px; max-width: 200px; width: auto; object-fit: contain; display: block;"></span>
         </div>
-        <div aria-hidden="true" style="display: flex; gap: 14px; padding-right: 14px;">
-          <span style="display: inline-flex; align-items: center; padding: 12px 26px; border: 1px solid #D6E7EE; border-radius: 999px; background: #FFFFFF; font-weight: 700; font-size: 13px; letter-spacing: 0.14em; text-transform: uppercase; color: #10262E; white-space: nowrap;">Krones</span>
-          <span style="display: inline-flex; align-items: center; padding: 12px 26px; border: 1px solid #D6E7EE; border-radius: 999px; background: #FFFFFF; font-weight: 700; font-size: 13px; letter-spacing: 0.14em; text-transform: uppercase; color: #10262E; white-space: nowrap;">Weber Food Technology</span>
-          <span style="display: inline-flex; align-items: center; padding: 12px 26px; border: 1px solid #D6E7EE; border-radius: 999px; background: #FFFFFF; font-weight: 700; font-size: 13px; letter-spacing: 0.14em; text-transform: uppercase; color: #10262E; white-space: nowrap;">Krones</span>
-          <span style="display: inline-flex; align-items: center; padding: 12px 26px; border: 1px solid #D6E7EE; border-radius: 999px; background: #FFFFFF; font-weight: 700; font-size: 13px; letter-spacing: 0.14em; text-transform: uppercase; color: #10262E; white-space: nowrap;">Weber Food Technology</span>
-          <span style="display: inline-flex; align-items: center; padding: 12px 26px; border: 1px solid #D6E7EE; border-radius: 999px; background: #FFFFFF; font-weight: 600; font-size: 13px; letter-spacing: 0.06em; color: #6B7E86; white-space: nowrap;">u. v. m.</span>
+        <div aria-hidden="true" style="display: flex; gap: 16px; padding-right: 16px;">
+          <span style="display: inline-flex; align-items: center; justify-content: center; height: 76px; box-sizing: border-box; padding: 18px 30px; border: 1px solid #D6E7EE; border-radius: 20px; background: #FFFFFF;"><img src="assets/ref-krones.png" alt="Krones" loading="lazy" decoding="async" style="max-height: 38px; max-width: 200px; width: auto; object-fit: contain; display: block;"></span>
+          <span style="display: inline-flex; align-items: center; justify-content: center; height: 76px; box-sizing: border-box; padding: 18px 30px; border: 1px solid #D6E7EE; border-radius: 20px; background: #FFFFFF;"><img src="assets/ref-syntegon.png" alt="Syntegon — Processing & Packaging" loading="lazy" decoding="async" style="max-height: 38px; max-width: 200px; width: auto; object-fit: contain; display: block;"></span>
+          <span style="display: inline-flex; align-items: center; justify-content: center; height: 76px; box-sizing: border-box; padding: 18px 30px; border: 1px solid #D6E7EE; border-radius: 20px; background: #FFFFFF;"><img src="assets/ref-beumer.png" alt="BEUMER Group" loading="lazy" decoding="async" style="max-height: 38px; max-width: 200px; width: auto; object-fit: contain; display: block;"></span>
+          <span style="display: inline-flex; align-items: center; justify-content: center; height: 76px; box-sizing: border-box; padding: 18px 30px; border: 1px solid #D6E7EE; border-radius: 20px; background: #FFFFFF;"><img src="assets/ref-harrohoefliger.png" alt="Harro Höfliger" loading="lazy" decoding="async" style="max-height: 38px; max-width: 200px; width: auto; object-fit: contain; display: block;"></span>
+          <span style="display: inline-flex; align-items: center; justify-content: center; height: 76px; box-sizing: border-box; padding: 18px 30px; border: 1px solid #D6E7EE; border-radius: 20px; background: #FFFFFF;"><img src="assets/ref-hahn.png" alt="HAHN Automation Group" loading="lazy" decoding="async" style="max-height: 38px; max-width: 200px; width: auto; object-fit: contain; display: block;"></span>
+          <span style="display: inline-flex; align-items: center; justify-content: center; height: 76px; box-sizing: border-box; padding: 18px 30px; border: 1px solid #D6E7EE; border-radius: 20px; background: #FFFFFF;"><img src="assets/ref-somic.png" alt="Somic" loading="lazy" decoding="async" style="max-height: 38px; max-width: 200px; width: auto; object-fit: contain; display: block;"></span>
+          <span style="display: inline-flex; align-items: center; justify-content: center; height: 76px; box-sizing: border-box; padding: 18px 30px; border: 1px solid #D6E7EE; border-radius: 20px; background: #FFFFFF;"><img src="assets/ref-strama.png" alt="Strama-MPS" loading="lazy" decoding="async" style="max-height: 38px; max-width: 200px; width: auto; object-fit: contain; display: block;"></span>
+          <span style="display: inline-flex; align-items: center; justify-content: center; height: 76px; box-sizing: border-box; padding: 18px 30px; border: 1px solid #D6E7EE; border-radius: 20px; background: #FFFFFF;"><img src="assets/ref-fill.png" alt="Fill — Your Future" loading="lazy" decoding="async" style="max-height: 38px; max-width: 200px; width: auto; object-fit: contain; display: block;"></span>
+          <span style="display: inline-flex; align-items: center; justify-content: center; height: 76px; box-sizing: border-box; padding: 18px 30px; border: 1px solid #D6E7EE; border-radius: 20px; background: #FFFFFF;"><img src="assets/ref-ags.png" alt="AGS Engineering" loading="lazy" decoding="async" style="max-height: 38px; max-width: 200px; width: auto; object-fit: contain; display: block;"></span>
+          <span style="display: inline-flex; align-items: center; justify-content: center; height: 76px; box-sizing: border-box; padding: 18px 30px; border: 1px solid #D6E7EE; border-radius: 20px; background: #FFFFFF;"><img src="assets/ref-framag.png" alt="Framag" loading="lazy" decoding="async" style="max-height: 38px; max-width: 200px; width: auto; object-fit: contain; display: block;"></span>
+          <span style="display: inline-flex; align-items: center; justify-content: center; height: 76px; box-sizing: border-box; padding: 18px 30px; border: 1px solid #D6E7EE; border-radius: 20px; background: #FFFFFF;"><img src="assets/ref-sonplas.png" alt="Sonplas" loading="lazy" decoding="async" style="max-height: 38px; max-width: 200px; width: auto; object-fit: contain; display: block;"></span>
+          <span style="display: inline-flex; align-items: center; justify-content: center; height: 76px; box-sizing: border-box; padding: 18px 30px; border: 1px solid #D6E7EE; border-radius: 20px; background: #FFFFFF;"><img src="assets/ref-nexgen.png" alt="NexGen Wafer Systems" loading="lazy" decoding="async" style="max-height: 38px; max-width: 200px; width: auto; object-fit: contain; display: block;"></span>
+          <span style="display: inline-flex; align-items: center; justify-content: center; height: 76px; box-sizing: border-box; padding: 18px 30px; border: 1px solid #D6E7EE; border-radius: 20px; background: #FFFFFF;"><img src="assets/ref-abb-technikerschule.png" alt="ABB Technikerschule" loading="lazy" decoding="async" style="max-height: 38px; max-width: 200px; width: auto; object-fit: contain; display: block;"></span>
         </div>
       </div>
     </div>
-    <div style="margin-top: 14px; text-align: center; padding: 0 clamp(20px, 6vw, 96px); font-weight: 400; font-size: 12px; color: #9CB0B8;">[Offen 15] Referenzlogos nach Freigabe — Wordmarks als Platzhalter</div>
   </section>
 
   <!-- ================================================================
@@ -339,7 +354,7 @@
 
       <!-- Video-Anker (16:9) — Platzhalter mit Verlaufs-Play-Button -->
       <figure data-reveal="" style="margin: clamp(48px, 7vh, 96px) 0 0;">
-        <div id="s2-video" data-variant="embed" data-embed-src="https://www.youtube-nocookie.com/embed/hBORq0qAQac" role="button" tabindex="0" aria-label="Erfolgsstory Weber — Video abspielen" style="position: relative; aspect-ratio: 16 / 9; width: 100%; border-radius: 16px; overflow: hidden; border: 1px solid #D6E7EE; background: #F1F4F5; cursor: pointer;" style-focus="outline: 3px solid rgba(59,174,209,.55); outline-offset: 3px">
+        <div id="s2-video" data-variant="embed" data-embed-src="https://www.youtube-nocookie.com/embed/AIzh0fUMpnY" role="button" tabindex="0" aria-label="Erfolgsstory Weber — Video abspielen" style="position: relative; aspect-ratio: 16 / 9; width: 100%; border-radius: 16px; overflow: hidden; border: 1px solid #D6E7EE; background: #F1F4F5; cursor: pointer;" style-focus="outline: 3px solid rgba(59,174,209,.55); outline-offset: 3px">
           <img src="assets/weber-poster.webp" alt="Virtuelle Inbetriebnahme bei Weber Maschinenbau — Erfolgsstory mit iPhysics Simulationssoftware" loading="lazy" decoding="async" style="position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover;">
           <div aria-hidden="true" style="position: absolute; inset: 0; background: linear-gradient(180deg, rgba(16,38,46,.10), rgba(16,38,46,.38));"></div>
           <div style="position: absolute; left: 16px; top: 16px; font-weight: 600; font-size: 10px; letter-spacing: 0.18em; text-transform: uppercase; color: #6B7E86; background: rgba(255,255,255,.82); border: 1px solid #D6E7EE; padding: 7px 11px; border-radius: 999px;">Erfolgsstory Weber · Video</div>
@@ -373,12 +388,12 @@
         <div style="display: flex; flex-direction: column; gap: clamp(44px, 6.5vh, 80px);">
           <div data-reveal="">
             <div style="font-weight: 600; font-size: 10px; letter-spacing: 0.24em; text-transform: uppercase; color: #6B7E86;">Über</div>
-            <div style="margin-top: 4px; font-weight: 900; font-size: clamp(52px, 6.4vw, 88px); line-height: 1; letter-spacing: -0.02em; background: linear-gradient(120deg, #3BAED1, #45B347); -webkit-background-clip: text; background-clip: text; -webkit-text-fill-color: transparent; color: #3BAED1;"><span data-count="2000" data-sep="1">2.000</span></div>
-            <div style="margin-top: 10px; font-weight: 600; font-size: 11px; letter-spacing: 0.22em; text-transform: uppercase; color: #6B7E86;">Mitarbeiter</div>
+            <div style="margin-top: 4px; font-weight: 600; font-size: clamp(52px, 6.4vw, 88px); line-height: 1; letter-spacing: -0.02em; background: linear-gradient(120deg, #3BAED1, #45B347); -webkit-background-clip: text; background-clip: text; -webkit-text-fill-color: transparent; color: #3BAED1;"><span data-count="2000" data-sep="1">2.000</span></div>
+            <div style="margin-top: 10px; font-weight: 600; font-size: 11px; letter-spacing: 0.22em; text-transform: uppercase; color: #6B7E86;">Mitarbeiter bei Weber</div>
           </div>
           <div data-reveal="" data-reveal-delay="70">
             <div style="font-weight: 600; font-size: 10px; letter-spacing: 0.24em; text-transform: uppercase; color: #6B7E86;">In Deutschland</div>
-            <div style="margin-top: 4px; font-weight: 900; font-size: clamp(52px, 6.4vw, 88px); line-height: 1; letter-spacing: -0.02em; background: linear-gradient(120deg, #3BAED1, #45B347); -webkit-background-clip: text; background-clip: text; -webkit-text-fill-color: transparent; color: #3BAED1;"><span data-count="5">5</span></div>
+            <div style="margin-top: 4px; font-weight: 600; font-size: clamp(52px, 6.4vw, 88px); line-height: 1; letter-spacing: -0.02em; background: linear-gradient(120deg, #3BAED1, #45B347); -webkit-background-clip: text; background-clip: text; -webkit-text-fill-color: transparent; color: #3BAED1;"><span data-count="5">5</span></div>
             <div style="margin-top: 10px; font-weight: 600; font-size: 11px; letter-spacing: 0.22em; text-transform: uppercase; color: #6B7E86;">Standorte</div>
           </div>
           <div data-reveal="" style="border-top: 1px solid #D6E7EE; padding-top: clamp(32px, 4.5vh, 48px);">
@@ -406,7 +421,7 @@
 
       <!-- CTA-Feld — ruhige Karte, feiner Verlaufs-Rahmen + Glow -->
       <div id="kontakt" data-reveal="" style="scroll-margin-top: 98px; margin-top: clamp(88px, 12vh, 156px); border-radius: 22px; padding: 1.5px; background: linear-gradient(120deg, #3BAED1, #45B347); box-shadow: 0 34px 90px -34px rgba(59,174,209,.42);">
-        <div style="position: relative; border-radius: 20.5px; background: #FFFFFF; padding: clamp(36px, 5vw, 76px); overflow: hidden;">
+        <div style="position: relative; border-radius: 20.5px; background: #FFFFFF; padding: clamp(28px, 3.4vw, 48px); overflow: hidden;">
           <div aria-hidden="true" style="position: absolute; top: -42%; right: -8%; width: 540px; height: 540px; border-radius: 50%; background: radial-gradient(circle, rgba(59,174,209,.10), rgba(69,179,71,0) 68%); pointer-events: none;"></div>
           <!-- Terminbuchung (Änd. 3, 06.07.): Buchung wird DIREKT auf der Seite integriert; Tool [OFFEN].
                Rechte Karte = fest dimensionierter Platzhalter (Desktop 520 px / mobil 460 px, via section2.js — kompakter, Kundenwunsch 06.07.),
@@ -414,67 +429,18 @@
                HINWEIS Integration: Wird das Buchungstool ein EXTERNES Embed (Calendly o. ä.), ist eine
                Zwei-Klick-Consent-Lösung Pflicht — wie beim Weber-Video (section2.js, showConsent):
                Platzhalterkarte zuerst, das Embed lädt erst nach Klick + Einwilligung. -->
-          <div id="demo-grid" style="position: relative; display: grid; grid-template-columns: 1.04fr 0.96fr; gap: clamp(32px, 4.5vw, 72px); align-items: center;">
+          <div id="demo-grid" style="position: relative; display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 0.94fr); gap: clamp(28px, 3vw, 48px); align-items: center;">
             <div>
               <h3 style="margin: 0; font-weight: 700; font-size: clamp(1.3rem, 2.6vw, 2rem); line-height: 1.22; letter-spacing: -0.015em; color: #33505B; text-wrap: balance;">Wie führende Maschinenbauer mit dem ganzheitlichen Einsatz des <span data-grad-outline="1" style="color: #FFFFFF; -webkit-text-fill-color: #FFFFFF; -webkit-text-stroke: 3.75px transparent; background: linear-gradient(120deg, #3BAED1 10%, #45B347 90%); -webkit-background-clip: text; background-clip: text; padding: 0 .1em; margin: 0 -.1em;">iPhysics Digitalen Zwillings</span> ihren ROI um durchschnittlich <span data-count="240" data-suffix=" %" style="background: linear-gradient(120deg, #3BAED1, #45B347); -webkit-background-clip: text; background-clip: text; -webkit-text-fill-color: transparent; color: #3BAED1;">240 %</span>* steigern.</h3>
               <p style="margin: 24px 0 0; font-weight: 400; font-size: clamp(1rem, 1.5vw, 1.18rem); line-height: 1.65; color: #6B7E86; text-wrap: pretty;">Denn das ist der Unterschied: Andere Tools lösen einen Schritt. iPhysics verbindet alle. Ein Modell. Alle Abteilungen. Der gesamte Lebenszyklus.</p>
               <div style="margin-top: 34px; display: flex; flex-direction: column; align-items: flex-start; gap: 13px;">
-                <a href="#" title="[OFFEN] Buchungstool wird noch entschieden — Button vorerst ohne Funktion" style="display: inline-flex; align-items: center; gap: 12px; font-weight: 700; font-size: clamp(15px, 1.4vw, 17px); letter-spacing: 0.01em; color: #FFFFFF; background: linear-gradient(120deg, #3BAED1, #45B347); padding: 16px 30px; border-radius: 999px; text-decoration: none; box-shadow: 0 16px 32px -12px rgba(59,174,209,.5); transition: transform .2s ease, box-shadow .2s ease;" style-hover="transform: translateY(-2px); box-shadow: 0 22px 44px -14px rgba(59,174,209,.6)" style-focus="outline: 3px solid rgba(59,174,209,.55); outline-offset: 3px">iPhysics live erleben — Demo vereinbaren <span aria-hidden="true">→</span></a>
+                <a href="#demo" style="display: inline-flex; align-items: center; gap: 12px; font-weight: 700; font-size: clamp(15px, 1.4vw, 17px); letter-spacing: 0.01em; color: #FFFFFF; background: linear-gradient(120deg, #3BAED1, #45B347); padding: 16px 30px; border-radius: 999px; text-decoration: none; box-shadow: 0 16px 32px -12px rgba(59,174,209,.5); transition: transform .2s ease, box-shadow .2s ease;" style-hover="transform: translateY(-2px); box-shadow: 0 22px 44px -14px rgba(59,174,209,.6)" style-focus="outline: 3px solid rgba(59,174,209,.55); outline-offset: 3px">iPhysics live erleben — Demo vereinbaren <span aria-hidden="true">→</span></a>
                 <div style="font-weight: 400; font-size: 13px; color: #6B7E86;">Unverbindlich. 30 Minuten. Ihr Anwendungsfall. <span style="color: #9CB0B8;">[Offen 7: Demo-Kanal]</span></div>
               </div>
               <div style="margin-top: 28px; font-weight: 400; font-size: 11px; color: #9CB0B8;">*Wert in Validierung</div>
             </div>
-            <div id="demo" data-screen-label="Terminbuchung — Platzhalter" style="scroll-margin-top: 98px; box-sizing: border-box; height: 620px; display: flex; flex-direction: column; background: #FFFFFF; border: 1px solid #D6E7EE; border-radius: 16px; padding: clamp(24px, 2.8vw, 38px);">
-              <div style="font-weight: 600; font-size: 11px; letter-spacing: 0.3em; background: linear-gradient(120deg, #3BAED1 10%, #45B347 90%); -webkit-background-clip: text; background-clip: text; -webkit-text-fill-color: transparent; color: #3BAED1;">DEMO VEREINBAREN</div>
-              <div aria-hidden="true" style="flex: 1 1 auto; min-height: 0; display: flex; flex-direction: column; gap: 12px; margin-top: 24px; pointer-events: none; user-select: none;">
-                <div style="display: grid; grid-template-columns: repeat(7, 1fr); gap: 1px;">
-                  <div style="text-align: center; font-weight: 600; font-size: 10px; letter-spacing: 0.18em; color: #9CB0B8;">M</div>
-                  <div style="text-align: center; font-weight: 600; font-size: 10px; letter-spacing: 0.18em; color: #9CB0B8;">D</div>
-                  <div style="text-align: center; font-weight: 600; font-size: 10px; letter-spacing: 0.18em; color: #9CB0B8;">M</div>
-                  <div style="text-align: center; font-weight: 600; font-size: 10px; letter-spacing: 0.18em; color: #9CB0B8;">D</div>
-                  <div style="text-align: center; font-weight: 600; font-size: 10px; letter-spacing: 0.18em; color: #9CB0B8;">F</div>
-                  <div style="text-align: center; font-weight: 600; font-size: 10px; letter-spacing: 0.18em; color: #9CB0B8;">S</div>
-                  <div style="text-align: center; font-weight: 600; font-size: 10px; letter-spacing: 0.18em; color: #9CB0B8;">S</div>
-                </div>
-                <div style="flex: 1 1 auto; min-height: 0; display: grid; grid-template-columns: repeat(7, 1fr); grid-auto-rows: 1fr; gap: 1px; background: #E2F1F6; border: 1px solid #E2F1F6; border-radius: 8px; overflow: hidden;">
-                  <div style="background: #F6FBFD;"></div>
-                  <div style="background: #F6FBFD;"></div>
-                  <div style="background: #FFFFFF;"></div>
-                  <div style="background: #FFFFFF;"></div>
-                  <div style="background: #FFFFFF;"></div>
-                  <div style="background: #FFFFFF;"></div>
-                  <div style="background: #FFFFFF;"></div>
-                  <div style="background: #FFFFFF;"></div>
-                  <div style="background: #FFFFFF;"></div>
-                  <div style="background: #FFFFFF;"></div>
-                  <div style="background: #FFFFFF;"></div>
-                  <div style="background: #FFFFFF;"></div>
-                  <div style="background: #FFFFFF;"></div>
-                  <div style="background: #FFFFFF;"></div>
-                  <div style="background: #FFFFFF;"></div>
-                  <div style="background: #FFFFFF;"></div>
-                  <div style="background: #FFFFFF;"></div>
-                  <div style="background: #FFFFFF;"></div>
-                  <div style="background: #FFFFFF;"></div>
-                  <div style="background: #FFFFFF;"></div>
-                  <div style="background: #FFFFFF;"></div>
-                  <div style="background: #FFFFFF;"></div>
-                  <div style="background: #FFFFFF;"></div>
-                  <div style="background: #FFFFFF;"></div>
-                  <div style="background: #FFFFFF;"></div>
-                  <div style="background: #FFFFFF;"></div>
-                  <div style="background: #FFFFFF;"></div>
-                  <div style="background: #FFFFFF;"></div>
-                  <div style="background: #FFFFFF;"></div>
-                  <div style="background: #FFFFFF;"></div>
-                  <div style="background: #FFFFFF;"></div>
-                  <div style="background: #FFFFFF;"></div>
-                  <div style="background: #F6FBFD;"></div>
-                  <div style="background: #F6FBFD;"></div>
-                  <div style="background: #F6FBFD;"></div>
-                </div>
-              </div>
-              <div style="margin-top: 22px; text-align: center; font-weight: 400; font-size: 13px; line-height: 1.6; color: #6B7E86;">Online-Terminbuchung — <span style="color: #9CB0B8;">[OFFEN: Tool wird noch entschieden]</span></div>
+            <div id="demo" data-screen-label="Terminbuchung" style="scroll-margin-top: 98px; min-width: 0; box-sizing: border-box; display: flex; flex-direction: column; justify-content: center;">
+              <x-import component-from-global-scope="iph-booking" from="./booking-widget.js" variant="v3" hint-size="100%,520px"></x-import>
             </div>
           </div>
         </div>
@@ -487,12 +453,12 @@
         </div>
         <div style="border-right: 1px solid #D6E7EE; padding: 0 clamp(24px, 3vw, 44px); display: flex; flex-direction: column; justify-content: center;">
           <div style="font-weight: 600; font-size: 10px; letter-spacing: 0.24em; text-transform: uppercase; color: #6B7E86;">Vertraut von über</div>
-          <div style="margin-top: 4px; font-weight: 900; font-size: clamp(52px, 6.4vw, 88px); line-height: 1; letter-spacing: -0.02em; background: linear-gradient(120deg, #3BAED1, #45B347); -webkit-background-clip: text; background-clip: text; -webkit-text-fill-color: transparent; color: #3BAED1;"><span data-count="200">200</span></div>
+          <div style="margin-top: 4px; font-weight: 600; font-size: clamp(52px, 6.4vw, 88px); line-height: 1; letter-spacing: -0.02em; background: linear-gradient(120deg, #3BAED1, #45B347); -webkit-background-clip: text; background-clip: text; -webkit-text-fill-color: transparent; color: #3BAED1;"><span data-count="200">200</span></div>
           <div style="margin-top: 10px; font-weight: 600; font-size: 11px; letter-spacing: 0.22em; text-transform: uppercase; color: #6B7E86;">Maschinenbauern im DACH-Raum <span style="color: #9CB0B8;">[Offen 8]</span></div>
         </div>
         <div style="padding-left: clamp(24px, 3vw, 44px); display: flex; flex-direction: column; justify-content: center; align-items: flex-start; gap: 16px;">
           <div aria-hidden="true" style="width: 48px; height: 4px; border-radius: 999px; background: linear-gradient(120deg, #3BAED1, #45B347);"></div>
-          <div style="font-weight: 900; font-size: clamp(30px, 3.4vw, 50px); line-height: 1.04; letter-spacing: -0.015em; color: #10262E;">Made in<br>Germany</div>
+          <div style="font-weight: 600; font-size: clamp(30px, 3.4vw, 50px); line-height: 1.04; letter-spacing: -0.015em; color: #10262E;">Made in<br>Germany</div>
         </div>
       </div>
 
@@ -646,8 +612,8 @@
         </div>
 
         <!-- Inhaber-Bild (06.07.) — bricht die Textwand nach „Inhabergeführt“ -->
-        <div data-s4tile="" data-reveal="" data-reveal-delay="40" data-span="2" data-screen-label="Bild · Inhaber" style="grid-column: span 2; position: relative; box-sizing: border-box; min-height: clamp(250px, 32vh, 340px); border: 1px solid #D6E7EE; border-radius: 20px; overflow: hidden; background: #F1F4F5;">
-          <img src="assets/machineering-inhaber.webp" alt="Die Inhaber der machineering GmbH — inhabergeführter Anbieter für virtuelle Inbetriebnahme aus München" loading="lazy" decoding="async" style="position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; object-position: 50% 0%;">
+        <div data-s4tile="" data-reveal="" data-reveal-delay="40" data-span="2" data-screen-label="Bild · Inhaber" style="grid-column: span 2; position: relative; box-sizing: border-box; min-height: clamp(300px, 40vh, 460px); border: 1px solid #D6E7EE; border-radius: 20px; overflow: hidden; background: #F1F4F5;">
+          <img src="assets/machineering-inhaber.webp" alt="Die Inhaber der machineering GmbH — inhabergeführter Anbieter für virtuelle Inbetriebnahme aus München" loading="lazy" decoding="async" style="position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; object-position: 50% 6%;">
         </div>
 
         <!-- USP 2 -->
@@ -683,8 +649,9 @@
             <span style="display: inline-flex; align-items: center; padding: 7px 14px; border: 1px solid #D6E7EE; border-radius: 999px; background: #F6FBFD; font-weight: 600; font-size: 11px; letter-spacing: 0.12em; color: #10262E; white-space: nowrap;">OPC UA</span>
             <span style="display: inline-flex; align-items: center; padding: 7px 14px; border: 1px solid #D6E7EE; border-radius: 999px; background: #F6FBFD; font-weight: 600; font-size: 11px; letter-spacing: 0.12em; color: #10262E; white-space: nowrap;">PROFINET</span>
             <span style="display: inline-flex; align-items: center; padding: 7px 14px; border: 1px solid #D6E7EE; border-radius: 999px; background: #F6FBFD; font-weight: 600; font-size: 11px; letter-spacing: 0.12em; color: #10262E; white-space: nowrap;">ETHERCAT</span>
-            <span style="display: inline-flex; align-items: center; padding: 7px 14px; border: 1px solid #D6E7EE; border-radius: 999px; background: #F6FBFD; font-weight: 600; font-size: 11px; letter-spacing: 0.12em; color: #10262E; white-space: nowrap;">MODBUS</span>
-            <span style="display: inline-flex; align-items: center; padding: 7px 14px; border: 1px solid #D6E7EE; border-radius: 999px; background: #F6FBFD; font-weight: 600; font-size: 11px; letter-spacing: 0.12em; color: #10262E; white-space: nowrap;">STEP</span>
+            <span style="display: inline-flex; align-items: center; padding: 7px 14px; border: 1px solid #D6E7EE; border-radius: 999px; background: #F6FBFD; font-weight: 600; font-size: 11px; letter-spacing: 0.12em; color: #10262E; white-space: nowrap;">ADS</span>
+            <span style="display: inline-flex; align-items: center; padding: 7px 14px; border: 1px solid #D6E7EE; border-radius: 999px; background: #F6FBFD; font-weight: 600; font-size: 11px; letter-spacing: 0.12em; color: #10262E; white-space: nowrap;">REST</span>
+            <span style="display: inline-flex; align-items: center; padding: 7px 14px; border: 1px solid #D6E7EE; border-radius: 999px; background: #F6FBFD; font-weight: 600; font-size: 11px; letter-spacing: 0.12em; color: #10262E; white-space: nowrap;">CAD-INTEGRATION</span>
             <span style="display: inline-flex; align-items: center; padding: 7px 14px; border: 1px solid #D6E7EE; border-radius: 999px; background: #F6FBFD; font-weight: 600; font-size: 11px; letter-spacing: 0.12em; color: #6B7E86; white-space: nowrap;">…</span>
           </div>
         </div>
@@ -756,34 +723,40 @@
 
       </div>
 
+      <!-- Offene Plattform (A1, 14.07.) — kompakter, zweispaltig: Text links, Grafik rechts.
+           Bild: assets/plattform-uebersicht.png (vor Go-Live webp-optimieren). -->
+      <div data-reveal="" data-screen-label="Offene Plattform" style="margin-top: clamp(48px, 7vh, 96px); background: #FFFFFF; border: 1px solid #D6E7EE; border-radius: 20px; padding: clamp(24px, 2.8vw, 40px); box-shadow: 0 30px 70px -46px rgba(16,38,46,.3); display: flex; flex-wrap: wrap; gap: clamp(24px, 3vw, 44px); align-items: center;">
+        <div style="flex: 1 1 300px; min-width: 0;">
+          <div style="font-weight: 600; font-size: 12px; letter-spacing: 0.3em; text-transform: uppercase; background: linear-gradient(120deg, #3BAED1 10%, #45B347 90%); -webkit-background-clip: text; background-clip: text; -webkit-text-fill-color: transparent; color: #3BAED1;">Offene Plattform</div>
+          <h3 style="margin: 12px 0 0; font-weight: 700; font-size: clamp(1.25rem, 2.1vw, 1.7rem); line-height: 1.16; letter-spacing: -0.015em; color: #33505B; text-wrap: balance;">Ein Modell, das sich in Ihre gesamte Toolchain einfügt</h3>
+          <p style="margin: 12px 0 0; font-weight: 400; font-size: clamp(0.95rem, 1.3vw, 1.05rem); line-height: 1.62; color: #6B7E86; text-wrap: pretty;">Von CAD und PDM über Roboter- und SPS-Programmierung bis zur Echtzeit-Visualisierung: iPhysics ist offen und bindet Ihre bestehenden Systeme herstellerübergreifend an.</p>
+        </div>
+        <figure style="margin: 0; flex: 1 1 380px; min-width: 0;">
+          <div style="border: 1px solid #D6E7EE; border-radius: 12px; overflow: hidden; background: #FBFDFE;">
+            <img src="assets/plattform-uebersicht.png" alt="iPhysics als offene Plattform für die virtuelle Inbetriebnahme — CAD, SPS, Robotik und Feldbus herstellerübergreifend verbunden" loading="lazy" decoding="async" style="display: block; width: 100%; height: auto;">
+          </div>
+          <figcaption style="margin-top: 10px; font-weight: 400; font-size: 12px; color: #9CB0B8;">iPhysics verbindet Mechanik-, Elektro-, Roboter- und SPS-Welt auf einer Plattform.</figcaption>
+        </figure>
+      </div>
+
       <!-- Abschluss: Querverlinkung + finale CTA-Karte -->
       <div style="margin-top: clamp(48px, 7vh, 96px); display: flex; flex-direction: column; gap: clamp(14px, 1.6vw, 20px);">
 
-        <div data-reveal="" data-screen-label="Querverlinkung machineering" style="box-sizing: border-box; display: flex; flex-direction: column; background: linear-gradient(120deg, #3BAED1, #45B347); border: 1px solid transparent; border-radius: 20px; transition: transform .28s ease, box-shadow .28s ease;" style-hover="transform: translateY(-3px); box-shadow: 0 26px 52px -28px rgba(59,174,209,.55)">
-          <a href="#" style="display: flex; align-items: center; justify-content: space-between; gap: 18px; padding: clamp(22px, 3vw, 30px) clamp(24px, 3.4vw, 38px); text-decoration: none;" style-focus="outline: 3px solid rgba(59,174,209,.55); outline-offset: 3px">
-            <span style="font-weight: 700; font-size: clamp(17px, 1.8vw, 21px); line-height: 1.3; color: #FFFFFF;">machineering — Simulation aus einer Hand</span>
-            <span aria-hidden="true" style="font-weight: 700; font-size: clamp(18px, 1.9vw, 22px); color: #FFFFFF;">→</span>
-          </a>
-          <!-- Querverlinkung iPhysics-Leistungen (Änd. 4, 06.07.) -->
-          <div style="border-top: 1px solid rgba(255,255,255,.4); padding: clamp(14px, 1.8vw, 18px) clamp(24px, 3.4vw, 38px);">
-            <a href="https://www.machineering.com/produkte/iphysics/" target="_blank" rel="noopener" style="display: inline-flex; align-items: center; gap: 10px; font-weight: 600; font-size: clamp(14px, 1.4vw, 16px); color: rgba(255,255,255,.88); text-decoration: none; transition: color .25s ease, gap .25s ease;" style-hover="color: #FFFFFF; gap: 16px" style-focus="outline: 3px solid rgba(59,174,209,.55); outline-offset: 3px">Alle Produkte im Überblick <span aria-hidden="true" style="color: rgb(255, 255, 255);">→</span></a>
+        <!-- Vereintes CTA (C3, final 14.07.): ersetzt die frühere Querverlinkung + Finale CTA.
+             Farbiger CD-Verlauf über Maschinenfoto (rechts bis 100% transparent), Text/Button links.
+             Hinweis „Alle Produkte im Überblick" = reiner Text (nicht verlinkt, Kundenwunsch).
+             [Offen 13] Ziel-URL Button „Alle Module & Details" noch offen. Bild: assets/cta-machine.png (vor Go-Live webp-optimieren). -->
+        <div data-reveal="" data-screen-label="Vereintes CTA — iPhysics Plattform" style="position: relative; overflow: hidden; border-radius: 24px; box-shadow: 0 34px 80px -42px rgba(16,38,46,.42); min-height: clamp(360px, 42vw, 470px); display: flex; transition: transform .28s ease, box-shadow .28s ease;" style-hover="transform: translateY(-3px); box-shadow: 0 40px 90px -44px rgba(59,174,209,.5)">
+          <img src="assets/cta-machine.png" alt="Automatisierte Fertigungszelle bei der virtuellen Inbetriebnahme mit dem iPhysics Digital Twin" loading="lazy" decoding="async" style="position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; object-position: center 42%;">
+          <div aria-hidden="true" style="position: absolute; inset: 0; background: linear-gradient(100deg, rgba(59,174,209,.94) 0%, rgba(56,168,168,.80) 32%, rgba(69,179,71,.44) 64%, rgba(69,179,71,0) 100%);"></div>
+          <div style="position: relative; z-index: 2; box-sizing: border-box; padding: clamp(38px, 4.4vw, 64px); max-width: 640px; display: flex; flex-direction: column; align-items: flex-start; justify-content: center; gap: clamp(22px, 3vh, 32px);">
+            <h3 style="margin: 0; font-weight: 700; font-size: clamp(1.5rem, 2.8vw, 2.2rem); line-height: 1.16; letter-spacing: -0.015em; color: #FFFFFF; text-shadow: 0 2px 18px rgba(10,26,32,.45); text-wrap: balance;">Die iPhysics Plattform überzeugt Sie? Dann wird Sie die Technologie dahinter begeistern.</h3>
+            <div style="display: flex; flex-direction: column; align-items: flex-start; gap: 9px;">
+              <a href="https://www.machineering.com/produkte/iphysics/" target="_blank" rel="noopener" style="display: inline-flex; align-items: center; gap: 12px; font-weight: 700; font-size: clamp(15px, 1.4vw, 17px); letter-spacing: 0.01em; color: #10262E; background: #FFFFFF; padding: 16px 32px; border-radius: 999px; text-decoration: none; box-shadow: 0 16px 32px -14px rgba(16,38,46,.4); transition: transform .2s ease, box-shadow .2s ease;" style-hover="transform: translateY(-2px); box-shadow: 0 22px 44px -16px rgba(16,38,46,.5)" style-focus="outline: 3px solid rgba(255,255,255,.75); outline-offset: 3px">Alle Module &amp; Details <span aria-hidden="true">→</span></a>
+              <span style="font-weight: 600; font-size: 13px; letter-spacing: 0.01em; color: rgba(255,255,255,.92); margin-left: 32px;">Alle Produkte im Überblick</span>
+            </div>
           </div>
         </div>
-
-        <!-- Finale CTA (06.07.): Wasserzeichen ersetzt durch iPhysics-remote-Bild (Tablet + Smartphone,
-             Zuschnitt rechte Hälfte aus uploads/machineering_remote.png → assets/iphysics-remote-devices.png).
-             Text links, Geräte rechts; bei schmalen Viewports bricht die Bildspalte unter den Text. -->
-        <div data-reveal="" data-screen-label="Finale CTA" style="position: relative; box-sizing: border-box; overflow: hidden; background: #FFFFFF; border: 1px solid #D6E7EE; border-radius: 24px; display: flex; flex-wrap: wrap; align-items: stretch;">
-          <div style="flex: 1 1 400px; box-sizing: border-box; max-width: 760px; padding: clamp(40px, 5.5vw, 72px); display: flex; flex-direction: column; align-items: flex-start; justify-content: center; gap: clamp(26px, 3.6vh, 36px);">
-            <h3 style="margin: 0; font-weight: 700; font-size: clamp(1.4rem, 2.8vw, 2.1rem); line-height: 1.16; letter-spacing: -0.015em; color: #33505B; text-wrap: balance;">Die <span data-grad-outline="1" style="color: #FFFFFF; -webkit-text-fill-color: #FFFFFF; -webkit-text-stroke: 3.75px transparent; background: linear-gradient(120deg, #3BAED1 10%, #45B347 90%); -webkit-background-clip: text; background-clip: text; padding: 0 .1em; margin: 0 -.1em;">iPhysics Plattform</span> überzeugt Sie? Dann wird Sie die Technologie dahinter begeistern.</h3>
-            <a href="#" style="display: inline-flex; align-items: center; gap: 12px; font-weight: 700; font-size: clamp(15px, 1.4vw, 17px); letter-spacing: 0.01em; color: #FFFFFF; background: linear-gradient(120deg, #3BAED1, #45B347); padding: 16px 30px; border-radius: 999px; text-decoration: none; box-shadow: 0 16px 32px -12px rgba(59,174,209,.5); transition: transform .2s ease, box-shadow .2s ease;" style-hover="transform: translateY(-2px); box-shadow: 0 22px 44px -14px rgba(59,174,209,.6)" style-focus="outline: 3px solid rgba(59,174,209,.55); outline-offset: 3px">Alle Module &amp; Details <span aria-hidden="true">→</span></a>
-          </div>
-          <div style="flex: 1 1 340px; position: relative; min-height: clamp(280px, 32vw, 440px); overflow: hidden;">
-            <img src="assets/iphysics-remote-devices.webp" alt="iPhysics Simulationssoftware auf Tablet und Smartphone — virtuelle Inbetriebnahme am digitalen Zwilling, mobil in Echtzeit" loading="lazy" decoding="async" style="position: absolute; inset: 0; width: 100%; height: 100%; object-fit: contain; object-position: center bottom; box-sizing: border-box; padding: clamp(18px, 2.4vw, 32px) clamp(16px, 2vw, 28px) 0 0;">
-          </div>
-        </div>
-
-        <div style="font-weight: 400; font-size: 12px; color: #9CB0B8;">[Offen 12/13] Ziel-URLs — Querverlinkung machineering &amp; „Alle Module &amp; Details"</div>
 
       </div>
 
@@ -860,7 +833,7 @@
         <!-- Datenschutz -->
         <label style="display: flex; gap: 12px; align-items: flex-start; cursor: pointer;">
           <input id="cf-privacy" type="checkbox" required="" style="flex: 0 0 auto; width: 18px; height: 18px; margin: 2px 0 0; accent-color: #3BAED1; cursor: pointer;" style-focus="outline: 3px solid rgba(59,174,209,.55); outline-offset: 3px">
-          <span style="font-weight: 400; font-size: 13px; line-height: 1.6; color: #6B7E86;">Ich bin damit einverstanden, dass machineering meine Angaben zur Bearbeitung dieser Anfrage verarbeitet. <a href="datenschutz.html" style="color: #3BAED1; font-weight: 600; text-decoration: none;" style-hover="color: #45B347" style-focus="outline: 3px solid rgba(59,174,209,.55); outline-offset: 3px">Datenschutzerklärung</a></span>
+          <span style="font-weight: 400; font-size: 13px; line-height: 1.6; color: #6B7E86;">Ich bin damit einverstanden, dass machineering meine Angaben zur Bearbeitung dieser Anfrage verarbeitet. <a href="Datenschutz.dc.html" style="color: #3BAED1; font-weight: 600; text-decoration: none;" style-hover="color: #45B347" style-focus="outline: 3px solid rgba(59,174,209,.55); outline-offset: 3px">Datenschutzerklärung</a></span>
         </label>
 
         <!-- Senden -->
@@ -923,7 +896,7 @@
             <h3 style="margin: 0; font-weight: 700; font-size: clamp(16px, 1.7vw, 19px); line-height: 1.4; color: inherit;">Mit welchen Steuerungen funktioniert virtuelle Inbetriebnahme mit iPhysics?</h3>
             <span data-faq-x="" aria-hidden="true" style="flex: 0 0 auto; font-weight: 400; font-size: 24px; line-height: 1; color: #3BAED1; transition: transform .25s ease;">+</span>
           </summary>
-          <p style="margin: 0; padding: 0 clamp(20px, 3vw, 32px) clamp(20px, 2.6vw, 26px); max-width: 780px; font-weight: 400; font-size: clamp(15px, 1.4vw, 16.5px); line-height: 1.7; color: #6B7E86; text-wrap: pretty;">iPhysics ist herstellerunabhängig und bindet Steuerungen über OPC UA, PROFINET, EtherCAT oder Modbus an – egal ob Siemens, Beckhoff, B&amp;R oder Rockwell. Kein Vendor-Lock-in.</p>
+          <p style="margin: 0; padding: 0 clamp(20px, 3vw, 32px) clamp(20px, 2.6vw, 26px); max-width: 780px; font-weight: 400; font-size: clamp(15px, 1.4vw, 16.5px); line-height: 1.7; color: #6B7E86; text-wrap: pretty;">iPhysics ist herstellerunabhängig und bindet Steuerungen über OPC UA, PROFINET, EtherCAT, ADS oder REST an – egal ob Siemens, Beckhoff, B&amp;R oder Rockwell. Kein Vendor-Lock-in.</p>
         </details>
         <details style="border-top: 1px solid #D6E7EE;">
           <summary style="list-style: none; cursor: pointer; display: flex; align-items: baseline; justify-content: space-between; gap: 18px; padding: clamp(18px, 2.4vw, 24px) clamp(20px, 3vw, 32px); color: #33505B; transition: color .25s ease;" style-hover="color: #3BAED1" style-focus="outline: 3px solid rgba(59,174,209,.55); outline-offset: -3px">
@@ -986,7 +959,7 @@
        an jedem Breakpoint lückenlos sauber. Rahmen = 4 Overlay-Linien (Draw
        beim ersten Einscrollen). Spaltenlogik + Eingang + Status-Hover:
        footer.js. Ohne JS steht alles statisch fertig sichtbar.
-       Impressum/Datenschutz: eigene Seiten (impressum.html, datenschutz.html). -->
+       Impressum/Datenschutz: eigene Seiten (Impressum.dc.html, Datenschutz.dc.html). -->
   <footer data-screen-label="Footer — Schriftfeld" style="position: relative; z-index: 12; background: #FFFFFF; padding: clamp(56px, 8vh, 96px) clamp(20px, 6vw, 96px) clamp(26px, 4vh, 40px);">
     <div style="max-width: 1180px; margin: 0 auto;">
       <div data-ftr-in="" style="display: flex; flex-wrap: wrap; align-items: center; justify-content: center; text-align: center; gap: 20px clamp(24px, 3vw, 40px); margin: 0 0 clamp(40px, 6vh, 64px);">
@@ -1047,9 +1020,9 @@
             <div data-ftr-in="">
               <div style="font-weight: 600; font-size: 8.5px; letter-spacing: 0.22em; text-transform: uppercase; color: #6B7E86;">Links</div>
               <nav aria-label="Weiterführende Links" style="margin-top: 5px; display: flex; flex-wrap: wrap; align-items: center; gap: 4px 10px;">
-                <a href="impressum.html" style="font-weight: 600; font-size: 12.5px; line-height: 1.45; color: #33505B; text-decoration: none; transition: color .25s ease;" style-hover="color: #3BAED1" style-focus="outline: 3px solid rgba(59,174,209,.55); outline-offset: 3px">Impressum</a>
+                <a href="Impressum.dc.html" style="font-weight: 600; font-size: 12.5px; line-height: 1.45; color: #33505B; text-decoration: none; transition: color .25s ease;" style-hover="color: #3BAED1" style-focus="outline: 3px solid rgba(59,174,209,.55); outline-offset: 3px">Impressum</a>
                 <span aria-hidden="true" style="font-size: 12.5px; color: #6B7E86; opacity: 0.55;">·</span>
-                <a href="datenschutz.html" style="font-weight: 600; font-size: 12.5px; line-height: 1.45; color: #33505B; text-decoration: none; transition: color .25s ease;" style-hover="color: #3BAED1" style-focus="outline: 3px solid rgba(59,174,209,.55); outline-offset: 3px">Datenschutz</a>
+                <a href="Datenschutz.dc.html" style="font-weight: 600; font-size: 12.5px; line-height: 1.45; color: #33505B; text-decoration: none; transition: color .25s ease;" style-hover="color: #3BAED1" style-focus="outline: 3px solid rgba(59,174,209,.55); outline-offset: 3px">Datenschutz</a>
               </nav>
             </div>
           </div>

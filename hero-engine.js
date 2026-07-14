@@ -120,7 +120,7 @@ export async function initHero(cfg = {}) {
   const vWhite = $("introWhite"); /* weißes Übergabe-Overlay (z8) */
 
   hint.innerHTML = isTouch
-    ? '<b style="color:#3BAED1;font-weight:700">TIPPEN</b> — DER SONAR-PING ZEIGT DIE REALE ANLAGE'
+    ? '<b style="color:#3BAED1;font-weight:700">WISCHEN</b> — DIE LINSE ZEIGT DIE REALE ANLAGE'
     : 'DIE <b style="color:#3BAED1;font-weight:700">LINSE</b> FOLGT DER MAUS — SIE ZEIGT DIE REALE ANLAGE';
 
   /* Chrome-Layout (v6): Schriftfeld-Höhe, Mobil-Varianten, Logo-Größe, Readout unter dem Logo */
@@ -384,10 +384,10 @@ export async function initHero(cfg = {}) {
   /* EINE Kamera für alle Layer (Wireframe, Real, Bake) → Lens-Registrierung
      bleibt pixelgenau. mult 1 = Hero-Framing, 0 = zentriert; die Prozess-Tour
      fährt den Offset in der ersten Kamerafahrt auf 0 (renderTour). */
-  function applyViewOffset(mult) {
+  function applyViewOffset(mult, extraX = 0, extraY = 0) {
     const w = innerWidth, h = innerHeight;
-    const off = heroShiftPx * mult;
-    if (Math.abs(off) > .5) cam.setViewOffset(w, h, -off, 0, w, h);
+    const off = heroShiftPx * mult + extraX;
+    if (Math.abs(off) > .5 || Math.abs(extraY) > .5) cam.setViewOffset(w, h, -off, extraY, w, h);
     else cam.clearViewOffset();
   }
 
@@ -1133,7 +1133,7 @@ export async function initHero(cfg = {}) {
   /* ---------- Zustandsmaschine ---------- */
   let state = "boot", tState = 0;
   const DUR = { descent: reduced ? .35 : (revisit ? 1.0 : 2.6), settle: .35, sweep: reduced ? .05 : .9 };
-  let scrollP = 0, sMat = 0, moved = false, barNoTrans = false;
+  let scrollP = 0, sMat = 0, moved = false, barNoTrans = false, userTookOver = false;
   const perf = () => performance.now() / 1000;
 
   function showHUD() { /* idempotent — wird im Loop je Frame angewandt, da ein React-Re-Render Inline-Styles zurücksetzen kann */
@@ -1155,7 +1155,7 @@ export async function initHero(cfg = {}) {
       liveDirty = 10; /* ein paar Frames zeichnen, danach ist Live im reduzierten Profil GL-statisch */
       showHUD();
       revealAnnotations();
-      if (!isTouch) { lensEl.style.opacity = "1"; lensScan.style.opacity = "1"; lensDot.style.opacity = "1"; }
+      lensEl.style.opacity = "1"; lensScan.style.opacity = "1"; lensDot.style.opacity = "1"; /* 13.07.: Linse auch auf Touch sichtbar (Finger-Steuerung) */
       sessionStorage.setItem("iph_hero_v4_seen", "1");
       if (vid) { videoActive = false; videoOff(); } /* Sicherheitsnetz: Video-Element darf Live nie überleben */
       if (vWhite && vWhite.isConnected) vWhite.remove(); /* Übergabe-Overlay aufräumen (Skip-/Nicht-Video-Pfad) */
@@ -1252,8 +1252,9 @@ export async function initHero(cfg = {}) {
     }
     else if (state === "live") {
       showHUD();
-      if (isTouch && !tap.active) {
-        /* Mobile-Ambient: ruhige Drift um die Mitte + Radius-Breathing (§0) */
+      if (isTouch && !tap.active && !userTookOver) {
+        /* Mobile-Onboarding (§0): ruhige Auto-Drift + Radius-Breathing als Hinweis „bewegbar".
+           Stoppt dauerhaft, sobald der Nutzer die Linse erstmals selbst zieht (userTookOver). */
         mask.tx = innerWidth * (.75 + Math.sin(now * .25) * .05);
         mask.ty = innerHeight * .44;
         mask.tr = (baseRadius() * .8) + Math.sin(now * 1.2) * 8;
@@ -1275,12 +1276,10 @@ export async function initHero(cfg = {}) {
     if (tap.active) { mx = tap.x; my = tap.y; mr = tap.r; }
     mr *= mask.mult;
     setMask(mx, my, mr);
-    if (!isTouch) {
-      const tf = `translate(${mx}px,${my}px) scale(${(mr * 2) / 380})`;
-      lensEl.style.transform = tf; lensScan.style.transform = tf;
-      lensDot.style.transform = `translate(${mx}px,${my}px)`;
-      updateH1Lens(mx, my, mr);
-    }
+    const tf = `translate(${mx}px,${my}px) scale(${(mr * 2) / 380})`;
+    lensEl.style.transform = tf; lensScan.style.transform = tf;
+    lensDot.style.transform = `translate(${mx}px,${my}px)`;
+    if (!isTouch) updateH1Lens(mx, my, mr); /* Headline-Linse bleibt Desktop-only */
 
     /* Materialize (Scroll 0→1, §6) — gedämpft nachgeführt für geschmeidiges Scrollen;
        Zeitkonstante statt Fix-Faktor (06.07.): ≈ .085/Frame @ 60 Hz (vorher .10), auf
@@ -1299,7 +1298,7 @@ export async function initHero(cfg = {}) {
       specbar.style.opacity = Math.max(0, 1 - sp * 1.1).toFixed(3);
       specbar.style.transform = `translateY(${sp * 18}px)`;
     }
-    if (!isTouch && state === "live") {
+    if (state === "live") {
       const lo = (1 - sp * 1.4).toFixed(3);
       lensEl.style.opacity = lo; lensScan.style.opacity = lo; lensDot.style.opacity = lo;
     }
@@ -2118,7 +2117,7 @@ export async function initHero(cfg = {}) {
        Boden, Raster + Kontaktschatten liegen in envReal und bleiben stehen (08.07.).
        3+1-Modus: Cut exakt am Blitz-Peak. */
     model.visible = (fadeMode && !reduced) ? ovP < FL_MID : r < .999;
-    const dim = 1 - qe * .6; /* wie cvR: Anlage tritt im Zitat zurück */
+    const dim = 1; /* 13.07.: Anlage im Zitat nicht mehr abdunkeln (Kundenwunsch) */
     if (reduced || fadeMode) {
       stillImg.style.clipPath = "none";
       if (reduced) { /* reduced-motion: ruhiger Crossfade, kein Blitz */
@@ -2167,7 +2166,7 @@ export async function initHero(cfg = {}) {
       { pos: T1.clone().add(sph(196, 9, D * .60)), tgt: T(0, -.02 * D, 0) },   /* 4 Schulung — Gegenseite, Augenhöhe */
       { pos: P1.clone(), tgt: T1.clone() }                                      /* 5 Twin as a Product — Hero-Pose (Klimax) */
     ];
-    quotePose = { pos: T1.clone().add(P1.clone().sub(T1).multiplyScalar(2.86)), tgt: T(0, .10 * D, 0) }; /* Zitat: Kamera weiter weg → Anlage kleiner (Kundenwunsch 02.07.) */
+    quotePose = { pos: T1.clone().add(P1.clone().sub(T1).multiplyScalar(1.9)), tgt: T(0, .10 * D, 0) }; /* Zitat (13.07.): näher → Anlage größer, Hallenränder ragen leicht ins Zitat */
     ovPose = { pos: T1.clone().add(P1.clone().sub(T1).multiplyScalar(1.55)), tgt: T1.clone() }; /* Überblick-Fenster: sanft aufgezogen, Anlage vollständig im Bild (06.07.) */
     console.log("[tour] Posen-Vorschläge:", poses.map((p, i) => `#${i + 1} pos(${p.pos.toArray().map(v => +v.toFixed(2))}) tgt(${p.tgt.toArray().map(v => +v.toFixed(2))})`).join(" · "));
   }
@@ -2211,6 +2210,7 @@ export async function initHero(cfg = {}) {
     applyViewOffset(1); /* zurück ins Hero-Framing, dann neu baken */
     setTourLow(false); /* volle Auflösung für Bake + Hero */
     bake(); /* stellt Bake-Bild (17,30) + Wireframe-Look wieder her */
+    cam.position.copy(P1); cam.lookAt(T1); setSim(17.30); /* 13.07.-Fix: bake() stellt am Ende die Tour-Pose wieder her — Live-Kamera + Sim hier zwingend auf die Bake-Pose (P1/T1, 17,30) zurück, sonst liegt der Wireframe beim Hochscrollen versetzt zur Real-Linse */
     liveDirty = 6;
     govGraceUntil = performance.now() + 1800; /* Rückstieg in den Hero: Settling nicht werten */
     startLoop();
@@ -2255,8 +2255,12 @@ export async function initHero(cfg = {}) {
     let vMult = tourP < TENTRY ? 1 - easeInOutC(tourP / TENTRY) : 0;
     if (ovP > 0) vMult = OV_SHIFT * ovE;
     if (quoteP > 0) vMult = OV_SHIFT * (1 - easeInOutC(quoteP));
-    applyViewOffset(vMult);
     const mobile = innerWidth < 700;
+    /* Zitat-Finale (13.07., Kundenwunsch): Anlage aus der Bildmitte schieben, damit sie NEBEN
+       dem Zitat steht statt dahinter — Desktop nach rechts, Mobil nach oben. */
+    /* 13.07.: Anlage FRÜH an die Seite docken (bis quoteP≈.16 fertig) statt langsam mitzuscrollen. */
+    const qShift = quoteP > 0 ? easeInOutC(clamp(quoteP / .16, 0, 1)) : 0;
+    applyViewOffset(vMult, mobile ? 0 : qShift * innerWidth * .28, mobile ? qShift * innerHeight * .22 : 0);
     const key = tourP.toFixed(4) + ":" + ovP.toFixed(4) + ":" + quoteP.toFixed(4) + ":" + innerWidth + "x" + innerHeight;
     if (key === lastTourKey) return;
     lastTourKey = key;
@@ -2360,8 +2364,21 @@ export async function initHero(cfg = {}) {
     /* Zitat */
     const qe = easeInOutC(clamp((quoteP - .18) / .55, 0, 1));
     tourQuote.style.opacity = qe.toFixed(3);
-    tourQuote.style.transform = `translate(-50%, -50%) translateY(${(1 - qe) * 28}px)`;
-    cvR.style.opacity = (1 - qe * .6).toFixed(3); /* Anlage tritt zurück: Deckkraft ↓ für Lesbarkeit des Zitats (Kundenwunsch 02.07.) */
+    /* 13.07.: Zitat in eigene Spalte — Desktop linksbündig (~52 %), Mobil unten zentriert;
+       die Anlage sitzt via View-Offset rechts daneben bzw. darüber. */
+    const qPortrait = tourQuote.firstElementChild;
+    if (mobile) {
+      tourQuote.style.left = "50%"; tourQuote.style.top = "auto"; tourQuote.style.bottom = "6vh";
+      tourQuote.style.width = "min(560px, 90vw)"; tourQuote.style.textAlign = "center";
+      tourQuote.style.transform = `translate(-50%, 0) translateY(${(1 - qe) * 28}px)`;
+      if (qPortrait) qPortrait.style.justifyContent = "center";
+    } else {
+      tourQuote.style.left = "clamp(20px, 6vw, 96px)"; tourQuote.style.top = "50%"; tourQuote.style.bottom = "auto";
+      tourQuote.style.width = "min(1180px, 80vw)"; tourQuote.style.textAlign = "left";
+      tourQuote.style.transform = `translate(0, -50%) translateY(${(1 - qe) * 28}px)`;
+      if (qPortrait) qPortrait.style.justifyContent = "flex-start";
+    }
+    cvR.style.opacity = "1"; /* 13.07.: Anlage im Zitat NICHT mehr abgedunkelt (Kundenwunsch) */
 
     /* Real-Standbild: Bake bei Bedarf, dann Tracking + Wipe (08.07.) */
     if (!noStill && (ovP > 0 || quoteP > 0) && !stillState) bakeStill(vMult);
@@ -2384,35 +2401,36 @@ export async function initHero(cfg = {}) {
     stage.addEventListener("pointerleave", () => { if (state === "live") mask.tr = 0; });
     stage.addEventListener("pointerenter", () => { if (state === "live" && moved) mask.tr = baseRadius(); });
   } else {
-    /* Tap ≠ Scroll (06.07. Mobile-Pass): Ping erst bei echtem Tipp (pointerup,
-       < 10 px Bewegung, < 350 ms Haltezeit) — Swipe-Scrollen durch den Hero bleibt
-       ruhig, kein Ping je Scroll-Ansatz. Ping-Timing selbst unverändert (§0). */
-    let tDown = null;
-    addEventListener("pointerdown", e => {
-      const tgt = e.target && e.target.closest ? e.target : null;
-      if (state !== "live" || handover || (tgt && tgt.closest("button")) || intro.style.display !== "none") { tDown = null; return; }
-      tDown = { x: e.clientX, y: e.clientY, t: performance.now() };
-    });
-    addEventListener("pointerup", e => {
-      if (!tDown) return;
-      const dist = Math.hypot(e.clientX - tDown.x, e.clientY - tDown.y);
-      const held = performance.now() - tDown.t;
-      tDown = null;
-      if (dist > 10 || held > 350) return; /* war Scroll/Drag — kein Ping */
-      if (state !== "live" || handover || intro.style.display !== "none") return;
-      hintDismissed = true; /* Hinweis nach erstem Tap */
-      tap.active = true; tap.x = e.clientX; tap.y = e.clientY; tap.r = 0;
-      ping(e.clientX, e.clientY);
-      const t0 = performance.now(), RMAX = Math.min(230, innerWidth * .3);
-      (function tw() { /* Tap-Ping 450 auf / 700 halten / 450 zu (§0) */
-        const el = performance.now() - t0;
-        if (el < 450) tap.r = easeOutC(el / 450) * RMAX;
-        else if (el < 1150) tap.r = RMAX;
-        else if (el < 1600) tap.r = RMAX * (1 - easeInQ((el - 1150) / 450));
-        else { tap.active = false; return; }
-        rafTick(tw);
-      })();
-    });
+    /* Touch (13.07., Kundenwunsch): Der Sweep-Doppel-Ping + die ruhige Auto-Drift laufen als
+       Onboarding-Hinweis; danach FOLGT DIE RÖNTGEN-LINSE DEM FINGER — wie die Maus am Desktop,
+       nur per Wischen. Kein freies Modell-Drehen. Desktop bleibt unverändert.
+       stage trägt touch-action:pan-y → vertikale Wische scrollen die Seite ganz normal (genug
+       Platz zum Scrollen); erst eine horizontale Wischbewegung greift die Linse. */
+    const canLens = e => {
+      if (state !== "live" || handover || intro.style.display !== "none") return false;
+      const t = (e.touches && e.touches[0]) || e;
+      const tg = t.target && t.target.closest ? t.target : null;
+      return !(tg && tg.closest("button, a, input, textarea, select, details, summary"));
+    };
+    let sX = 0, sY = 0, axis = 0; /* axis: 0 unbestimmt · 1 Linse (horizontal) · -1 Scroll (vertikal) */
+    const moveLens = (x, y) => { mask.tx = x; mask.ty = y; mask.tr = baseRadius(); };
+    addEventListener("touchstart", e => {
+      if (e.touches.length !== 1 || !canLens(e)) { axis = -1; return; } /* Multi-Touch/UI: Seite normal */
+      const t = e.touches[0]; sX = t.clientX; sY = t.clientY; axis = 0;
+    }, { passive: true });
+    addEventListener("touchmove", e => {
+      if (axis === -1 || e.touches.length !== 1 || state !== "live") return;
+      const t = e.touches[0], dx = t.clientX - sX, dy = t.clientY - sY;
+      if (axis === 0) {
+        if (Math.hypot(dx, dy) < 9) return;                       /* Richtung noch unklar */
+        if (Math.abs(dy) >= Math.abs(dx)) { axis = -1; return; }   /* vertikal → Seite scrollt (pan-y) */
+        axis = 1; userTookOver = true; hintDismissed = true; tap.active = false; /* Onboarding aus */
+      }
+      if (axis === 1) moveLens(t.clientX, t.clientY);              /* horizontal → Linse folgt dem Finger */
+    }, { passive: true });
+    const endTouch = e => { if (!e.touches || e.touches.length === 0) axis = 0; };
+    addEventListener("touchend", endTouch, { passive: true });
+    addEventListener("touchcancel", endTouch, { passive: true });
   }
 
   function finish() { /* Skip im Descent — gilt auch im Video (v8 §C: Video stoppen/entfernen, Kurz-Descent 1,0 s) */
@@ -2473,7 +2491,7 @@ export async function initHero(cfg = {}) {
 
   function updateScroll() {
     const vh = innerHeight, y = scrollY;
-    const matLen = vh * 1.12, tourLen = vh * 3.78, ovLen = vh * .49, quoteLen = vh * .59; /* 30 % schneller (06.07.): × 0,7 — Zitat auf Wunsch nochmals × 0,7 (.84 → .59); Spacer in Hero.dc.html mitgekürzt */
+    const matLen = vh * 1.12, tourLen = vh * 4.6, ovLen = vh * .49, quoteLen = vh * .59; /* 13.07.: Tour-Strecke 3,78 → 4,6 vh — Drehung beim Scrollen unempfindlicher/langsamer, Richtungen unverändert; Spacer (780vh) in Hero.dc.html mitgezogen */
     scrollP = clamp(y / matLen, 0, 1);
     tourP = clamp((y - matLen) / tourLen, 0, 1);
     ovP = clamp((y - matLen - tourLen) / ovLen, 0, 1);

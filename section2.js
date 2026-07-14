@@ -59,7 +59,7 @@ export function initSection2() {
     /* Terminbuchung (Änd. 3, 06.07.): Desktop zweispaltig, mobil untereinander — Höhe des
        Platzhalters bleibt RESERVIERT (kompakt 520/460 px, Kundenwunsch 06.07.), damit das spätere echte Tool keinen Layout-Sprung erzeugt. */
     if (demoGrid) demoGrid.style.gridTemplateColumns = desk ? "1.04fr 0.96fr" : "1fr";
-    if (demoBox) demoBox.style.height = desk ? "520px" : "460px";
+    if (demoBox) { demoBox.style.minHeight = desk ? "520px" : "460px"; demoBox.style.height = "auto"; }
     if (trust) trust.style.gridTemplateColumns = desk ? "1fr 1fr 1fr" : "1fr";
     cells.forEach((c, i) => {
       const last = i === cells.length - 1;
