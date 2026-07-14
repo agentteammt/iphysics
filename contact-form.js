@@ -58,8 +58,7 @@ export function initContactForm() {
   function gather() {
     return {
       topic: topic ? topic.value : "",
-      name: val("cf-name"), company: val("cf-firma"),
-      email: val("cf-mail"), phone: val("cf-tel"), message: val("cf-msg"),
+      email: val("cf-mail"), message: val("cf-msg"),
       pageUrl: (typeof location !== "undefined" ? location.href : ""),
     };
   }
@@ -78,9 +77,7 @@ export function initContactForm() {
   function clearError() { const box = document.getElementById("cf-error"); if (box) box.textContent = ""; }
 
   function showDone() {
-    const nameEl = document.getElementById("cf-name");
-    const raw = ((nameEl && nameEl.value) || "").trim();
-    if (thanks) thanks.textContent = raw ? ", " + raw.split(/\s+/)[0] : "";
+    if (thanks) thanks.textContent = "";
     overlay.style.visibility = "visible";
     overlay.style.opacity = "1";
     overlay.setAttribute("aria-hidden", "false");
@@ -147,7 +144,7 @@ export function initContactForm() {
     overlay.style.opacity = "0";
     overlay.setAttribute("aria-hidden", "true");
     setTimeout(() => { overlay.style.visibility = "hidden"; }, 480);
-    const first = document.getElementById("cf-name");
+    const first = document.getElementById("cf-mail");
     if (first) first.focus({ preventScroll: true });
   });
 }

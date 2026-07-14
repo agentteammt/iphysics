@@ -52,7 +52,7 @@ Deno.serve(async (req) => {
   try { payload = await req.json(); } catch { return json({ status: "invalid" }, 400); }
 
   const { topic, name, company, email, phone, message, page_url } = payload;
-  if (!name || !email || !message) return json({ status: "invalid" }, 400);
+  if (!email || !message) return json({ status: "invalid" }, 400);
 
   const url = page_url ? String(page_url) : "—";
 
@@ -62,10 +62,7 @@ Deno.serve(async (req) => {
     `<h2 style="margin:0 0 12px;">Neue Anfrage über das iPhysics-Kontaktformular</h2>` +
     `<table style="border-collapse:collapse;font-size:15px;">` +
     `<tr><td style="padding:4px 16px 4px 0;color:#6B7E86;">Thema</td><td style="padding:4px 0;"><strong>${esc(topic) || "—"}</strong></td></tr>` +
-    `<tr><td style="padding:4px 16px 4px 0;color:#6B7E86;">Name</td><td style="padding:4px 0;">${esc(name)}</td></tr>` +
-    `<tr><td style="padding:4px 16px 4px 0;color:#6B7E86;">Unternehmen</td><td style="padding:4px 0;">${esc(company) || "—"}</td></tr>` +
     `<tr><td style="padding:4px 16px 4px 0;color:#6B7E86;">E-Mail</td><td style="padding:4px 0;"><a href="mailto:${esc(email)}">${esc(email)}</a></td></tr>` +
-    `<tr><td style="padding:4px 16px 4px 0;color:#6B7E86;">Telefon</td><td style="padding:4px 0;">${esc(phone) || "—"}</td></tr>` +
     `<tr><td style="padding:4px 16px 4px 0;color:#6B7E86;vertical-align:top;">Nachricht</td><td style="padding:4px 0;white-space:pre-wrap;">${esc(message)}</td></tr>` +
     `<tr><td style="padding:4px 16px 4px 0;color:#6B7E86;">Seite</td><td style="padding:4px 0;"><a href="${esc(url)}">${esc(url)}</a></td></tr>` +
     `</table>` +
@@ -75,7 +72,7 @@ Deno.serve(async (req) => {
   // 2) Bestätigung an den Interessenten
   const guestHtml =
     `<div style="font-family:'Titillium Web',Arial,sans-serif;color:#10262E;font-size:15px;line-height:1.6;">` +
-    `<p>Hallo ${esc(name)},</p>` +
+    `<p>Guten Tag,</p>` +
     `<p>vielen Dank für Ihre Anfrage. Wir prüfen Ihr Anliegen und melden uns innerhalb der nächsten 48 Stunden bei Ihnen zurück.</p>` +
     `<p style="color:#6B7E86;font-size:13px;margin-top:24px;">iPhysics by machineering</p></div>`;
   await sendMail(email, "Ihre iPhysics Anfrage – Eingang bestätigt", guestHtml, MAIL_INTERNAL);
