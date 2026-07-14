@@ -1553,6 +1553,7 @@ export async function initHero(cfg = {}) {
   let barShown = false, seqStart = 0;
   let beatStarted = false, introSkipped = false, readyShownAt = 0, readyDelay = 0; /* Änd. 1 (06.07.): Abflug-Beat mit großem „SYSTEM BEREIT" */
   const READY_BEAT = 60; /* 07.07.: „SYSTEM BEREIT" folgt DIREKT auf das Verschwinden der letzten Zahl (Ankunft im Schriftfeld) */
+  const LAUNCH_OVERLAP = 140; /* 09.07.: Iris/Video-Zoom startet ~140 ms vor der Landung der letzten Zahl (minimale Überschneidung) */
   let lastArriveT = 0, pendingQueued = false;
   const miniFrames = makeDissolveFrames(20, 8, 4, 8, 1.0);
 
@@ -1578,26 +1579,10 @@ export async function initHero(cfg = {}) {
       { duration: 450, easing: "ease-in-out" });
     console.log(`[hero] Abflug-Herzschlag @ ${seqStart ? Math.round(performance.now() - seqStart) : 0} ms`);
   }
-  function pendingLaunch() { /* Sonderfall pendingStart (Änd. 1): Balken-Puls, Herzschlag und
-       großes „SYSTEM BEREIT" gehen in diesem Moment als EIN gemeinsamer Beat auf; Iris nach
-       Build+Hold. reduced: statischer Kurz-Moment (~400 ms), keine Pulse/Scans. */
+  function pendingLaunch() { /* 09.07.: Wartefall — GLB/Video beim Finale-Trigger noch nicht bereit.
+       Der Abflug-Herzschlag steht bereits (showBeat kam mit dem Trigger); sobald das Gate offen
+       ist, öffnet die Iris direkt und die Video-Zoomfahrt startet. Kein „System bereit"-Wort mehr. */
     if (launched || pendingQueued) return;
-    if (beatStarted) { systemReadyPulse(); beatAndLaunch(); return; } /* 08.07.: Wort steht bereits (kam direkt nach der letzten Zahl) - Puls + Iris nach Rest-Beat */
-    /* 07.07.: Mindest-Beat auch im Wartefall — „SYSTEM BEREIT" frühestens READY_BEAT nach der
-       letzten Ankunft; hat das Laden ohnehin länger gedauert, feuert es sofort (direkt danach). */
-    const waitBeat = introSkipped ? 0 : Math.max(0, READY_BEAT - (performance.now() - lastArriveT));
-    if (lastArriveT && waitBeat > 0) {
-      pendingQueued = true;
-      setTimeout(() => { pendingQueued = false; pendingLaunch(); }, waitBeat);
-      return;
-    }
-    if (reduced) {
-      beatStarted = true;
-      rmList.style.display = "none"; /* harter Cut statt Bewegung — das Wort ersetzt die Liste kurz */
-      setTimeout(launch, showReadyWord("reduced"));
-      return;
-    }
-    systemReadyPulse();
     beatAndLaunch();
   }
 
@@ -1771,13 +1756,12 @@ export async function initHero(cfg = {}) {
   function beatAndLaunch() { /* Änd. 1: Herzschlag + großes Wort ZEITGLEICH; Iris nach Build+Hold (~750 ms, Esc-Skip ~350 ms) */
     if (launched) return;
     showBeat();
-    setTimeout(launch, Math.max(0, readyShownAt + readyDelay - performance.now())); /* Iris fruehestens nach Build+Hold des Worts */
+    launch(); /* 09.07.: kein Wort-Hold mehr — Iris/Video-Zoom starten direkt mit dem Herzschlag */
   }
-  function showBeat() { /* 08.07.: Wort + Herzschlag vom Lade-Gate entkoppelt - erscheint direkt nach der letzten Zahl */
+  function showBeat() { /* 09.07.: nur noch der Abflug-Herzschlag — das große „System bereit"-Wort entfällt */
     if (launched || beatStarted) return; beatStarted = true;
     heartbeat();
-    readyDelay = showReadyWord(introSkipped ? "skip" : "full");
-    readyShownAt = performance.now();
+    readyDelay = 0; readyShownAt = performance.now();
   }
   function tryLaunch() {
     if (gateOpen()) { beatAndLaunch(); return; }
@@ -1786,6 +1770,14 @@ export async function initHero(cfg = {}) {
     pendingStart = true;
     showBeat();
     if (!loadDone) progLabel.textContent = "LADE DIGITALEN ZWILLING";
+  }
+  function beginFinale() { /* 09.07.: Finale = Abflug-Herzschlag + Iris/Video-Zoom. Wird bereits kurz
+       VOR der Landung der letzten Zahl gefeuert (LAUNCH_OVERLAP, minimale Überschneidung); der
+       Aufruf aus arrive() ist nur noch Fallback (instant/reduced/kein Flug). */
+    if (launchScheduled) return;
+    launchScheduled = true;
+    lastArriveT = performance.now();
+    tryLaunch();
   }
   function arrive(k) {
     const el = slotIns[k];
@@ -1798,12 +1790,7 @@ export async function initHero(cfg = {}) {
     }
     dockedCount++;
     console.log(`[hero] dock #${k + 1} angekommen @ ${seqStart ? Math.round(performance.now() - seqStart) : 0} ms`);
-    if (dockedCount === KPIS.length && seqDone && !launchScheduled) {
-      launchScheduled = true;
-      lastArriveT = performance.now();
-      /* 07.07.: sobald die letzte Zahl im Schriftfeld verschwunden ist, folgt „SYSTEM BEREIT" direkt */
-      setTimeout(tryLaunch, READY_BEAT);
-    }
+    if (dockedCount === KPIS.length && seqDone && !launchScheduled) beginFinale();
   }
   function dock(k, mode) { /* mode: false=normal, true=schnell, "instant"=sofort */
     if (dockedFlags[k]) return; dockedFlags[k] = true;
@@ -1836,9 +1823,11 @@ export async function initHero(cfg = {}) {
     const tx = (B.left + B.width / 2) - (A.left + A.width * s / 2);
     const ty = (B.top + B.height / 2) - (A.top + A.height * s / 2);
     const D = mode === true ? SEQ.flyFast : SEQ.fly, t0 = performance.now();
+    const isFinal = k === KPIS.length - 1; /* 09.07.: letzte Zahl — Zoom startet während sie noch fliegt */
     (function fl() {
       const p = clamp((performance.now() - t0) / D, 0, 1), e = easeInOutC(p);
       f.style.transform = `translate(${tx * e}px,${ty * e}px) scale(${1 + (s - 1) * e})`;
+      if (isFinal && seqDone && !launchScheduled && D * (1 - p) <= LAUNCH_OVERLAP) beginFinale();
       if (p < 1) rafTick(fl);
       else { f.remove(); arrive(k); }
     })();
