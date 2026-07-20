@@ -10,6 +10,7 @@ vier Inhaltsabschnitten. Sprache: Deutsch (Sie-Form).
 index.html                      Seite (Markup + Boot-Logik)
 datenschutz.html                Datenschutzerklärung
 impressum.html                  Impressum
+roi-check.html                  VIBN Potenzial-Check (eigenständige Seite)
 support.js                      Rendering-Runtime für index.html (muss lokal liegen)
 hero-engine.js                  3D-Hero: Intro, Wireframe→Real, Framing, Tour,
                                 Mobile-Layout (Headline oben, Scrim, Tap-Ping)
@@ -17,7 +18,12 @@ section2.js / section3.js /
 section4.js / polish.js         Abschnitts-Logik + Feinschliff
 footer.js                       Footer „Zeichnungs-Schriftfeld“: Eingangs-Draw,
                                 Responsive-Raster, Status-Hover
+booking-widget.js               Terminbuchung (Supabase; ohne Config Demo-Modus)
+contact-form.js                 Kontaktformular (Versand-Backend offen, [Offen 17])
+roi-widget.js                   VIBN-Potenzial-Rechner (Inline-Widget)
 image-slot.js                   Bild-Platzhalter-Komponente
+supabase/                       Backend: setup.sql + Edge Functions book/contact/roi
+                                (Einrichtung lt. „SETUP-PROMPT Claude Browser.md“)
 fonts/                          Titillium Web (lokal, DSGVO) + SIL-OFL-Lizenz
 assets/                         Logo, Favicon, OG-Bild, Poster, Fotos, Intro-Video,
                                 3D-Modelle montagezelle_web_v2.glb (Desktop, 5,3 MB)
@@ -49,12 +55,17 @@ python3 -m http.server 8000
 - **`og:image` absolut setzen:** Social-Scraper brauchen die volle URL,
   z. B. `https://<user>.github.io/<repo>/assets/og-hero.jpg` (in `index.html`,
   zwei Stellen: `<meta property="og:image">` und `_seo()`).
+- **Formular-Backend aktivieren:** Supabase + Resend lt. „SETUP-PROMPT Claude
+  Browser.md“ einrichten (Code liegt in `supabase/`), danach in `index.html` den
+  auskommentierten `window.KIW_SUPABASE`-Block am Ende des `<head>` mit Project-URL
+  und anon key füllen und einkommentieren. Ohne Config laufen Terminbuchung und
+  VIBN-Check im Demo-Modus (keine echten Buchungen/Mails).
+- Kontaktformular sendet noch nicht ([Offen 17] — Backend/Edge Function `contact`
+  ist vorbereitet, Anbindung im Widget fehlt).
 - Rechtliches: Impressum/Datenschutz sind eigene Seiten (Inhalte übernommen von
   machineering.com — Dienste-Liste im Datenschutz und Bildrechte im Impressum
   vor Go-Live fachlich prüfen; „Google Analytics deaktivieren“-Opt-Out ist noch
   ohne Funktion).
-- Demo-/Kontakt-Ziele: `#demo` ist Platzhalter-Terminbuchung [Offen 7],
-  ROI-Rechner-Link extern (Landbot).
 
 ## Dev-/QA-Hinweise
 

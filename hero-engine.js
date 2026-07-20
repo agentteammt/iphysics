@@ -292,7 +292,7 @@ export async function initHero(cfg = {}) {
   const rWire = new THREE.WebGLRenderer({ canvas: cvW, antialias: AA, powerPreference: "high-performance" });
   rReal.outputColorSpace = THREE.SRGBColorSpace;
   rReal.toneMapping = THREE.ACESFilmicToneMapping;
-  rReal.toneMappingExposure = 1.1;
+  rReal.toneMappingExposure = 1.95; /* 20.07.: Maschine deutlich aufgehellt (Kundenwunsch „fast weiß“) — Boden/Schatten toneMapped:false, daher unberührt */
   rWire.outputColorSpace = THREE.SRGBColorSpace;
   rReal.setPixelRatio(effDPR()); rWire.setPixelRatio(effDPR());
   rReal.setClearColor(0xF8F8F8, 1); rWire.setClearColor(0xFBFDFE, 1); /* Real-Hintergrund #F8F8F8 (Kundenwunsch 02.07.) */
@@ -592,19 +592,42 @@ export async function initHero(cfg = {}) {
     fogReal.near = dist * 1.1; fogReal.far = dist * 3.4;
 
     const f = v => v.toFixed(2);
-    camReadHero =
-      `CAM ${f(P1.x)} / ${f(P1.y)} / ${f(P1.z)} · TARGET ${f(T1.x)} / ${f(T1.y)} / ${f(T1.z)}` +
-      ` · FOV 42 · T = 17,30 S  ·  [R] = REAL-PROTOTYPE`;
+    camReadHero = "REFERENZ: MASCHINE VON CONVEX GmbH";
     camRead.textContent = camReadHero;
 
     buildEnv(c, D);
 
     /* Meshes einsammeln, Originalmaterialien merken */
-    const meshes = [];
+    const meshes = [], kukaDecals = [];
     const tmpB = new THREE.Box3(), tmpV = new THREE.Vector3();
     model.traverse(o => {
       if (o.isMesh && o.geometry) {
         origMat.set(o, o.material);
+        /* KUKA-Logo-Decal (13.07.): die EINZIGE Textur im Modell
+           (KUKA_Logo_Orange_RGB_100mm.png) trägt einen Alpha-Kanal, das glTF-Material
+           ist aber OPAQUE — dadurch rendern die transparenten Pixel SCHWARZ und der
+           Schriftzug sitzt auf einer schwarzen Platte. alphaTest schneidet den
+           Hintergrund frei (nur der orange Schriftzug bleibt). Dazu (Nachbesserung
+           gleichen Tags): NEAREST → lineare Filterung + Mipmaps + Anisotropie gegen
+           ausgefranste Buchstabenkanten; polygonOffset gegen Z-Fighting mit der
+           direkt dahinter liegenden Karosserie. Der Geometrie-Lift folgt unten
+           nach updateMatrixWorld. */
+        const _mm = Array.isArray(o.material) ? o.material : [o.material];
+        for (const m of _mm) {
+          if (m && m.map) {
+            if (!kukaDecals.includes(o)) kukaDecals.push(o);
+            if (m.alphaTest === 0) {
+              m.alphaTest = .4;
+              m.polygonOffset = true; m.polygonOffsetFactor = -4; m.polygonOffsetUnits = -4;
+              m.map.magFilter = THREE.LinearFilter;
+              m.map.minFilter = THREE.LinearMipmapLinearFilter;
+              m.map.generateMipmaps = true;
+              m.map.anisotropy = Math.min(8, rReal.capabilities.getMaxAnisotropy());
+              m.map.needsUpdate = true;
+              m.needsUpdate = true;
+            }
+          }
+        }
         const g = o.geometry;
         const tris = g.index ? g.index.count / 3 : (g.attributes.position ? g.attributes.position.count / 3 : 0);
         if (!g.boundingBox) g.computeBoundingBox();
@@ -620,6 +643,45 @@ export async function initHero(cfg = {}) {
       try { animated.add(THREE.PropertyBinding.parseTrackName(tr.name).nodeName); } catch (e) {}
     });
     model.updateMatrixWorld(true);
+    /* KUKA-Decal-Lift (13.07.): die flachen Logo-Platten liegen auf gewölbten
+       Armflächen — an den Plattenenden taucht die Ebene unter die Karosserie und
+       frisst Buchstaben an (vorher von der schwarzen Platte verdeckt). Geometrie
+       4 mm entlang der lokalen Platten-Normalen (dünnste Bbox-Achse) nach außen
+       schieben; Vorzeichen = vom Zentrum des kleinsten umgebenden Karosserie-
+       Meshes weg. Lokale Translation → folgt der Roboter-Animation. */
+    if (kukaDecals.length) {
+      const worldBoxes = [];
+      for (const { mesh } of meshes) {
+        if (kukaDecals.includes(mesh)) continue;
+        if (!mesh.geometry.boundingBox) mesh.geometry.computeBoundingBox();
+        const b = mesh.geometry.boundingBox.clone().applyMatrix4(mesh.matrixWorld);
+        if (!b.isEmpty()) worldBoxes.push(b);
+      }
+      for (const d of kukaDecals) {
+        const g = d.geometry;
+        if (g.userData.kukaLifted) continue;
+        g.userData.kukaLifted = true;
+        if (!g.boundingBox) g.computeBoundingBox();
+        const bb = g.boundingBox, sz = [bb.max.x - bb.min.x, bb.max.y - bb.min.y, bb.max.z - bb.min.z];
+        const a = sz.indexOf(Math.min(...sz));
+        const n = new THREE.Vector3().setFromMatrixColumn(d.matrixWorld, a);
+        const scl = n.length() || 1;
+        n.normalize();
+        const cW = bb.getCenter(new THREE.Vector3()).applyMatrix4(d.matrixWorld);
+        let best = null, bestVol = Infinity;
+        for (const b of worldBoxes) {
+          if (b.distanceToPoint(cW) < .02) {
+            const vol = (b.max.x - b.min.x) * (b.max.y - b.min.y) * (b.max.z - b.min.z);
+            if (vol < bestVol) { bestVol = vol; best = b; }
+          }
+        }
+        const sign = best ? (Math.sign(cW.sub(best.getCenter(new THREE.Vector3())).dot(n)) || 1) : 1;
+        const off = [0, 0, 0]; off[a] = .004 / scl * sign;
+        g.translate(off[0], off[1], off[2]);
+        g.computeBoundingBox(); g.computeBoundingSphere();
+      }
+      console.log(`[hero] KUKA-Decals: ${kukaDecals.length} Platten freigestellt (alphaTest, linear gefiltert, 4 mm Normalen-Lift).`);
+    }
     model.traverse(o => { if (!animated.has(o.name)) o.matrixAutoUpdate = false; });
 
     /* Kantenbau (§2, präzisiert): Hidden-Line über die GESAMTE Anlage.
@@ -866,14 +928,16 @@ export async function initHero(cfg = {}) {
       new THREE.MeshBasicMaterial({ map: shTex, transparent: true, depthWrite: false, toneMapped: false }));
     sh.rotation.x = -Math.PI / 2; sh.position.set(c.x, minY + .005, c.z);
     envReal.add(sh);
-    const gr2 = new THREE.GridHelper(dist * 3.4, 42, 0xA9D8E7, 0xD6EDF5); /* blasses machineering-Blau, Zeichnungs-Anmutung (Kundenwunsch 02.07.) */
-    gr2.position.y = minY + .01; /* Raster über Boden + Kontaktschatten (Linienfarben unverändert) */
-    gr2.material.transparent = true; gr2.material.opacity = .9;
+    const gr2 = new THREE.GridHelper(dist * 3.4, 42, 0x8FC6DC, 0xC6E3EF); /* machineering-Blau, Zeichnungs-Anmutung — 20.07. eine Stufe kräftiger (hellere Maschine) */
+    gr2.position.y = minY + .01; /* Raster über Boden + Kontaktschatten */
+    gr2.material.transparent = true; gr2.material.opacity = 1;
+    gr2.material.toneMapped = false; /* 20.07.: Exposure 1.95 wusch das Raster aus — Linienfarben jetzt exakt wie autorisiert */
     envReal.add(gr2);
-    envReal.add(new THREE.HemisphereLight(0xFFFFFF, 0xE8EEF1, 1.05));
-    const key = new THREE.DirectionalLight(0xFFFFFF, .95); key.position.set(6, 10, 4);
+    envReal.add(new THREE.HemisphereLight(0xFFFFFF, 0xEEF3F5, 2.05));
+    envReal.add(new THREE.AmbientLight(0xFFFFFF, .5)); /* 20.07.: hebt Schatten gleichmäßig an → near-white */
+    const key = new THREE.DirectionalLight(0xFFFFFF, 1.55); key.position.set(6, 10, 4);
     envReal.add(key);
-    const fill = new THREE.DirectionalLight(0xCFE9F4, .35); fill.position.set(-6, 4, -6);
+    const fill = new THREE.DirectionalLight(0xEAF5FB, .8); fill.position.set(-6, 4, -6);
     envReal.add(fill);
   }
 
@@ -2106,7 +2170,9 @@ export async function initHero(cfg = {}) {
        Boden, Raster + Kontaktschatten liegen in envReal und bleiben stehen (08.07.).
        3+1-Modus: Cut exakt am Blitz-Peak. */
     model.visible = (fadeMode && !reduced) ? ovP < FL_MID : r < .999;
-    const dim = 1; /* 13.07.: Anlage im Zitat nicht mehr abdunkeln (Kundenwunsch) */
+    /* 20.07. (Kundenwunsch): Sobald das Zitat steht, Foto ABSOFTEN statt abdunkeln —
+       Opacity runter, darunter liegt der helle Studio-Boden → wirkt ausgewaschen, Text bleibt lesbar. */
+    const dim = 1 - .45 * clamp(qe || 0, 0, 1);
     if (reduced || fadeMode) {
       stillImg.style.clipPath = "none";
       if (reduced) { /* reduced-motion: ruhiger Crossfade, kein Blitz */
@@ -2288,9 +2354,8 @@ export async function initHero(cfg = {}) {
     cam.position.copy(pos); cam.lookAt(tgt);
     setSim(simT);
 
-    /* Live-Readout für die Framing-Session (Dev-Werkzeug) */
-    const f2 = v => v.toFixed(2);
-    camRead.textContent = `CAM ${f2(pos.x)} / ${f2(pos.y)} / ${f2(pos.z)} · TARGET ${f2(tgt.x)} / ${f2(tgt.y)} / ${f2(tgt.z)} · SIM ${simT.toFixed(2)} S · ${ovP > 0 ? "ÜBERBLICK" : "STATION " + (stationAt(simT) + 1)}${!noStill && (ovP > 0 || quoteP > 0) ? " · FOTO " + Math.round(easeInOutC(clamp(ovP / STILL_WIN, 0, 1)) * 100) + " %" : ""}`;
+    /* Referenz-Hinweis bleibt über die gesamte 3D-Scrollstrecke stehen (20.07., Kundenwunsch) */
+    camRead.textContent = "REFERENZ: MASCHINE VON CONVEX GmbH";
     camRead.style.opacity = "1";
     /* Plattform-Zeile: erscheint erst mit dem „iPhysics by machineering"-Block (Tour-Einstieg) und bleibt dann stehen (07.07.) */
     if (camSub) { const sOp = tourP > .006 ? "1" : "0"; if (camSub.style.opacity !== sOp) camSub.style.opacity = sOp; }
@@ -2480,7 +2545,7 @@ export async function initHero(cfg = {}) {
 
   function updateScroll() {
     const vh = innerHeight, y = scrollY;
-    const matLen = vh * 1.12, tourLen = vh * 4.6, ovLen = vh * .49, quoteLen = vh * .59; /* 13.07.: Tour-Strecke 3,78 → 4,6 vh — Drehung beim Scrollen unempfindlicher/langsamer, Richtungen unverändert; Spacer (780vh) in Hero.dc.html mitgezogen */
+    const matLen = vh * 1.493, tourLen = vh * 6.133, ovLen = vh * .653, quoteLen = vh * .787; /* 20.07.: Scroll→Modell-Tempo −25 % (alle Strecken ÷0,75, z. B. 4,6→6,133 vh) — Start-/End-Posen, Richtungen & Ablauf unverändert; Spacer (780→1040vh) in Hero.dc.html mitgezogen */
     scrollP = clamp(y / matLen, 0, 1);
     tourP = clamp((y - matLen) / tourLen, 0, 1);
     ovP = clamp((y - matLen - tourLen) / ovLen, 0, 1);

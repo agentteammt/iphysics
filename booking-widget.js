@@ -180,7 +180,7 @@
         dates: nextDays(BOOK_DAYS),
         selDate: null, selTime: null,
         avail: null,                // live: { time: {slot_id,label,remaining,is_available} }
-        form: { name: "", company: "", email: "", note: "" },
+        form: { name: "", company: "", email: "", note: "", hp: "" },
         privacy: false, error: null, submitting: false, done: false,
       };
       this.state.selDate = this.state.dates[0] ? this.state.dates[0].iso : null;
@@ -227,7 +227,7 @@
           const row = s.avail && s.avail[s.selTime];
           if (!row || row.slot_id == null) { s.error = "Dieser Termin ist nicht mehr verfügbar."; s.selTime = null; }
           else {
-            const r = await window.KIWBooking.bookSlot(s.selDate, row.slot_id, f.name.trim(), f.email.trim(), f.company.trim(), f.note.trim(), (typeof location !== "undefined" ? location.href : ""));
+            const r = await window.KIWBooking.bookSlot(s.selDate, row.slot_id, f.name.trim(), f.email.trim(), f.company.trim(), f.note.trim(), (typeof location !== "undefined" ? location.href : ""), f.hp);
             if (r === "ok") s.done = true;
             else if (r === "full") { s.error = "Dieser Termin ist gerade belegt. Bitte anderen wählen."; s.selTime = null; await this.loadAvail(); }
             else s.error = "Dieser Termin ist nicht mehr verfügbar.";
@@ -244,7 +244,7 @@
     reset(keepDate) {
       const s = this.state;
       s.done = false; s.selTime = null; s.error = null; s.privacy = false;
-      s.form = { name: "", company: "", email: "", note: "" };
+      s.form = { name: "", company: "", email: "", note: "", hp: "" };
       if (!keepDate) s.selDate = s.dates[0] ? s.dates[0].iso : null;
       this.loadAvail();
     }
@@ -270,9 +270,10 @@
         <label class="f"><span>Unternehmen</span><input data-k="company" type="text" autocomplete="organization" placeholder="Ihr Unternehmen" value="${esc(f.company)}"></label>
         <label class="f full"><span>E-Mail *</span><input data-k="email" type="email" autocomplete="email" placeholder="name@unternehmen.de" value="${esc(f.email)}"></label>
         <label class="f full"><span>Nachricht (optional)</span><textarea data-k="note" placeholder="Ihre Nachricht">${esc(f.note)}</textarea></label>
+        <label class="f full" style="position:absolute;left:-9999px;width:1px;height:1px;overflow:hidden;" aria-hidden="true"><span>Website</span><input data-k="hp" name="website" type="text" tabindex="-1" autocomplete="off" value="${esc(f.hp || "")}"></label>
       </div>
       <label class="privacy"><input data-k="privacy" type="checkbox" ${this.state.privacy ? "checked" : ""}>
-        <span>Ich bin einverstanden, dass machineering meine Angaben zur Terminvereinbarung verarbeitet. <a href="Datenschutz.dc.html">Datenschutzerklärung</a></span></label>`;
+        <span>Ich bin einverstanden, dass machineering meine Angaben zur Terminvereinbarung verarbeitet. <a href="datenschutz.html">Datenschutzerklärung</a></span></label>`;
     }
     ctaHTML() {
       const ok = this.valid() && !this.state.submitting;

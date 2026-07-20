@@ -59,6 +59,7 @@ export function initContactForm() {
     return {
       topic: topic ? topic.value : "",
       email: val("cf-mail"), message: val("cf-msg"),
+      website: val("cf-website"),
       pageUrl: (typeof location !== "undefined" ? location.href : ""),
     };
   }

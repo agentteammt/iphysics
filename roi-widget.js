@@ -1,7 +1,8 @@
 /* ============================================================
-   ROI-Rechner Widget (14.07.) — eingebettetes Chat-Fenster.
-   Landbot-ROI-Rechner als Overlay auf der Seite; kein Verlassen
-   der Seite, kein Reload beim Vergrößern (iframe bleibt montiert).
+   VIBN Potenzial Rechner Widget (14.07.) — eingebettetes Overlay-Fenster.
+   VIBN Potenzial-Check (roi-check.html) als Overlay auf der Seite;
+   kein Verlassen der Seite, kein Reload beim Vergrößern (iframe
+   bleibt montiert).
 
    Zustände: closed → preview (klein, am Button verankert)
              ⇄ maximized (mittiges Overlay, abgedunkelt)
@@ -12,7 +13,7 @@
    ============================================================ */
 (function () {
   "use strict";
-  var LANDBOT = "https://chats.landbot.io/v3/H-913817-VJIW6RKUF4Z91UGF/index.html";
+  var CALC_URL = "./roi-check.html";
   var TRANS = "left .42s cubic-bezier(.4,0,.15,1), top .42s cubic-bezier(.4,0,.15,1), width .42s cubic-bezier(.4,0,.15,1), height .42s cubic-bezier(.4,0,.15,1), border-radius .42s ease, opacity .3s ease, transform .42s cubic-bezier(.4,0,.15,1), box-shadow .42s ease";
 
   function clamp(v, min, max) { return Math.max(min, Math.min(max, v)); }
@@ -32,7 +33,7 @@
   var FOCUS = "outline:3px solid rgba(59,174,209,.55);outline-offset:2px;";
 
   function build(anchor) {
-    var PW = 360, PH = 480;
+    var PW = 460, PH = 660;
     var mode = "closed", loaded = false, raf = null;
 
     // --- Hintergrund ---
@@ -41,7 +42,7 @@
     // --- Rahmen ---
     var shell = el("div", "font-family:'Titillium Web',system-ui,sans-serif;position:fixed;left:-9999px;top:0;width:360px;height:480px;opacity:0;background:#FFFFFF;border:1px solid #D6E7EE;border-radius:18px;overflow:hidden;box-shadow:0 24px 64px -18px rgba(16,38,46,.32);z-index:2147483001;will-change:left,top,width,height;");
     shell.setAttribute("role", "dialog");
-    shell.setAttribute("aria-label", "ROI-Rechner");
+    shell.setAttribute("aria-label", "VIBN Potenzial Rechner");
 
     // Chat-Wrapper (bleibt dauerhaft montiert)
     var wrap = el("div", "position:absolute;inset:0;display:flex;flex-direction:column;transition:opacity .2s ease;");
@@ -50,7 +51,7 @@
     var bar = el("div", "flex-shrink:0;display:flex;align-items:center;justify-content:space-between;gap:12px;padding:13px 14px 13px 18px;border-bottom:1px solid #D6E7EE;background:#FFFFFF;");
     var titleWrap = el("div", "display:flex;flex-direction:column;gap:3px;min-width:0;",
       '<div style="font-weight:600;font-size:9px;letter-spacing:.3em;text-transform:uppercase;background:linear-gradient(120deg,#3BAED1,#45B347);-webkit-background-clip:text;background-clip:text;-webkit-text-fill-color:transparent;color:#3BAED1;">iPhysics</div>' +
-      '<div style="font-weight:700;font-size:15px;line-height:1;color:#10262E;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">ROI-Rechner</div>');
+      '<div style="font-weight:700;font-size:15px;line-height:1;color:#10262E;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">VIBN Potenzial Rechner</div>');
     var btnBox = el("div", "display:flex;align-items:center;gap:8px;flex-shrink:0;");
 
     var maxBtn = el("button", ICON_BTN, ICON_MAX);
@@ -65,10 +66,10 @@
     // Chat-Fläche + Lade-Platzhalter + iframe
     var area = el("div", "position:relative;flex:1;min-height:0;background:#FFFFFF;");
     var loader = el("div", "position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:20px;padding:24px;text-align:center;",
-      '<div style="font-weight:600;font-size:11px;letter-spacing:.3em;text-transform:uppercase;color:#6B7E86;">Chatbot lädt hier</div>' +
+      '<div style="font-weight:600;font-size:11px;letter-spacing:.3em;text-transform:uppercase;color:#6B7E86;">Potenzial Rechner lädt</div>' +
       '<div style="width:160px;height:3px;background:#E7F0F4;border-radius:2px;overflow:hidden;position:relative;"><div style="position:absolute;inset:0;width:55%;background:linear-gradient(120deg,#3BAED1,#45B347);border-radius:2px;animation:iphRoiLoad 1.3s ease-in-out infinite;"></div></div>');
     var frame = el("iframe", "position:absolute;inset:0;width:100%;height:100%;border:0;background:transparent;");
-    frame.title = "ROI-Rechner Chat";
+    frame.title = "VIBN Potenzial Rechner";
     frame.setAttribute("allow", "microphone; camera; autoplay; encrypted-media; fullscreen");
     area.appendChild(loader); area.appendChild(frame);
 
@@ -76,7 +77,7 @@
 
     // Bubble-Launcher
     var bubble = el("button", "position:absolute;inset:0;display:grid;place-items:center;background:linear-gradient(120deg,#3BAED1,#45B347);border:none;border-radius:inherit;color:#FFFFFF;cursor:pointer;opacity:0;pointer-events:none;transition:opacity .2s ease;animation:iphRoiFloat 3.2s ease-in-out infinite;padding:0;", ICON_CHAT);
-    bubble.type = "button"; bubble.title = "ROI-Rechner öffnen"; bubble.setAttribute("aria-label", "ROI-Rechner öffnen");
+    bubble.type = "button"; bubble.title = "VIBN Potenzial Rechner öffnen"; bubble.setAttribute("aria-label", "VIBN Potenzial Rechner öffnen");
 
     shell.appendChild(wrap); shell.appendChild(bubble);
 
@@ -120,7 +121,7 @@
     function maxGeo() {
       var vw = window.innerWidth, vh = window.innerHeight;
       if (vw < 768) return { l: 0, t: 0, w: vw, h: vh, r: 0 };
-      var w = Math.min(1080, vw * 0.92), h = Math.min(768, vh * 0.9);
+      var w = Math.min(1120, vw * 0.94), h = Math.min(880, vh * 0.9);
       return { l: (vw - w) / 2, t: (vh - h) / 2, w: w, h: h, r: 22 };
     }
     function bubbleGeo() {
@@ -160,7 +161,7 @@
     }
 
     function ensureLoaded() {
-      if (!loaded) { frame.src = LANDBOT; loaded = true; }
+      if (!loaded) { frame.src = CALC_URL; loaded = true; }
     }
     function set(m) { mode = m; apply(); }
 

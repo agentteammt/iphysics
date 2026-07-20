@@ -54,7 +54,8 @@
 
   // Slot an einem Datum buchen. -> 'ok' | 'full' | 'invalid'
   // pageUrl (optional) wandert in die interne Mail (Seite, von der gebucht wurde).
-  async function bookSlot(date, slotId, name, email, company, note, pageUrl) {
+  // website = Honeypot-Feld (bleibt bei Menschen leer).
+  async function bookSlot(date, slotId, name, email, company, note, pageUrl, website) {
     if (!configured()) throw new Error("not-configured");
     var res = await fetch(base() + "/functions/v1/book", {
       method: "POST",
@@ -62,6 +63,7 @@
       body: JSON.stringify({
         date: date, slot_id: slotId, name: name, email: email,
         company: company || null, note: note || null,
+        website: website || null,
         page_url: pageUrl || (typeof location !== "undefined" ? location.href : null),
       }),
     });
@@ -89,6 +91,7 @@
       body: JSON.stringify({
         topic: data.topic || null, name: data.name || "", company: data.company || null,
         email: data.email || "", phone: data.phone || null, message: data.message || "",
+        website: data.website || null,
         page_url: data.pageUrl || (typeof location !== "undefined" ? location.href : null),
       }),
     });

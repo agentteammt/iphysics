@@ -86,6 +86,22 @@ function outlookLink(date: string, start: string, end: string): string {
   return "https://outlook.office.com/calendar/0/deeplink/compose?" + p.toString();
 }
 
+// ---- Spam-Schutz: Honeypot + Rate-Limit (SQL-Funktion check_rate_limit) ----
+const cap = (s: unknown, n: number) => String(s ?? "").slice(0, n).trim();
+const EMAIL_RE = /^\S+@\S+\.\S+$/;
+async function rateLimited(req: Request, fn: string, max = 5): Promise<boolean> {
+  try {
+    const ip = (req.headers.get("x-forwarded-for") || "").split(",")[0].trim() || "unknown";
+    const key = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
+    const res = await fetch(Deno.env.get("SUPABASE_URL") + "/rest/v1/rpc/check_rate_limit", {
+      method: "POST",
+      headers: { apikey: key, Authorization: `Bearer ${key}`, "Content-Type": "application/json" },
+      body: JSON.stringify({ p_key: `${fn}:${ip}`, p_max: max, p_window_seconds: 600 }),
+    });
+    return (await res.json()) === false;   // false = Limit erreicht
+  } catch { return false; }                // Check-Fehler blockiert nie die echte Anfrage
+}
+
 const BTN = "display:inline-block;padding:12px 26px;border-radius:999px;background:linear-gradient(120deg,#3BAED1,#45B347);color:#ffffff;font-weight:700;font-family:'Titillium Web',Arial,sans-serif;text-decoration:none;font-size:15px;";
 
 interface MailOpts { replyTo?: string; ics?: string }
@@ -110,8 +126,15 @@ Deno.serve(async (req) => {
   let payload: any = {};
   try { payload = await req.json(); } catch { return json({ status: "invalid_slot" }, 400); }
 
-  const { date, slot_id, name, email, company, note, page_url } = payload;
-  if (!date || !slot_id || !name || !email) return json({ status: "invalid_slot" }, 400);
+  // Honeypot: Feld "website" füllen nur Bots -> vorgetäuschter Erfolg, kein Versand.
+  if (payload.website) return json({ status: "booked" });
+  if (await rateLimited(req, "book")) return json({ status: "invalid_slot", error: "rate_limit" }, 429);
+
+  const date = cap(payload.date, 20), slot_id = cap(payload.slot_id, 10);
+  const name = cap(payload.name, 160), email = cap(payload.email, 200);
+  const company = cap(payload.company, 200) || null, note = cap(payload.note, 2000) || null;
+  const page_url = cap(payload.page_url, 400) || null;
+  if (!date || !slot_id || !name || !EMAIL_RE.test(email)) return json({ status: "invalid_slot" }, 400);
 
   const supabase = createClient(
     Deno.env.get("SUPABASE_URL")!,
