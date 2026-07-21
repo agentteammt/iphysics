@@ -644,8 +644,8 @@
       document.getElementById('start').scrollIntoView({ behavior: 'smooth' });
     });
 
-    /* ---- Versand der Auswertung (Supabase Edge Function "roi") ----
-       Konfiguration kommt aus window.KIW_SUPABASE — direkt oder, wenn der
+    /* ---- Versand der Auswertung (Vercel Function "/api/roi") ----
+       Konfiguration kommt aus window.KIW_BACKEND — direkt oder, wenn der
        Rechner als iframe eingebettet ist, aus dem Eltern-Fenster (same-origin).
        Ohne Konfiguration: Demo-Modus, es wird nichts übertragen. */
     const contactForm = document.getElementById('contactForm');
@@ -654,9 +654,9 @@
     let sending = false, sent = false;
     function setNote(msg, cls) { formNote.textContent = msg; formNote.className = 'form-note' + (cls ? ' ' + cls : ''); }
     function backendCfg() {
-      if (window.KIW_SUPABASE && window.KIW_SUPABASE.url && window.KIW_SUPABASE.anonKey) return window.KIW_SUPABASE;
+      if (window.KIW_BACKEND) return window.KIW_BACKEND;
       try {
-        if (window.parent && window.parent !== window && window.parent.KIW_SUPABASE && window.parent.KIW_SUPABASE.url) return window.parent.KIW_SUPABASE;
+        if (window.parent && window.parent !== window && window.parent.KIW_BACKEND) return window.parent.KIW_BACKEND;
       } catch (e) { /* cross-origin — kein Zugriff */ }
       return null;
     }
@@ -685,9 +685,9 @@
           setNote('Demo-Modus — es wurden keine Daten übertragen. Im Live-Betrieb erhalten Sie Ihre Auswertung jetzt per E-Mail.', 'ok');
           return;
         }
-        const res = await fetch(String(cfg.url).replace(/\/+$/, '') + '/functions/v1/roi', {
+        const res = await fetch(String(cfg.base != null ? cfg.base : '/api').replace(/\/+$/, '') + '/roi', {
           method: 'POST',
-          headers: { 'apikey': cfg.anonKey, 'Authorization': 'Bearer ' + cfg.anonKey, 'Content-Type': 'application/json' },
+          headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify(Object.assign({
             name: document.getElementById('name').value.trim(),
             company: document.getElementById('company').value.trim(),
