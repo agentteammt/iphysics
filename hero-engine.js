@@ -592,7 +592,7 @@ export async function initHero(cfg = {}) {
     fogReal.near = dist * 1.1; fogReal.far = dist * 3.4;
 
     const f = v => v.toFixed(2);
-    camReadHero = "REFERENZ: MASCHINE VON CONVEX GmbH";
+    camReadHero = "REFERENZ: MASCHINE VON CONWEX GmbH";
     camRead.textContent = camReadHero;
 
     buildEnv(c, D);
@@ -2355,7 +2355,7 @@ export async function initHero(cfg = {}) {
     setSim(simT);
 
     /* Referenz-Hinweis bleibt über die gesamte 3D-Scrollstrecke stehen (20.07., Kundenwunsch) */
-    camRead.textContent = "REFERENZ: MASCHINE VON CONVEX GmbH";
+    camRead.textContent = "REFERENZ: MASCHINE VON CONWEX GmbH";
     camRead.style.opacity = "1";
     /* Plattform-Zeile: erscheint erst mit dem „iPhysics by machineering"-Block (Tour-Einstieg) und bleibt dann stehen (07.07.) */
     if (camSub) { const sOp = tourP > .006 ? "1" : "0"; if (camSub.style.opacity !== sOp) camSub.style.opacity = sOp; }

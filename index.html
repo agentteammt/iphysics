@@ -72,6 +72,17 @@
   <link rel="preload" href="fonts/TitilliumWeb-SemiBold.ttf" as="font" type="font/ttf" crossorigin="">
   <link rel="preload" href="fonts/TitilliumWeb-Bold.ttf" as="font" type="font/ttf" crossorigin="">
   <script src="image-slot.js"></script>
+  <!-- GO-LIVE Schritt 4: Backend-Aktivierung (Vercel Functions /api).
+       Im Design-Workspace/localhost bleibt der Demo-Modus aktiv (dort gibt es kein /api). -->
+  <script>
+    (function () {
+      var h = location.hostname;
+      var preview = location.protocol === "file:" || h === "localhost" || /^127\./.test(h) || /claudeusercontent\.com$/.test(h);
+      if (!preview) window.KIW_BACKEND = { base: "/api" };
+      else console.info("[backend] Demo-Modus (Preview) — auf der Live-Domain ist /api aktiv.");
+    })();
+  </script>
+  <script defer src="./backend.js"></script>
   <script src="./roi-widget.js"></script>
   <style>
     html { scroll-behavior: smooth; }

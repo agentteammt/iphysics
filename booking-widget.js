@@ -8,7 +8,7 @@
    Buchungen nur im Speicher; Slot verschwindet an dem Tag zur Demonstration).
 
    iPhysics-Anpassungen ggü. der Vorlage:
-     · 30-Min-Slots, Fenster PRO WOCHENTAG unterschiedlich (Mo–Do vs. Fr).
+     · 30-Min-Slots, Mo–Fr gleiche Zeiten (= Slot-IDs in machineering.slots).
      · Kapazität 1 → gebuchter Slot ist an genau dem Tag weg.
      · iPhysics-CD (Titillium, Blau/Grün-Verlauf, Hairlines, Pills).
      · Attribut variant="v1|v2|v3|v4" schaltet die Optik um.
@@ -17,14 +17,13 @@
    >>> Slot-Kapazität: SLOT_CAPACITY. <<<
    ============================================================================ */
 (function () {
-  /* ---- >>> STELLSCHRAUBEN — ZEITRÄUME <<< ------------------------------- */
-  const MORNING = ["08:00", "08:30", "09:00", "09:30"];        // Mo–Fr gleich
+  /* ---- >>> STELLSCHRAUBEN — ZEITRÄUME <<< -------------------------------
+     MUSS mit den Slot-IDs in der Datenbank übereinstimmen
+     (db-setup.sql §5, Tabelle machineering.slots) — sonst erscheinen die
+     Zeiten im Live-Modus als ausgebucht/durchgestrichen. */
+  const TIMES = ["09:00", "10:00", "11:00", "14:00", "15:00", "16:00"]; // = machineering.slots
   const WEEKDAY_TIMES = {                                       // 0=So … 6=Sa
-    1: [...MORNING, "16:00", "16:30"],                          // Mo
-    2: [...MORNING, "16:00", "16:30"],                          // Di
-    3: [...MORNING, "16:00", "16:30"],                          // Mi
-    4: [...MORNING, "16:00", "16:30"],                          // Do
-    5: [...MORNING, "15:00", "15:30"],                          // Fr
+    1: TIMES, 2: TIMES, 3: TIMES, 4: TIMES, 5: TIMES,           // Mo–Fr gleich
   };
   const BOOK_DAYS = 10;         // wie viele Termintage anbieten
   const SLOT_CAPACITY = 1;      // Plätze je Slot pro Tag (1 → nach Buchung weg)

@@ -12,6 +12,10 @@ export function initContactForm() {
   const form = document.getElementById("cf");
   if (!form) return;
 
+  /* Der DC-Export rendert leere Boolean-Attribute (required="") als false —
+     Pflichtfelder hier hart nachziehen, sonst geht das Blatt leer durch. */
+  ["cf-mail", "cf-msg"].forEach(id => { const el = document.getElementById(id); if (el) el.required = true; });
+
   const qa = (sessionStorage.getItem("iph_qa_flags") || "").split(",").map(s => s.trim());
   const reduced = matchMedia("(prefers-reduced-motion: reduce)").matches || qa.includes("reduced");
   const GRAD = "linear-gradient(120deg, #3BAED1, #45B347)";
