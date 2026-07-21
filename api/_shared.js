@@ -8,8 +8,9 @@ import { neon } from '@neondatabase/serverless';
 
 export const sql = neon(process.env.DATABASE_URL);
 
-export const MAIL_FROM     = 'iPhysics machineering <u.zenker@team-mt.de>';
-export const MAIL_INTERNAL = 'u.zenker@team-mt.de';
+export const MAIL_FROM     = 'iPhysics machineering <sales@machineering.com>';
+export const MAIL_INTERNAL = 'sales@machineering.com';
+export const MAIL_CC       = 'beate.freyer@machineering.com'; // interne Kopie
 export const EMAIL_RE = /^\S+@\S+\.\S+$/;
 export const cap = (s, n) => String(s ?? '').slice(0, n).trim();
 export const esc = (s) =>
@@ -40,6 +41,7 @@ export async function sendMail(to, subject, html, opts = {}) {
   const key = process.env.LETTERMINT_API_KEY;
   if (!key) return;
   const mail = { from: MAIL_FROM, to: [to], subject, html };
+  if (opts.cc) mail.cc = [opts.cc];
   if (opts.replyTo) mail.reply_to = [opts.replyTo];
   if (opts.ics) mail.attachments = [{
     filename: 'iPhysics-Termin.ics',

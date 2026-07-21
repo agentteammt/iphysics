@@ -52,9 +52,8 @@ python3 -m http.server 8000
   von jsdelivr (drei `import`-Zeilen am Dateianfang). Für Produktion die Module
   lokal ablegen (z. B. `vendor/`) und die drei URLs ersetzen — oder die
   Standalone-Variante der Seite verwenden, dort ist three.js bereits eingebettet.
-- **`og:image` absolut setzen:** Social-Scraper brauchen die volle URL,
-  z. B. `https://<user>.github.io/<repo>/assets/og-hero.jpg` (in `index.html`,
-  zwei Stellen: `<meta property="og:image">` und `_seo()`).
+- **`og:image` absolut gesetzt (21.07.):** Canonical, `og:url` und `og:image` zeigen auf
+  die Live-Domain `https://virtuelle-inbetriebnahme.machineering.com/`.
 - **Formular-Backend aktivieren:** Supabase + Resend lt. „SETUP-PROMPT Claude
   Browser.md“ einrichten (Code liegt in `supabase/`), danach in `index.html` den
   auskommentierten `window.KIW_SUPABASE`-Block am Ende des `<head>` mit Project-URL

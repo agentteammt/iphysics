@@ -5,12 +5,12 @@
 // (machineering.roi_results) und verschickt über Lettermint:
 //   1) AUSWERTUNG an den Interessenten — Score, Einstufung, Potenzialfelder,
 //      Empfehlung + 48-h-Zusage.
-//   2) INTERN an u.zenker@team-mt.de — Kontaktdaten, Ergebnis, ALLE Antworten,
+//   2) INTERN an sales@machineering.com (CC beate.freyer@) — Kontaktdaten, Ergebnis, ALLE Antworten,
 //      Reply-To = Absender.
 // Antwort: { status: "ok" | "invalid" }
 // Env: DATABASE_URL (Neon-Integration), LETTERMINT_API_KEY
 // ============================================================================
-import { sql, sendMail, rateLimited, body, cap, esc, EMAIL_RE, MAIL_INTERNAL, BTN } from './_shared.js';
+import { sql, sendMail, rateLimited, body, cap, esc, EMAIL_RE, MAIL_INTERNAL, MAIL_CC, BTN } from './_shared.js';
 
 const SUBJECT_INTERN = 'iPhysics Anfrage – VIBN Potenzial-Check';
 
@@ -104,7 +104,7 @@ export default async function handler(req, res) {
     `</table>` +
     `<p style="margin:22px 0;"><a href="mailto:${esc(email)}" style="${BTN}">Interessenten antworten</a></p>` +
     `<p style="color:#6B7E86;font-size:13px;">Antworten Sie direkt auf diese E-Mail, um dem Interessenten zu schreiben (Reply-To ist gesetzt).</p></div>`;
-  await sendMail(MAIL_INTERNAL, SUBJECT_INTERN, internHtml, { replyTo: email });
+  await sendMail(MAIL_INTERNAL, SUBJECT_INTERN, internHtml, { replyTo: email, cc: MAIL_CC });
 
   return res.status(200).json({ status: 'ok' });
 }

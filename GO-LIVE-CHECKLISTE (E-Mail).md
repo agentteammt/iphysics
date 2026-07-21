@@ -1,8 +1,13 @@
 # GO-LIVE CHECKLISTE — Formular-Backend (Stand 2026-07-21 · Vercel + Neon + Lettermint)
 
+Live-URL: `https://virtuelle-inbetriebnahme.machineering.com` — in Vercel unter
+Projekt → Settings → Domains als Custom Domain hinterlegen (CNAME bei machineering.com
+auf `cname.vercel-dns.com`).
+
 **⚠️ NICHT VERGESSEN beim Go-Live — sonst laufen alle drei Formulare im Demo-Modus (verschicken KEINE Mails).**
 
-Fixe Werte sind bereits im Code hinterlegt (Empfänger `u.zenker@team-mt.de`, Reply-To = Absender,
+Fixe Werte sind bereits im Code hinterlegt (Empfänger `sales@machineering.com`,
+CC `beate.freyer@machineering.com` bei allen internen Mails, Reply-To = Absender,
 Betreffzeilen, Bestätigungsmail 48h, Outlook-.ics + Kalender-Button, VIBN-Auswertungsmail).
 E-Mail-Versand über **Lettermint** (EU-Anbieter, Niederlande).
 
@@ -24,8 +29,10 @@ Die Schritte im Einzelnen:
    Region **Frankfurt (eu-central-1)**; alle Environments → setzt `DATABASE_URL` automatisch.
    SQL aus `github-export/db-setup.sql` in der Neon Console ausführen (legt Schema
    `machineering` komplett an). DPA-Hinweis: Neon/Vercel-AVV akzeptieren.
-3. **Lettermint:** Domain `team-mt.de` verifiziert? (DNS bei Cloudflare — CNAMEs auf
-   "DNS only".) Project API Token (Sending) erstellen. DPA (Art. 28 DSGVO) prüfen.
+3. **Lettermint:** Domain `machineering.com` als Absender-Domain verifizieren
+   (SPF/DKIM-DNS-Einträge bei machineering.com setzen — Absender ist jetzt
+   `sales@machineering.com`, die frühere team-mt.de-Verifizierung reicht NICHT mehr).
+   Project API Token (Sending) erstellen. DPA (Art. 28 DSGVO) prüfen.
    In Vercel als Env-Variable `LETTERMINT_API_KEY` hinterlegen → **Redeploy**.
    (Test ohne echte Zustellung: Empfänger `ok@testing.lettermint.co`.)
 4. **Config auf der Live-Seite** einbinden (in `index.html`, vor den Widget-Scripts):

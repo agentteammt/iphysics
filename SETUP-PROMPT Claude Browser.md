@@ -1,3 +1,8 @@
+> **⚠️ VERALTET (Stand 21.07.2026):** Dieses Dokument beschreibt den früheren Supabase/Resend-Aufbau.
+> Aktuell gilt die `GO-LIVE-CHECKLISTE (E-Mail).md` (Vercel + Neon + Lettermint).
+> Neue Werte: Empfänger `sales@machineering.com`, CC `beate.freyer@machineering.com`,
+> Absender-Domain `machineering.com`, Live-URL `https://virtuelle-inbetriebnahme.machineering.com`.
+
 # Setup-Prompt für Claude (im Browser) — iPhysics Formular-Backend
 
 > Diesen gesamten Text (inkl. der Code-Blöcke unten) an Claude im Browser geben.

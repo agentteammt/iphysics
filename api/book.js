@@ -5,11 +5,11 @@
 // über Lettermint:
 //   1) BESTÄTIGUNG an den Interessenten — Dank + 48-h-Zusage, Outlook-Button
 //      + .ics-Kalenderanhang.
-//   2) INTERN an u.zenker@team-mt.de — alle Angaben, Reply-To = Absender.
+//   2) INTERN an sales@machineering.com — alle Angaben, Reply-To = Absender.
 // Antwort: { status: "booked" | "full" | "invalid_slot" }
 // Env: DATABASE_URL (Neon-Integration), LETTERMINT_API_KEY
 // ============================================================================
-import { sql, sendMail, rateLimited, body, cap, esc, EMAIL_RE, MAIL_INTERNAL, BTN } from './_shared.js';
+import { sql, sendMail, rateLimited, body, cap, esc, EMAIL_RE, MAIL_INTERNAL, MAIL_CC, BTN } from './_shared.js';
 
 const SUBJECT_INTERN = 'iPhysics Anfrage – Terminbuchung';
 const EVENT_TITLE    = 'iPhysics machineering Erstgespräch';
@@ -26,7 +26,7 @@ function addMinutes(hhmm, mins) {
 function buildIcs(date, start, end) {
   const d = date.replace(/-/g, '');
   const stamp = new Date().toISOString().replace(/[-:]/g, '').split('.')[0] + 'Z';
-  const uid = crypto.randomUUID() + '@team-mt.de';
+  const uid = crypto.randomUUID() + '@machineering.com';
   return [
     'BEGIN:VCALENDAR', 'VERSION:2.0', 'PRODID:-//machineering//iPhysics//DE',
     'CALSCALE:GREGORIAN', 'METHOD:PUBLISH',
@@ -116,7 +116,7 @@ export default async function handler(req, res) {
     `</table>` +
     `<p style="margin:22px 0;"><a href="${esc(ol)}" style="${BTN}">Termin in Outlook eintragen</a></p>` +
     `<p style="color:#6B7E86;font-size:13px;">Antworten Sie direkt auf diese E-Mail, um dem Interessenten zu schreiben (Reply-To ist gesetzt).</p></div>`;
-  await sendMail(MAIL_INTERNAL, SUBJECT_INTERN, internHtml, { replyTo: email, ics });
+  await sendMail(MAIL_INTERNAL, SUBJECT_INTERN, internHtml, { replyTo: email, ics, cc: MAIL_CC });
 
   return res.status(200).json({ status: 'booked' });
 }

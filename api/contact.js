@@ -5,7 +5,7 @@
 // Antwort: { status: "ok" | "invalid" }
 // Env: DATABASE_URL (Neon-Integration), LETTERMINT_API_KEY
 // ============================================================================
-import { sql, sendMail, rateLimited, body, cap, esc, EMAIL_RE, MAIL_INTERNAL } from './_shared.js';
+import { sql, sendMail, rateLimited, body, cap, esc, EMAIL_RE, MAIL_INTERNAL, MAIL_CC } from './_shared.js';
 
 const SUBJECT_INTERN = 'iPhysics Anfrage – Kontaktformular';
 
@@ -41,7 +41,7 @@ export default async function handler(req, res) {
     `<tr><td style="padding:4px 16px 4px 0;color:#6B7E86;">Seite</td><td style="padding:4px 0;"><a href="${esc(url)}">${esc(url)}</a></td></tr>` +
     `</table>` +
     `<p style="color:#6B7E86;font-size:13px;margin-top:22px;">Antworten Sie direkt auf diese E-Mail, um dem Interessenten zu schreiben (Reply-To ist gesetzt).</p></div>`;
-  await sendMail(MAIL_INTERNAL, SUBJECT_INTERN, internHtml, { replyTo: email });
+  await sendMail(MAIL_INTERNAL, SUBJECT_INTERN, internHtml, { replyTo: email, cc: MAIL_CC });
 
   // 2) Bestätigung an den Interessenten
   const guestHtml =

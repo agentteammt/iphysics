@@ -118,7 +118,7 @@ export function initContactForm() {
         if (labelEl) labelEl.textContent = "Nachricht senden";
         if (arrowEl) arrowEl.style.opacity = "1";
         if (fillEl) { fillEl.style.transition = "none"; fillEl.style.width = "0%"; requestAnimationFrame(() => { fillEl.style.transition = "width 1s ease"; }); }
-        showError("Nachricht konnte nicht gesendet werden. Bitte sp\u00e4ter erneut versuchen oder direkt an u.zenker@team-mt.de schreiben.");
+        showError("Nachricht konnte nicht gesendet werden. Bitte sp\u00e4ter erneut versuchen oder direkt an sales@machineering.com schreiben.");
       }
     };
 

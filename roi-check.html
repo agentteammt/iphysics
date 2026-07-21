@@ -702,10 +702,10 @@
           contactForm.querySelectorAll('input').forEach(i => { i.disabled = true; });
           setNote('Vielen Dank! Ihre Auswertung ist per E-Mail unterwegs — wir melden uns innerhalb von 48 Stunden bei Ihnen.', 'ok');
         } else {
-          setNote('Übermittlung fehlgeschlagen. Bitte versuchen Sie es später erneut oder schreiben Sie an u.zenker@team-mt.de.', 'err');
+          setNote('Übermittlung fehlgeschlagen. Bitte versuchen Sie es später erneut oder schreiben Sie an sales@machineering.com.', 'err');
         }
       } catch (e) {
-        setNote('Übermittlung fehlgeschlagen. Bitte versuchen Sie es später erneut oder schreiben Sie an u.zenker@team-mt.de.', 'err');
+        setNote('Übermittlung fehlgeschlagen. Bitte versuchen Sie es später erneut oder schreiben Sie an sales@machineering.com.', 'err');
       } finally {
         sending = false;
         if (!sent) submitBtn.disabled = false;
