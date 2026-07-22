@@ -17,6 +17,30 @@
 <meta property="og:image:width" content="1200">
 <meta property="og:image:height" content="630">
 <meta name="twitter:card" content="summary_large_image">
+<noscript><style>
+/* SEO S3 (22.07.): ohne JS Headline + Header statisch sichtbar — Choreografie-Startzustände neutralisieren */
+#hero-kicker, #h1-l1, #h1-l2, #sub-inner { transform: none !important; opacity: 1 !important; }
+#hdr { opacity: 1 !important; transform: none !important; pointer-events: auto !important; }
+</style></noscript>
+<script>
+/* SEO S3 (22.07.): unabhängiger Failsafe — deckt Headline/Header auf, wenn die JS-Kette
+   (React-CDN → hero-engine → three → GLB) nie startet. Greift NIE im Normalbetrieb:
+   sobald window.__hero existiert, übernimmt die gelockte Choreografie (§0); GLB-Fehler/-Hänger
+   regelt hero-engine.js intern. 12 s > jeder reguläre Engine-Start. */
+(function () {
+  function reveal(why) {
+    ["hero-kicker", "h1-l1", "h1-l2", "sub-inner"].forEach(function (id) {
+      var el = document.getElementById(id);
+      if (el) { el.style.transform = "none"; el.style.opacity = "1"; }
+    });
+    var hdr = document.getElementById("hdr");
+    if (hdr) { hdr.style.opacity = "1"; hdr.style.transform = "none"; hdr.style.pointerEvents = "auto"; }
+    console.warn("[seo-failsafe] Headline aufgedeckt:", why);
+  }
+  window.__seoReveal = reveal;
+  setTimeout(function () { if (!window.__hero) reveal("Engine nach 12 s nicht gestartet"); }, 12000);
+})();
+</script>
 <script>
 /* B6 (09.07.): GLB-Preload gerätespezifisch — gleiche Weiche wie hero-engine.js (isTouch).
    QA-Simulationen (touch-Flag/Prop) sieht dieses frühe Preload nicht — dort lädt ggf. doppelt, nur QA. */
@@ -1061,7 +1085,7 @@ class Component extends DCLogic {
         forceReduced: !!this.props.simReduced,
         forceTouch: !!this.props.simTouch
       }))
-      .catch(e => console.error("[hero] Engine-Init fehlgeschlagen:", e));
+      .catch(e => { console.error("[hero] Engine-Init fehlgeschlagen:", e); if (window.__seoReveal) window.__seoReveal("Engine-Import fehlgeschlagen"); });
     import("./section2.js")
       .then(m => m.initSection2())
       .catch(e => console.error("[s2] Init fehlgeschlagen:", e));

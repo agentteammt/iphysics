@@ -1667,6 +1667,14 @@ export async function initHero(cfg = {}) {
     if (!hdr || hdr.style.opacity === "1") return;
     hdr.style.opacity = "1"; hdr.style.transform = "translateY(0px)"; hdr.style.pointerEvents = "auto";
   }
+  function seoFailsafe(reason) { /* SEO S3 (22.07.): Notfall-Aufdeckung der Headline — nur im Fehler-/Hängefall.
+       Guard: nach launch() übernimmt die gelockte Choreografie (§0) — dann nie eingreifen. */
+    if (launched) return;
+    console.warn("[hero] SEO-Failsafe — Headline aufgedeckt (" + reason + ")");
+    if (kickerEl) { kickerEl.style.opacity = "1"; kickerEl.style.transform = "translateY(0px)"; }
+    [h1l1, h1l2, subIn].forEach(el => { if (el) el.style.transform = "translateY(0px)"; });
+    showHdr();
+  }
   /* ---------- Video-Einstieg „Fog-Cut" (Blueprint v8 §C) ---------- */
   let videoReady = false, videoFbTimer = null;
   function gateOpen() { /* Auto-Start: GLB bereit UND (Video 'canplaythrough' ODER Video-Fallback aktiv) */
@@ -2597,7 +2605,10 @@ export async function initHero(cfg = {}) {
     loadError = err;
     console.error("[hero] GLB-Load fehlgeschlagen:", err);
     progLabel.textContent = "FEHLER BEIM LADEN DES ZWILLINGS";
+    seoFailsafe("GLB-Ladefehler");
   });
+  /* SEO S3: Hänger-Fall — GLB weder fertig noch Fehler nach 20 s (normal: 2–6 s, 'slowload'-QA +6 s) */
+  setTimeout(() => { if (!loadDone && !loadError && !launched) seoFailsafe("GLB nach 20 s nicht geladen"); }, 20000);
 
   /* ---------- QA-Hooks ---------- */
   const api = {
