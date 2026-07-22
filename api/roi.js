@@ -67,7 +67,8 @@ export default async function handler(req, res) {
   const guestHtml =
     `<div style="font-family:'Titillium Web',Arial,sans-serif;color:#10262E;font-size:15px;line-height:1.6;">` +
     `<p>${name ? 'Hallo ' + esc(name) : 'Guten Tag'},</p>` +
-    `<p>vielen Dank für Ihren VIBN Potenzial-Check. Hier ist Ihre persönliche Auswertung:</p>` +
+    `<p>vielen Dank für Ihr Interesse an der virtuellen Inbetriebnahme und für die Teilnahme an unserem Potenzial-Check.</p>` +
+    `<p>Nachfolgend finden Sie eine erste Zusammenfassung Ihrer Ergebnisse sowie eine Empfehlung auf Basis Ihrer Antworten. Sie zeigt, ob sich die virtuelle Inbetriebnahme für Ihr Unternehmen grundsätzlich lohnt und in welchen Bereichen die größten Potenziale liegen.</p>` +
     `<div style="margin:22px 0;padding:24px 26px;border-radius:18px;background:linear-gradient(120deg,#3BAED1,#45B347);color:#ffffff;">` +
     `<div style="font-size:46px;font-weight:900;line-height:1;">${score}<span style="font-size:16px;font-weight:700;opacity:.85;"> / 100 Punkten</span></div>` +
     `<div style="font-size:19px;font-weight:700;margin-top:10px;">${esc(title)}</div></div>` +
@@ -75,7 +76,10 @@ export default async function handler(req, res) {
     (top ? `<p style="margin:18px 0 0;"><strong>Stärkster Hebel:</strong> ${esc(top)}</p>` : '') +
     (priority ? `<p style="margin:6px 0 0;"><strong>Priorität:</strong> ${esc(priority)}</p>` : '') +
     (recommendation ? `<p style="margin:18px 0 0;"><strong>Unsere Empfehlung:</strong> ${esc(recommendation)}</p>` : '') +
-    `<p style="margin:22px 0 0;">Ein VIBN-Experte meldet sich innerhalb der nächsten 48 Stunden bei Ihnen, um das Ergebnis zu besprechen.</p>` +
+    `<p style="margin:22px 0 0;">Darüber hinaus erstellen wir aktuell Ihre persönliche Detail-Auswertung. Dabei betrachten wir Ihre Situation noch einmal genauer und leiten konkrete Handlungsempfehlungen ab. Diese erhalten Sie innerhalb der nächsten 48 Stunden per E-Mail.</p>` +
+    `<p style="margin:14px 0 0;">Dieser individuelle Service ist für Sie kostenfrei und unverbindlich.</p>` +
+    `<p style="margin:14px 0 0;">Wir freuen uns, Ihnen damit eine fundierte Entscheidungsgrundlage für den möglichen Einsatz der virtuellen Inbetriebnahme zu geben.</p>` +
+    `<p style="margin:22px 0 0;">Beste Grüße</p>` +
     `<p style="color:#6B7E86;font-size:13px;margin-top:24px;">iPhysics by machineering</p></div>`;
   await sendMail(email, 'Ihr VIBN Potenzial-Check – Ihre Auswertung', guestHtml, { replyTo: MAIL_INTERNAL });
 
