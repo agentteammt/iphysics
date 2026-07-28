@@ -4,6 +4,29 @@ Live-URL: `https://virtuelle-inbetriebnahme.machineering.com` — in Vercel unte
 Projekt → Settings → Domains als Custom Domain hinterlegen (CNAME bei machineering.com
 auf `cname.vercel-dns.com`).
 
+## Cookie-Consent (DSGVO) — vor Go-Live
+- In `index.html`, `impressum.html`, `datenschutz.html`, `roi-check.html` steht der Consent-Loader:
+  `<script defer src="./cookie-consent.js" data-ga4="" data-linkedin="">`.
+- GA4 Measurement-ID (`data-ga4="G-XXXXXXXXXX"`) und LinkedIn Partner-ID (`data-linkedin="XXXXXXX"`)
+  eintragen. Solange leer, lädt der jeweilige Dienst NIE — auch nach Einwilligung (sicherer Default).
+- Verhalten: strikt zweilagig, kein Tracking-Skript vor Einwilligung; Auswahl gilt 12 Monate
+  (localStorage `iph_consent_v1`); Widerruf über „Cookie-Einstellungen" im Footer jeder Seite.
+- Datenschutzerklärung: Abschnitte GA/HubSpot stammen von machineering.com — vor Go-Live fachlich
+  prüfen (HubSpot läuft auf dieser Seite nicht; LinkedIn Insight ggf. ergänzen lassen).
+
+## Mehrsprachigkeit (28.07.)
+- URL-Schema: Deutsch im Root (`/`), Englisch unter `/en/`, Italienisch unter `/it/` —
+  je 5 Seiten (index, roi-check, impressum, datenschutz, agb). AGB jetzt auch als eigene
+  deutsche Seite (`agb.html`) statt Link auf machineering.com.
+- Sprachspezifische Skripte (`*.en.js`, `*.it.js`) liegen im Root neben den deutschen —
+  die `/en/`- und `/it/`-Seiten referenzieren sie mit `../`.
+- hreflang: alle Seiten verweisen wechselseitig auf DE/EN/IT + x-default (DE), absolute URLs.
+- Sprachumschalter (DE·EN·IT) in der Kopfzeile jeder Seite; ROI-Rechner im Fußbereich.
+- Cookie-Banner erkennt die Seitensprache automatisch (`<html lang>`); GA4-/LinkedIn-IDs
+  müssen in ALLEN index/impressum/datenschutz/agb/roi-check-Dateien eingetragen werden
+  (Suchen&Ersetzen über den ganzen Ordner: `data-ga4=""` bzw. `data-linkedin=""`).
+
+
 **⚠️ NICHT VERGESSEN beim Go-Live — sonst laufen alle drei Formulare im Demo-Modus (verschicken KEINE Mails).**
 
 Fixe Werte sind bereits im Code hinterlegt (Empfänger `sales@machineering.com`,

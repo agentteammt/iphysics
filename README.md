@@ -85,3 +85,8 @@ python3 -m http.server 8000
 - Titillium Web: SIL Open Font License (`fonts/OFL.txt`).
 - three.js: MIT (© three.js authors).
 - Inhalte/Logo: © machineering GmbH & Co. KG.
+
+## Sprachen
+- `/` Deutsch · `/en/` Englisch · `/it/` Italienisch (je: index, roi-check, impressum, datenschutz, agb).
+- Übersetzte Skripte: `*.en.js` / `*.it.js` im Root. Assets/Fonts werden von allen Sprachen geteilt.
+- hreflang + Sprachumschalter auf allen Seiten; Sitemap umfasst alle 15 URLs.

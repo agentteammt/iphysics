@@ -1,17 +1,17 @@
 <!DOCTYPE html>
-<html lang="de">
+<html lang="it">
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <meta name="description" content="VIBN Potenzial Rechner: Finden Sie heraus, ob sich die virtuelle Inbetriebnahme für Ihr Unternehmen lohnt und wo die größten Potenziale liegen." />
-  <title>VIBN Potenzial Rechner | machineering</title>
-  <link rel="canonical" href="https://virtuelle-inbetriebnahme.machineering.com/roi-check.html">
+  <meta name="description" content="Calcolatore del risparmio potenziale: scoprite se il Virtual Commissioning conviene alla vostra azienda e dove si trovano i potenziali maggiori." />
+  <title>Calcolatore del risparmio potenziale | machineering</title>
+  <link rel="canonical" href="https://virtuelle-inbetriebnahme.machineering.com/it/roi-check.html">
 <link rel="alternate" hreflang="de" href="https://virtuelle-inbetriebnahme.machineering.com/roi-check.html">
 <link rel="alternate" hreflang="en" href="https://virtuelle-inbetriebnahme.machineering.com/en/roi-check.html">
 <link rel="alternate" hreflang="it" href="https://virtuelle-inbetriebnahme.machineering.com/it/roi-check.html">
 <link rel="alternate" hreflang="x-default" href="https://virtuelle-inbetriebnahme.machineering.com/roi-check.html">
-  <link rel="stylesheet" href="fonts/titillium.css" />
-  <script defer src="./cookie-consent.js" data-ga4="" data-linkedin="" data-privacy-href="datenschutz.html"></script>
+  <link rel="stylesheet" href="../fonts/titillium.css" />
+  <script defer src="../cookie-consent.js" data-ga4="" data-linkedin="" data-privacy-href="datenschutz.html"></script>
   <style>
     :root {
       --ink: #10262E;
@@ -48,7 +48,7 @@
 
     .page-shell { min-height: 100vh; }
 
-    /* Fortschrittsbalken — ersetzt die frühere Kopfzeile, kein Titel-Duplikat */
+    /* Avanzamentosbalken — ersetzt die frühere Kopfzeile, kein Titel-Duplikat */
     .progress-strip { max-width: 980px; margin: 0 auto; padding: 26px 24px 0; }
     .progress-meta {
       display: flex;
@@ -294,42 +294,62 @@
     @media (max-width: 580px) {
       .progress-strip { padding: 18px 16px 0; }
       .hero, .survey-wrap { padding-left: 16px; padding-right: 16px; }
+      .hero { padding-top: 30px; gap: 28px; }
+      .hero-card { padding: 22px; }
       .survey-head, .question-area, .survey-actions, .result-body, .result-hero { padding-left: 20px; padding-right: 20px; }
+      .error { padding: 0 20px; }
+      .survey-head { padding-top: 22px; }
+      .option { padding: 14px; gap: 12px; }
       .form-grid { grid-template-columns: 1fr; }
       .field.full { grid-column: auto; }
       .bar-row { grid-template-columns: 92px 1fr 42px; }
       .mini-row { grid-template-columns: 90px 1fr 38px; }
       .survey-actions { flex-wrap: wrap; }
       .survey-actions .btn { flex: 1; }
+      .result-hero { padding-top: 30px; padding-bottom: 30px; }
+      .result-body { padding-top: 26px; padding-bottom: 30px; }
+      .panel, .recommendation, .lead-form { padding: 20px 18px; }
+      .result-actions .btn { flex: 1 1 auto; }
+      .btn { padding: 13px 22px; }
+    }
+
+    @media (max-width: 400px) {
+      .survey-head, .question-area, .survey-actions, .result-body, .result-hero { padding-left: 16px; padding-right: 16px; }
+      .error { padding: 0 16px; }
+      .bar-row { grid-template-columns: 78px 1fr 40px; gap: 10px; }
+      .bar-label { font-size: .8rem; }
+      .mini-row { grid-template-columns: 78px 1fr 36px; gap: 10px; }
+      .hero-point { padding: 8px 12px; font-size: .82rem; }
+      .score-number { font-size: 3.2rem; }
     }
   </style>
 </head>
 <body>
   <div class="page-shell">
-    <div class="progress-strip" aria-label="Fortschritt">
-      <div class="progress-meta"><span id="progressText">Start</span><span class="progress-percent" id="progressPercent">0 %</span></div>
+    <div class="progress-strip" aria-label="Avanzamento">
+      <div class="progress-meta"><span id="progressText">Start</span><span class="progress-percent" id="progressPercent">0%</span></div>
       <div class="progress-track"><div class="progress-bar" id="progressBar"></div></div>
     </div>
 
     <main>
       <section class="hero" id="start">
         <div>
-          <span class="eyebrow">VIBN Potenzial Rechner</span>
-          <h1>Lohnt sich die Virtuelle Inbetriebnahme für Ihr Unternehmen?</h1>
-          <p>Beantworten Sie 12 kurze Fragen und erfahren Sie, wie hoch Ihr VIBN-Potenzial ist, wo die größten wirtschaftlichen Hebel liegen und welcher Einstieg sinnvoll ist.</p>
+          <span class="eyebrow">Calcolatore del risparmio potenziale</span>
+          <h1>Il Virtual Commissioning conviene alla vostra azienda?</h1>
+          <p>Rispondete a 12 brevi domande e scoprite quanto è alto il vostro potenziale, dove si trovano le leve economiche più forti e quale approccio iniziale ha più senso.</p>
           <div class="hero-points">
-            <span class="hero-point">Dauer: ca. 3 Minuten</span>
-            <span class="hero-point">Direkte Auswertung</span>
-            <span class="hero-point">Individuelle Empfehlung</span>
+            <span class="hero-point">Durata: circa 3 minuti</span>
+            <span class="hero-point">Risultato immediato</span>
+            <span class="hero-point">Raccomandazione individuale</span>
           </div>
         </div>
-        <aside class="hero-card" aria-label="Beispielauswertung">
-          <h2>Ihre Potenziale auf einen Blick</h2>
-          <p>Die Auswertung zeigt nicht nur einen Gesamtwert, sondern auch die stärksten Handlungsfelder.</p>
+        <aside class="hero-card" aria-label="Esempio di risultato">
+          <h2>I vostri potenziali a colpo d’occhio</h2>
+          <p>Il risultato non mostra solo un valore complessivo, ma anche i campi d’azione più forti.</p>
           <div class="mini-chart">
             <div class="mini-row"><span>Software</span><div class="mini-track"><div class="mini-fill" style="width:92%"></div></div><span class="mini-value">92%</span></div>
-            <div class="mini-row"><span>Inbetriebnahme</span><div class="mini-track"><div class="mini-fill" style="width:88%"></div></div><span class="mini-value">88%</span></div>
-            <div class="mini-row"><span>Mechanik</span><div class="mini-track"><div class="mini-fill" style="width:67%"></div></div><span class="mini-value">67%</span></div>
+            <div class="mini-row"><span>Commissioning</span><div class="mini-track"><div class="mini-fill" style="width:88%"></div></div><span class="mini-value">88%</span></div>
+            <div class="mini-row"><span>Meccanica</span><div class="mini-track"><div class="mini-fill" style="width:67%"></div></div><span class="mini-value">67%</span></div>
             <div class="mini-row"><span>Organisation</span><div class="mini-track"><div class="mini-fill" style="width:54%"></div></div><span class="mini-value">54%</span></div>
           </div>
         </aside>
@@ -339,61 +359,61 @@
         <div class="survey-card" id="surveyCard">
           <div class="survey-head">
             <div>
-              <div class="step-kicker" id="stepKicker">Frage 1 von 12</div>
-              <h2 id="questionTitle">Wie häufig kommt es bei der Inbetriebnahme zu unerwarteten Problemen?</h2>
-              <p id="questionHint">Bitte wählen Sie die Antwort, die Ihre typische Projektsituation am besten beschreibt.</p>
+              <div class="step-kicker" id="stepKicker">Domanda 1 di 12</div>
+              <h2 id="questionTitle">Con quale frequenza si verificano problemi imprevisti durante il commissioning?</h2>
+              <p id="questionHint">Scegliete la risposta che meglio descrive la vostra situazione di progetto tipica.</p>
             </div>
           </div>
           <div class="question-area"><div class="options" id="options"></div></div>
           <div class="error" id="errorText" aria-live="polite"></div>
           <div class="survey-actions">
-            <button class="btn btn-secondary" id="backBtn" type="button">Zurück</button>
-            <button class="btn btn-primary" id="nextBtn" type="button">Weiter</button>
+            <button class="btn btn-secondary" id="backBtn" type="button">Indietro</button>
+            <button class="btn btn-primary" id="nextBtn" type="button">Avanti</button>
           </div>
         </div>
 
         <div class="result-card" id="resultCard">
           <div class="result-hero">
-            <div class="score-line"><div class="score-number" id="scoreNumber">0</div><div class="score-max">von 100 Punkten</div></div>
-            <h2 class="result-title" id="resultTitle">Hohes Potenzial</h2>
+            <div class="score-line"><div class="score-number" id="scoreNumber">0</div><div class="score-max">su 100 punti</div></div>
+            <h2 class="result-title" id="resultTitle">Potenziale elevato</h2>
             <p class="result-intro" id="resultIntro"></p>
           </div>
           <div class="result-body">
             <div class="result-grid">
               <div class="panel">
-                <h3>Ihre größten Potenzialfelder</h3>
+                <h3>I vostri maggiori campi di potenziale</h3>
                 <div class="potential-bars" id="potentialBars"></div>
               </div>
               <div class="panel">
-                <h3>Was Ihre Auswertung bedeutet</h3>
+                <h3>Cosa significa il vostro risultato</h3>
                 <p id="resultExplanation"></p>
-                <p><strong>Stärkster Hebel:</strong> <span id="topPotential"></span></p>
-                <p><strong>Priorität:</strong> <span id="priorityText"></span></p>
+                <p><strong>Leva più forte:</strong> <span id="topPotential"></span></p>
+                <p><strong>Priorità:</strong> <span id="priorityText"></span></p>
               </div>
             </div>
 
             <div class="recommendation">
-              <h3>Unsere Empfehlung für den nächsten Schritt</h3>
+              <h3>La nostra raccomandazione per il prossimo passo</h3>
               <p id="recommendationText"></p>
               <ul id="recommendationList"></ul>
             </div>
 
             <div class="lead-form">
-              <h3>Persönliche Auswertung anfordern</h3>
-              <p>Tragen Sie Ihre Kontaktdaten ein — Sie erhalten die Auswertung per E-Mail und besprechen das Ergebnis auf Wunsch mit einem VIBN-Experten.</p>
+              <h3>Richiedete la vostra valutazione personale</h3>
+              <p>Inserite i vostri dati di contatto — riceverete la valutazione via e-mail e, se lo desiderate, potrete discuterne il risultato con un esperto di Virtual Commissioning.</p>
               <form id="contactForm">
                 <div class="form-grid">
                   <div class="field"><label for="name">Name</label><input id="name" name="name" type="text" autocomplete="name" /></div>
-                  <div class="field"><label for="company">Unternehmen</label><input id="company" name="company" type="text" autocomplete="organization" /></div>
-                  <div class="field full"><label for="email">Geschäftliche E-Mail-Adresse</label><input id="email" name="email" type="email" autocomplete="email" /></div>
+                  <div class="field"><label for="company">Azienda</label><input id="company" name="company" type="text" autocomplete="organization" /></div>
+                  <div class="field full"><label for="email">Indirizzo e-mail aziendale</label><input id="email" name="email" type="email" autocomplete="email" /></div>
                 </div>
                 <div class="hp-field" aria-hidden="true"><label for="website">Website</label><input id="website" name="website" type="text" tabindex="-1" autocomplete="off" /></div>
-                <label class="privacy-row"><input id="privacy" type="checkbox" /><span>Ich bin einverstanden, dass machineering meine Angaben und mein Check-Ergebnis zur Zusendung der Auswertung und zur Kontaktaufnahme verarbeitet. <a href="datenschutz.html" target="_blank" rel="noopener">Datenschutzerklärung</a></span></label>
+                <label class="privacy-row"><input id="privacy" type="checkbox" /><span>Acconsento al trattamento dei miei dati e del risultato del check da parte di machineering per l’invio della valutazione e per essere ricontattato. <a href="datenschutz.html" target="_blank" rel="noopener">informativa sulla privacy</a></span></label>
                 <div class="result-actions">
-                  <button class="btn btn-primary" type="submit">Auswertung anfragen</button>
-                  <button class="btn btn-ghost" id="restartBtn" type="button">Check neu starten</button>
+                  <button class="btn btn-primary" type="submit">Richiedi la valutazione</button>
+                  <button class="btn btn-ghost" id="restartBtn" type="button">Ricomincia il check</button>
                 </div>
-                <div class="form-note" id="formNote" role="status" aria-live="polite">Sie erhalten Ihre persönliche Auswertung per E-Mail — wir melden uns innerhalb von 48 Stunden bei Ihnen.</div>
+                <div class="form-note" id="formNote" role="status" aria-live="polite">Riceverete la vostra valutazione personale via e-mail — vi ricontatteremo entro 48 ore.</div>
               </form>
             </div>
           </div>
@@ -401,78 +421,78 @@
       </section>
     </main>
 
-    <footer class="footer">© machineering GmbH &amp; Co. KG · VIBN Potenzial Rechner · <a href="datenschutz.html#cookies" data-cookie-settings="" style="color: inherit;">Cookie-Einstellungen</a> · <span style="font-weight:700;">DE</span> · <a href="en/roi-check.html" hreflang="en" style="color: inherit;">EN</a> · <a href="it/roi-check.html" hreflang="it" style="color: inherit;">IT</a></footer>
+    <footer class="footer">© machineering GmbH &amp; Co. KG · Calcolatore del risparmio potenziale · <a href="datenschutz.html#cookies" data-cookie-settings="" style="color: inherit;">Impostazioni cookie</a> · <a href="../roi-check.html" hreflang="de" style="color: inherit;">DE</a> · <a href="../en/roi-check.html" hreflang="en" style="color: inherit;">EN</a> · <span style="font-weight:700;">IT</span></footer>
   </div>
 
   <script>
     const questions = [
       {
-        text: "Wie häufig kommt es bei der Inbetriebnahme zu unerwarteten Problemen?",
+        text: "Con quale frequenza si verificano problemi imprevisti durante il commissioning?",
         category: "Inbetriebnahme",
-        answers: [["Fast nie",0],["Gelegentlich",3],["Regelmäßig",6],["Bei nahezu jedem Projekt",10]]
+        answers: [["Quasi mai",0],["Occasionalmente",3],["Regolarmente",6],["In quasi ogni progetto",10]]
       },
       {
-        text: "Wann werden die meisten Softwarefehler entdeckt?",
+        text: "Quando viene scoperta la maggior parte degli errori software?",
         category: "Software",
-        answers: [["Bereits während der Entwicklung",0],["Im FAT",3],["Erst während der Inbetriebnahme",7],["Erst beim Endkunden",10]]
+        answers: [["Già durante lo sviluppo",0],["Durante il FAT",3],["Solo durante il commissioning",7],["Solo dal cliente finale",10]]
       },
       {
-        text: "Wie viele Personen reisen typischerweise zur Inbetriebnahme?",
+        text: "Quante persone viaggiano tipicamente per il commissioning?",
         category: "Inbetriebnahme",
-        answers: [["1–2 Personen",2],["3–5 Personen",5],["6–10 Personen",8],["Mehr als 10 Personen",10]]
+        answers: [["1–2 persone",2],["3–5 persone",5],["6–10 persone",8],["Più di 10 persone",10]]
       },
       {
-        text: "Wie lange dauert eine typische Inbetriebnahme?",
+        text: "Quanto dura un commissioning tipico?",
         category: "Inbetriebnahme",
-        answers: [["Unter 1 Woche",2],["1–2 Wochen",5],["2–4 Wochen",8],["Länger als 4 Wochen",10]]
+        answers: [["Meno di 1 settimana",2],["1–2 settimane",5],["2–4 settimane",8],["Più di 4 settimane",10]]
       },
       {
-        text: "Wie oft müssen Mechanik oder Konstruktion nachgebessert werden?",
+        text: "Con quale frequenza meccanica o progettazione richiedono rilavorazioni?",
         category: "Mechanik",
-        answers: [["Fast nie",0],["Gelegentlich",4],["Häufig",7],["Bei fast jedem Projekt",10]]
+        answers: [["Quasi mai",0],["Occasionalmente",4],["Spesso",7],["In quasi ogni progetto",10]]
       },
       {
-        text: "Wie viele Gewerke arbeiten parallel an der Anlage?",
+        text: "Quante discipline lavorano in parallelo sull’impianto?",
         category: "Organisation",
-        answers: [["Nur ein Gewerk",1],["Software und Mechanik",4],["Software, Mechanik und Elektrik",7],["Mehr als drei Fachbereiche",10]]
+        answers: [["Una sola disciplina",1],["Software e meccanica",4],["Software, meccanica ed elettrica",7],["Più di tre discipline",10]]
       },
       {
-        text: "Wie hoch ist die Variantenvielfalt Ihrer Maschinen?",
+        text: "Quanto è ampia la varietà di varianti delle vostre macchine?",
         category: "Mechanik",
-        answers: [["Weitgehend standardisiert",1],["Wenige Varianten",4],["Viele Optionen",7],["Fast jedes Projekt ist individuell",10]]
+        answers: [["Ampiamente standardizzate",1],["Poche varianti",4],["Molte opzioni",7],["Quasi ogni progetto è su misura",10]]
       },
       {
-        text: "Wie komplex ist Ihre Steuerungs- und Automatisierungslandschaft?",
+        text: "Quanto è complesso il vostro panorama di controllo e automazione?",
         category: "Software",
-        answers: [["SPS ohne Robotik",2],["SPS und Antriebe",4],["SPS und Robotik",7],["Mehrere SPS, Robotik und externe Systeme",10]]
+        answers: [["PLC senza robotica",2],["PLC e azionamenti",4],["PLC e robotica",7],["Più PLC, robotica e sistemi esterni",10]]
       },
       {
-        text: "Wie häufig ändern sich Anforderungen noch während des Projekts?",
+        text: "Con quale frequenza i requisiti cambiano ancora durante il progetto?",
         category: "Organisation",
-        answers: [["Selten",1],["Gelegentlich",4],["Oft",7],["Sehr häufig",10]]
+        answers: [["Raramente",1],["Occasionalmente",4],["Spesso",7],["Molto spesso",10]]
       },
       {
-        text: "Wie kritisch sind Stillstände beim Endkunden?",
+        text: "Quanto sono critici i fermi macchina dal cliente finale?",
         category: "Projektrisiko",
-        answers: [["Wenig kritisch",2],["Teilweise kritisch",5],["Sehr kritisch",8],["Produktionsausfälle verursachen hohe Kosten",10]]
+        answers: [["Poco critici",2],["In parte critici",5],["Molto critici",8],["I fermi di produzione causano costi elevati",10]]
       },
       {
-        text: "Können Sie Ihre SPS-Software heute bereits vor der realen Maschine testen?",
+        text: "Potete già testare il vostro software PLC prima della macchina reale?",
         category: "Software",
-        answers: [["Ja, vollständig",0],["Teilweise",3],["Nur einzelne Funktionen",7],["Nein",10]]
+        answers: [["Sì, completamente",0],["In parte",3],["Solo singole funzioni",7],["No",10]]
       },
       {
-        text: "Was ist aktuell Ihre größte Herausforderung?",
+        text: "Qual è oggi la vostra sfida più grande?",
         category: "Fokus",
         answers: [
-          ["Softwarequalität",8,"Software"],
-          ["Terminverzug",8,"Inbetriebnahme"],
-          ["Hohe Reisekosten",7,"Inbetriebnahme"],
-          ["Nacharbeit an der Mechanik",8,"Mechanik"],
-          ["Robotik und komplexe Bewegungsabläufe",9,"Software"],
-          ["Abstimmung zwischen den Gewerken",7,"Organisation"],
-          ["Inbetriebnahme beim Endkunden",10,"Projektrisiko"],
-          ["Fachkräftemangel",7,"Organisation"]
+          ["Qualità del software",8,"Software"],
+          ["Ritardi sulle scadenze",8,"Inbetriebnahme"],
+          ["Costi di trasferta elevati",7,"Inbetriebnahme"],
+          ["Rilavorazioni meccaniche",8,"Mechanik"],
+          ["Robotica e sequenze di movimento complesse",9,"Software"],
+          ["Coordinamento tra le discipline",7,"Organisation"],
+          ["Commissioning dal cliente finale",10,"Projektrisiko"],
+          ["Carenza di personale qualificato",7,"Organisation"]
         ]
       }
     ];
@@ -495,7 +515,7 @@
 
     function renderQuestion() {
       const q = questions[current];
-      stepKicker.textContent = `Frage ${current + 1} von ${questions.length}`;
+      stepKicker.textContent = `Domanda ${current + 1} di ${questions.length}`;
       questionTitle.textContent = q.text;
       optionsEl.innerHTML = '';
       errorText.textContent = '';
@@ -517,17 +537,17 @@
       });
 
       backBtn.disabled = current === 0;
-      nextBtn.textContent = current === questions.length - 1 ? 'Auswertung anzeigen' : 'Weiter';
+      nextBtn.textContent = current === questions.length - 1 ? 'Mostra il risultato' : 'Weiter';
       const answered = selections.filter(v => v !== null).length;
       const percent = Math.round((answered / questions.length) * 100);
       progressBar.style.width = percent + '%';
       progressText.textContent = `${answered} von ${questions.length} beantwortet`;
-      progressPercent.textContent = percent + ' %';
+      progressPercent.textContent = percent + '%';
     }
 
     nextBtn.addEventListener('click', () => {
       if (selections[current] === null) {
-        errorText.textContent = 'Bitte wählen Sie eine Antwort aus.';
+        errorText.textContent = 'Selezionate una risposta.';
         return;
       }
       if (current < questions.length - 1) {
@@ -566,33 +586,33 @@
 
       let title, intro, explanation, priority, recommendation, bullets;
       if (score <= 30) {
-        title = 'Geringes VIBN-Potenzial';
-        intro = 'Ihre Prozesse wirken bereits vergleichsweise stabil und gut vorbereitet.';
-        explanation = 'Eine virtuelle Inbetriebnahme kann sich trotzdem für besonders komplexe, neue oder risikoreiche Projekte lohnen. Der größte Nutzen liegt voraussichtlich weniger in einer flächendeckenden Einführung als in gezielten Pilotprojekten.';
-        priority = 'Gezielter Einsatz bei komplexen Projekten';
-        recommendation = 'Prüfen Sie einen schlanken Pilotfall, bei dem ein konkretes Projektrisiko oder eine neue Technologie abgesichert werden soll.';
-        bullets = ['Pilotprojekt mit klar messbarem Ziel auswählen','Vorhandene Testprozesse ergänzen statt ersetzen','Nutzen und Aufwand anhand eines Referenzprojekts bewerten'];
+        title = 'Potenziale basso';
+        intro = 'I vostri processi appaiono già relativamente stabili e ben preparati.';
+        explanation = 'Il Virtual Commissioning può comunque convenire per progetti particolarmente complessi, nuovi o ad alto rischio. Il beneficio maggiore verrà probabilmente da progetti pilota mirati più che da un’introduzione generalizzata.';
+        priority = 'Impiego mirato nei progetti complessi';
+        recommendation = 'Valutate un caso pilota snello per mettere in sicurezza un rischio di progetto concreto o una nuova tecnologia.';
+        bullets = ['Scegliere un progetto pilota con un obiettivo chiaramente misurabile','Integrare i processi di test esistenti invece di sostituirli','Valutare benefici e impegno su un progetto di riferimento'];
       } else if (score <= 60) {
-        title = 'Mittleres VIBN-Potenzial';
-        intro = 'Mehrere typische Herausforderungen lassen sich durch einen Digitalen Zwilling deutlich reduzieren.';
-        explanation = 'Ihre Antworten zeigen erkennbare Potenziale bei Fehlerfrüherkennung, Softwaretests und Inbetriebnahmevorbereitung. Ein strukturierter Einstieg kann bereits kurzfristig messbare Verbesserungen erzielen.';
-        priority = 'Pilotprojekt mit belastbaren Kennzahlen';
-        recommendation = 'Starten Sie mit einer Potenzialanalyse und einem überschaubaren Proof of Concept an einer repräsentativen Maschine.';
-        bullets = ['Ist-Prozess und Kosten der Inbetriebnahme erfassen','Geeignetes Pilotprojekt auswählen','SPS, Robotik und relevante Schnittstellen virtuell testen'];
+        title = 'Potenziale medio';
+        intro = 'Un Digital Twin può ridurre sensibilmente diverse sfide tipiche.';
+        explanation = 'Le vostre risposte mostrano potenziali evidenti nel rilevamento precoce degli errori, nei test software e nella preparazione del commissioning. Un approccio strutturato può portare miglioramenti misurabili già nel breve periodo.';
+        priority = 'Progetto pilota con indicatori solidi';
+        recommendation = 'Iniziate con un’analisi del potenziale e un proof of concept gestibile su una macchina rappresentativa.';
+        bullets = ['Rilevare il processo attuale e i costi del commissioning','Scegliere un progetto pilota adatto','Testare virtualmente PLC, robotica e interfacce rilevanti'];
       } else if (score <= 85) {
-        title = 'Hohes VIBN-Potenzial';
-        intro = 'Virtuelle Inbetriebnahme kann Ihre Projektlaufzeiten, Qualität und Planungssicherheit erheblich verbessern.';
-        explanation = 'Ihre Projekte weisen mehrere starke VIBN-Treiber auf. Besonders attraktiv sind frühe Softwaretests, weniger Nacharbeit, reduzierte Vor-Ort-Zeiten und eine bessere Abstimmung der beteiligten Gewerke.';
-        priority = 'Schneller Einstieg mit skalierbarem Vorgehen';
-        recommendation = 'Setzen Sie zeitnah einen Proof of Concept um und entwickeln Sie daraus einen standardisierten VIBN-Prozess für weitere Projekte.';
-        bullets = ['Digitalen Zwilling eines realen Projekts erstellen','Originale Steuerungsprogramme frühzeitig testen','Messbare Ziele für Zeit, Qualität und Reiseaufwand definieren'];
+        title = 'Potenziale elevato';
+        intro = 'Il Virtual Commissioning può migliorare sensibilmente tempi di progetto, qualità e sicurezza di pianificazione.';
+        explanation = 'I vostri progetti presentano diversi fattori fortemente a favore del Virtual Commissioning. Particolarmente interessanti: test software anticipati, meno rilavorazioni, tempi on-site ridotti e un migliore coordinamento tra le discipline coinvolte.';
+        priority = 'Partenza rapida con un approccio scalabile';
+        recommendation = 'Realizzate presto un proof of concept e sviluppatelo in un processo standardizzato di Virtual Commissioning per i progetti successivi.';
+        bullets = ['Creare il Digital Twin di un progetto reale','Testare presto i programmi di controllo originali','Definire obiettivi misurabili per tempi, qualità e trasferte'];
       } else {
-        title = 'Sehr hohes VIBN-Potenzial';
-        intro = 'Ihre Projekte besitzen nahezu alle Merkmale, bei denen sich Virtuelle Inbetriebnahme besonders schnell auszahlt.';
-        explanation = 'Hohe Komplexität, späte Fehlererkennung, umfangreiche Vor-Ort-Inbetriebnahmen und kritische Produktionsrisiken sprechen klar für einen systematischen VIBN-Einsatz.';
-        priority = 'Strategische Einführung als Engineering-Standard';
-        recommendation = 'Beginnen Sie unmittelbar mit einer Potenzialanalyse und einem Proof of Concept. Parallel sollte ein skalierbares Vorgehensmodell für Prozesse, Rollen und Bibliotheken aufgebaut werden.';
-        bullets = ['Management-Ziele und KPIs verbindlich definieren','Pilotprojekt mit hoher Relevanz auswählen','Wiederverwendbare Modelle und Standards aufbauen'];
+        title = 'Potenziale molto elevato';
+        intro = 'I vostri progetti presentano quasi tutte le caratteristiche per cui il Virtual Commissioning si ripaga particolarmente in fretta.';
+        explanation = 'Elevata complessità, rilevamento tardivo degli errori, lunghi commissioning on-site e rischi di produzione critici parlano chiaramente a favore di un impiego sistematico del Virtual Commissioning.';
+        priority = 'Introduzione strategica come standard di engineering';
+        recommendation = 'Iniziate subito con un’analisi del potenziale e un proof of concept. In parallelo va costruito un modello operativo scalabile per processi, ruoli e librerie.';
+        bullets = ['Definire in modo vincolante obiettivi di management e KPI','Scegliere un progetto pilota ad alta rilevanza','Costruire modelli e standard riutilizzabili'];
       }
 
       document.getElementById('scoreNumber').textContent = score;
@@ -603,12 +623,13 @@
       document.getElementById('recommendationText').textContent = recommendation;
       document.getElementById('recommendationList').innerHTML = bullets.map(b => `<li>${b}</li>`).join('');
 
+      const CAT_LABELS = { Software: "Software", Mechanik: "Meccanica", Inbetriebnahme: "Commissioning", Organisation: "Organizzazione", Projektrisiko: "Rischio di progetto" };
       const categoryPercentages = Object.entries(categoryTotals).map(([name, value]) => ({
-        name,
+        name: CAT_LABELS[name] || name,
         percent: Math.min(100, Math.round((value / categoryMax[name]) * 100))
       })).sort((a,b) => b.percent - a.percent);
 
-      document.getElementById('topPotential').textContent = `${categoryPercentages[0].name} (${categoryPercentages[0].percent} %)`;
+      document.getElementById('topPotential').textContent = `${categoryPercentages[0].name} (${categoryPercentages[0].percent}%)`;
       document.getElementById('potentialBars').innerHTML = categoryPercentages.map(item => `
         <div class="bar-row">
           <div class="bar-label">${item.name}</div>
@@ -619,7 +640,7 @@
 
       lastResult = {
         score, title, priority,
-        top_potential: `${categoryPercentages[0].name} (${categoryPercentages[0].percent} %)`,
+        top_potential: `${categoryPercentages[0].name} (${categoryPercentages[0].percent}%)`,
         recommendation,
         categories: categoryPercentages,
         answers: questions.map((q, i) => ({ q: q.text, a: q.answers[selections[i]][0] }))
@@ -628,8 +649,8 @@
       surveyCard.style.display = 'none';
       resultCard.style.display = 'block';
       progressBar.style.width = '100%';
-      progressText.textContent = 'Auswertung abgeschlossen';
-      progressPercent.textContent = '100 %';
+      progressText.textContent = 'Valutazione completata';
+      progressPercent.textContent = '100%';
       resultCard.scrollIntoView({ behavior: 'smooth', block: 'start' });
 
       requestAnimationFrame(() => {
@@ -656,7 +677,7 @@
        Ohne Konfiguration: Demo-Modus, es wird nichts übertragen. */
     const contactForm = document.getElementById('contactForm');
     const formNote = document.getElementById('formNote');
-    const NOTE_DEFAULT = 'Sie erhalten Ihre persönliche Auswertung per E-Mail — wir melden uns innerhalb von 48 Stunden bei Ihnen.';
+    const NOTE_DEFAULT = 'Riceverete la vostra valutazione personale via e-mail — vi ricontatteremo entro 48 ore.';
     let sending = false, sent = false;
     function setNote(msg, cls) { formNote.textContent = msg; formNote.className = 'form-note' + (cls ? ' ' + cls : ''); }
     function backendCfg() {
@@ -675,20 +696,20 @@
       event.preventDefault();
       if (sending || sent) return;
       const email = document.getElementById('email').value.trim();
-      if (!/\S+@\S+\.\S+/.test(email)) { setNote('Bitte geben Sie eine gültige geschäftliche E-Mail-Adresse ein.', 'err'); return; }
-      if (!document.getElementById('privacy').checked) { setNote('Bitte bestätigen Sie die Datenschutzerklärung.', 'err'); return; }
-      if (!lastResult) { setNote('Bitte schließen Sie zuerst alle Fragen ab.', 'err'); return; }
+      if (!/\S+@\S+\.\S+/.test(email)) { setNote('Inserite un indirizzo e-mail aziendale valido.', 'err'); return; }
+      if (!document.getElementById('privacy').checked) { setNote('Confermate l’informativa sulla privacy.', 'err'); return; }
+      if (!lastResult) { setNote('Completate prima tutte le domande.', 'err'); return; }
 
       const submitBtn = contactForm.querySelector('button[type="submit"]');
       const cfg = backendCfg();
       sending = true;
       submitBtn.disabled = true;
-      setNote('Ihre Auswertung wird übermittelt …');
+      setNote('Invio della valutazione in corso …');
       try {
         if (!cfg) {
           await new Promise(r => setTimeout(r, 700));
           sent = true;
-          setNote('Demo-Modus — es wurden keine Daten übertragen. Im Live-Betrieb erhalten Sie Ihre Auswertung jetzt per E-Mail.', 'ok');
+          setNote('Modalità demo — nessun dato è stato trasmesso. In produzione ricevereste ora la valutazione via e-mail.', 'ok');
           return;
         }
         const res = await fetch(String(cfg.base != null ? cfg.base : '/api').replace(/\/+$/, '') + '/roi', {
@@ -706,12 +727,12 @@
         if (res.ok && out && out.status === 'ok') {
           sent = true;
           contactForm.querySelectorAll('input').forEach(i => { i.disabled = true; });
-          setNote('Vielen Dank! Ihre Auswertung ist per E-Mail unterwegs — wir melden uns innerhalb von 48 Stunden bei Ihnen.', 'ok');
+          setNote('Grazie! La vostra valutazione è in arrivo via e-mail — vi ricontatteremo entro 48 ore.', 'ok');
         } else {
-          setNote('Übermittlung fehlgeschlagen. Bitte versuchen Sie es später erneut oder schreiben Sie an sales@machineering.com.', 'err');
+          setNote('Invio non riuscito. Riprovate più tardi o scrivete a sales@machineering.com.', 'err');
         }
       } catch (e) {
-        setNote('Übermittlung fehlgeschlagen. Bitte versuchen Sie es später erneut oder schreiben Sie an sales@machineering.com.', 'err');
+        setNote('Invio non riuscito. Riprovate più tardi o scrivete a sales@machineering.com.', 'err');
       } finally {
         sending = false;
         if (!sent) submitBtn.disabled = false;

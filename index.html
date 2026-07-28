@@ -10,6 +10,10 @@
 <meta property="og:site_name" content="machineering">
 <meta property="og:locale" content="de_DE">
 <link rel="canonical" href="https://virtuelle-inbetriebnahme.machineering.com/">
+<link rel="alternate" hreflang="de" href="https://virtuelle-inbetriebnahme.machineering.com/">
+<link rel="alternate" hreflang="en" href="https://virtuelle-inbetriebnahme.machineering.com/en/">
+<link rel="alternate" hreflang="it" href="https://virtuelle-inbetriebnahme.machineering.com/it/">
+<link rel="alternate" hreflang="x-default" href="https://virtuelle-inbetriebnahme.machineering.com/">
 <meta property="og:url" content="https://virtuelle-inbetriebnahme.machineering.com/">
 <meta property="og:title" content="Virtuelle Inbetriebnahme – iPhysics™ Simulationssoftware">
 <meta property="og:description" content="Virtuelle Inbetriebnahme mit iPhysics: SPS-Code testen am digitalen Zwilling, bevor die Anlage steht. Bis zu -75% IBN-Zeit. Jetzt Demo vereinbaren.">
@@ -80,6 +84,9 @@
 ]}
 </script>
 <script src="./support.js"></script>
+<!-- DSGVO-Consent (zweilagig): GA4/LinkedIn laden erst NACH Einwilligung.
+     GO-LIVE: IDs eintragen — data-ga4="G-XXXXXXXXXX", data-linkedin="XXXXXXX". Leer = Dienst bleibt aus. -->
+<script defer src="./cookie-consent.js" data-ga4="" data-linkedin="" data-privacy-href="datenschutz.html"></script>
 <!-- Supabase-Zugangsdaten (nach Backend-Setup lt. SETUP-PROMPT eintragen, Kommentarzeichen entfernen — ohne Config laufen Terminbuchung + VIBN-Check im Demo-Modus):
 <script>
   window.KIW_SUPABASE = {
@@ -152,6 +159,7 @@
       <a href="#s2" style="font-weight: 600; font-size: clamp(11px, 0.68vw, 13px); letter-spacing: 0.24em; color: #10262E; text-decoration: none; padding: 6px 2px; transition: color .25s ease;" style-hover="color: #3BAED1" style-focus="outline: 3px solid rgba(59,174,209,.55); outline-offset: 3px">REFERENZ</a>
       <a href="#s4" style="font-weight: 600; font-size: clamp(11px, 0.68vw, 13px); letter-spacing: 0.24em; color: #10262E; text-decoration: none; padding: 6px 2px; transition: color .25s ease;" style-hover="color: #3BAED1" style-focus="outline: 3px solid rgba(59,174,209,.55); outline-offset: 3px">ÜBER MACHINEERING</a>
     </nav>
+    <div role="group" aria-label="Sprache" style="display: inline-flex; align-items: center; gap: 2px; flex: 0 0 auto; border: 1px solid #D6E7EE; border-radius: 999px; padding: 3px; background: rgba(255,255,255,.72);"><span aria-current="page" style="font-weight: 700; font-size: 11px; letter-spacing: 0.14em; padding: 6px 11px; border-radius: 999px; color: #10262E; background: #E7F0F4;">DE</span><a href="en/" hreflang="en" style="font-weight: 600; font-size: 11px; letter-spacing: 0.14em; padding: 6px 11px; border-radius: 999px; color: #6B7E86; text-decoration: none; transition: color .25s ease;" style-hover="color: #3BAED1" style-focus="outline: 3px solid rgba(59,174,209,.55); outline-offset: 3px">EN</a><a href="it/" hreflang="it" style="font-weight: 600; font-size: 11px; letter-spacing: 0.14em; padding: 6px 11px; border-radius: 999px; color: #6B7E86; text-decoration: none; transition: color .25s ease;" style-hover="color: #3BAED1" style-focus="outline: 3px solid rgba(59,174,209,.55); outline-offset: 3px">IT</a></div>
     <a href="#kontakt" style="display: inline-flex; align-items: center; gap: 8px; flex: 0 0 auto; font-weight: 700; font-size: clamp(15px, 0.9vw, 17px); letter-spacing: 0.02em; color: #FFFFFF; background: linear-gradient(120deg, #3BAED1, #45B347); padding: 13px 28px; border-radius: 999px; text-decoration: none; box-shadow: 0 10px 22px -10px rgba(59,174,209,.5); transition: transform .2s ease, box-shadow .2s ease;" style-hover="transform: translateY(-1px); box-shadow: 0 14px 28px -10px rgba(59,174,209,.6)" style-focus="outline: 3px solid rgba(59,174,209,.55); outline-offset: 3px">Kontakt</a>
   </header>
 
@@ -1049,7 +1057,8 @@
           <div style="font-weight: 600; font-size: clamp(10.5px, 0.7vw, 12px); letter-spacing: 0.26em; text-transform: uppercase; color: #6B7E86;">Rechtliches</div>
           <a href="impressum.html" style="font-weight: 600; font-size: clamp(14px, 1vw, 16px); line-height: 1.35; color: #33505B; text-decoration: none; transition: color .25s ease;" style-hover="color: #3BAED1" style-focus="outline: 3px solid rgba(59,174,209,.55); outline-offset: 3px">Impressum</a>
           <a href="datenschutz.html" style="font-weight: 600; font-size: clamp(14px, 1vw, 16px); line-height: 1.35; color: #33505B; text-decoration: none; transition: color .25s ease;" style-hover="color: #3BAED1" style-focus="outline: 3px solid rgba(59,174,209,.55); outline-offset: 3px">Datenschutz</a>
-          <a href="https://www.machineering.com/agbs-fuer-produkte-und-dienstleistungen/" target="_blank" rel="noopener" style="font-weight: 600; font-size: clamp(14px, 1vw, 16px); line-height: 1.35; color: #33505B; text-decoration: none; transition: color .25s ease;" style-hover="color: #3BAED1" style-focus="outline: 3px solid rgba(59,174,209,.55); outline-offset: 3px">AGB</a>
+          <a href="datenschutz.html#cookies" data-cookie-settings="" style="font-weight: 600; font-size: clamp(14px, 1vw, 16px); line-height: 1.35; color: #33505B; text-decoration: none; transition: color .25s ease;" style-hover="color: #3BAED1" style-focus="outline: 3px solid rgba(59,174,209,.55); outline-offset: 3px">Cookie-Einstellungen</a>
+          <a href="agb.html" style="font-weight: 600; font-size: clamp(14px, 1vw, 16px); line-height: 1.35; color: #33505B; text-decoration: none; transition: color .25s ease;" style-hover="color: #3BAED1" style-focus="outline: 3px solid rgba(59,174,209,.55); outline-offset: 3px">AGB</a>
         </nav>
 
       </div>
