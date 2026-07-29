@@ -23,6 +23,17 @@
   }
   function configured() { return !!window.KIW_BACKEND; }
   function headers() { return { "Content-Type": "application/json" }; }
+  // Seitensprache ('de' | 'en' | 'it') — für sprachrichtige Bestätigungs-Mails.
+  function pageLang() {
+    try {
+      var l = (document.documentElement.getAttribute("lang") || "").slice(0, 2).toLowerCase();
+      if (l === "en" || l === "it") return l;
+      var p = location.pathname;
+      if (/^\/en\//.test(p) || /\.en\.html$/.test(p)) return "en";
+      if (/^\/it\//.test(p) || /\.it\.html$/.test(p)) return "it";
+    } catch (e) { /* Fallback unten */ }
+    return "de";
+  }
 
   // Verfügbarkeit für ein Datum lesen (läuft serverseitig über /api/availability).
   async function loadAvailability(date) {
@@ -59,6 +70,7 @@
         date: date, slot_id: slotId, name: name, email: email,
         company: company || null, note: note || null,
         website: website || null,
+        lang: pageLang(),
         page_url: pageUrl || (typeof location !== "undefined" ? location.href : null),
       }),
     });
@@ -86,6 +98,7 @@
       body: JSON.stringify({
         topic: data.topic || null, email: data.email || "", message: data.message || "",
         website: data.website || null,
+        lang: pageLang(),
         page_url: data.pageUrl || (typeof location !== "undefined" ? location.href : null),
       }),
     });

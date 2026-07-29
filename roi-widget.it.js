@@ -13,7 +13,7 @@
    ============================================================ */
 (function () {
   "use strict";
-  var CALC_URL = "./roi-check.it.html";
+  var CALC_URL = "./roi-check.html";
   var TRANS = "left .42s cubic-bezier(.4,0,.15,1), top .42s cubic-bezier(.4,0,.15,1), width .42s cubic-bezier(.4,0,.15,1), height .42s cubic-bezier(.4,0,.15,1), border-radius .42s ease, opacity .3s ease, transform .42s cubic-bezier(.4,0,.15,1), box-shadow .42s ease";
 
   function clamp(v, min, max) { return Math.max(min, Math.min(max, v)); }

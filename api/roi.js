@@ -10,7 +10,7 @@
 // Antwort: { status: "ok" | "invalid" }
 // Env: DATABASE_URL (Neon-Integration), LETTERMINT_API_KEY
 // ============================================================================
-import { sql, sendMail, rateLimited, body, cap, esc, EMAIL_RE, MAIL_INTERNAL, MAIL_CC, BTN } from './_shared.js';
+import { sql, sendMail, rateLimited, body, cap, esc, EMAIL_RE, MAIL_INTERNAL, MAIL_CC, BTN, pickLang, LANG_NAME } from './_shared.js';
 
 const SUBJECT_INTERN = 'iPhysics Anfrage – VIBN Potenzial-Check';
 
@@ -62,26 +62,60 @@ export default async function handler(req, res) {
 
   const bars = barsHtml(categories);
   const url = page_url || '—';
+  const lang = pickLang(payload);
 
-  // 1) Auswertung an den Interessenten
+  // 1) Auswertung an den Interessenten — in der Sprache der Seite (de/en/it).
+  // Titel, Hebel, Priorität, Empfehlung und Kategorien kommen bereits lokalisiert vom Rechner.
+  const T = {
+    de: { subject: 'Ihr VIBN Potenzial-Check – Ihre Auswertung',
+          hello: name ? 'Hallo ' + esc(name) : 'Guten Tag',
+          intro1: 'vielen Dank für Ihr Interesse an der virtuellen Inbetriebnahme und für die Teilnahme an unserem Potenzial-Check.',
+          intro2: 'Nachfolgend finden Sie eine erste Zusammenfassung Ihrer Ergebnisse sowie eine Empfehlung auf Basis Ihrer Antworten. Sie zeigt, ob sich die virtuelle Inbetriebnahme für Ihr Unternehmen grundsätzlich lohnt und in welchen Bereichen die größten Potenziale liegen.',
+          pts: ' / 100 Punkten', fieldsHead: 'Ihre größten Potenzialfelder',
+          lever: 'Stärkster Hebel:', prio: 'Priorität:', reco: 'Unsere Empfehlung:',
+          detail: 'Darüber hinaus erstellen wir aktuell Ihre persönliche Detail-Auswertung. Dabei betrachten wir Ihre Situation noch einmal genauer und leiten konkrete Handlungsempfehlungen ab. Diese erhalten Sie innerhalb der nächsten 48 Stunden per E-Mail.',
+          free: 'Dieser individuelle Service ist für Sie kostenfrei und unverbindlich.',
+          closing: 'Wir freuen uns, Ihnen damit eine fundierte Entscheidungsgrundlage für den möglichen Einsatz der virtuellen Inbetriebnahme zu geben.',
+          regards: 'Beste Grüße' },
+    en: { subject: 'Your Potential Calculator – your results',
+          hello: name ? 'Hello ' + esc(name) : 'Hello',
+          intro1: 'thank you for your interest in virtual commissioning and for taking part in our Potential Calculator.',
+          intro2: 'Below you will find an initial summary of your results and a recommendation based on your answers. It shows whether virtual commissioning is fundamentally worthwhile for your company and in which areas your biggest potential lies.',
+          pts: ' / 100 points', fieldsHead: 'Your biggest potential areas',
+          lever: 'Strongest lever:', prio: 'Priority:', reco: 'Our recommendation:',
+          detail: 'In addition, we are currently preparing your personal detailed evaluation. We will take a closer look at your situation and derive concrete recommendations for action. You will receive it by email within the next 48 hours.',
+          free: 'This individual service is free of charge and without obligation.',
+          closing: 'We look forward to giving you a sound basis for deciding on the possible use of virtual commissioning.',
+          regards: 'Best regards' },
+    it: { subject: 'Il vostro Calcolatore del risparmio potenziale – la vostra valutazione',
+          hello: name ? 'Buongiorno ' + esc(name) : 'Buongiorno',
+          intro1: 'grazie per il vostro interesse per il Virtual Commissioning e per aver utilizzato il nostro Calcolatore del risparmio potenziale.',
+          intro2: 'Di seguito trovate un primo riepilogo dei vostri risultati e un consiglio basato sulle vostre risposte. Mostra se il Virtual Commissioning conviene in linea di principio alla vostra azienda e in quali aree si trovano i potenziali maggiori.',
+          pts: ' / 100 punti', fieldsHead: 'I vostri maggiori campi di potenziale',
+          lever: 'Leva più forte:', prio: 'Priorità:', reco: 'Il nostro consiglio:',
+          detail: 'Stiamo inoltre preparando la vostra valutazione dettagliata personale: esamineremo più da vicino la vostra situazione e ne deriveremo raccomandazioni concrete. La riceverete via e-mail entro le prossime 48 ore.',
+          free: 'Questo servizio individuale è per voi gratuito e senza impegno.',
+          closing: 'Saremo lieti di offrirvi così una solida base decisionale per il possibile impiego del Virtual Commissioning.',
+          regards: 'Cordiali saluti' },
+  }[lang];
   const guestHtml =
     `<div style="font-family:'Titillium Web',Arial,sans-serif;color:#10262E;font-size:15px;line-height:1.6;">` +
-    `<p>${name ? 'Hallo ' + esc(name) : 'Guten Tag'},</p>` +
-    `<p>vielen Dank für Ihr Interesse an der virtuellen Inbetriebnahme und für die Teilnahme an unserem Potenzial-Check.</p>` +
-    `<p>Nachfolgend finden Sie eine erste Zusammenfassung Ihrer Ergebnisse sowie eine Empfehlung auf Basis Ihrer Antworten. Sie zeigt, ob sich die virtuelle Inbetriebnahme für Ihr Unternehmen grundsätzlich lohnt und in welchen Bereichen die größten Potenziale liegen.</p>` +
+    `<p>${T.hello},</p>` +
+    `<p>${T.intro1}</p>` +
+    `<p>${T.intro2}</p>` +
     `<div style="margin:22px 0;padding:24px 26px;border-radius:18px;background:linear-gradient(120deg,#3BAED1,#45B347);color:#ffffff;">` +
-    `<div style="font-size:46px;font-weight:900;line-height:1;">${score}<span style="font-size:16px;font-weight:700;opacity:.85;"> / 100 Punkten</span></div>` +
+    `<div style="font-size:46px;font-weight:900;line-height:1;">${score}<span style="font-size:16px;font-weight:700;opacity:.85;">${T.pts}</span></div>` +
     `<div style="font-size:19px;font-weight:700;margin-top:10px;">${esc(title)}</div></div>` +
-    `<p style="font-weight:700;margin:22px 0 8px;">Ihre größten Potenzialfelder</p>` + bars +
-    (top ? `<p style="margin:18px 0 0;"><strong>Stärkster Hebel:</strong> ${esc(top)}</p>` : '') +
-    (priority ? `<p style="margin:6px 0 0;"><strong>Priorität:</strong> ${esc(priority)}</p>` : '') +
-    (recommendation ? `<p style="margin:18px 0 0;"><strong>Unsere Empfehlung:</strong> ${esc(recommendation)}</p>` : '') +
-    `<p style="margin:22px 0 0;">Darüber hinaus erstellen wir aktuell Ihre persönliche Detail-Auswertung. Dabei betrachten wir Ihre Situation noch einmal genauer und leiten konkrete Handlungsempfehlungen ab. Diese erhalten Sie innerhalb der nächsten 48 Stunden per E-Mail.</p>` +
-    `<p style="margin:14px 0 0;">Dieser individuelle Service ist für Sie kostenfrei und unverbindlich.</p>` +
-    `<p style="margin:14px 0 0;">Wir freuen uns, Ihnen damit eine fundierte Entscheidungsgrundlage für den möglichen Einsatz der virtuellen Inbetriebnahme zu geben.</p>` +
-    `<p style="margin:22px 0 0;">Beste Grüße</p>` +
+    `<p style="font-weight:700;margin:22px 0 8px;">${T.fieldsHead}</p>` + bars +
+    (top ? `<p style="margin:18px 0 0;"><strong>${T.lever}</strong> ${esc(top)}</p>` : '') +
+    (priority ? `<p style="margin:6px 0 0;"><strong>${T.prio}</strong> ${esc(priority)}</p>` : '') +
+    (recommendation ? `<p style="margin:18px 0 0;"><strong>${T.reco}</strong> ${esc(recommendation)}</p>` : '') +
+    `<p style="margin:22px 0 0;">${T.detail}</p>` +
+    `<p style="margin:14px 0 0;">${T.free}</p>` +
+    `<p style="margin:14px 0 0;">${T.closing}</p>` +
+    `<p style="margin:22px 0 0;">${T.regards}</p>` +
     `<p style="color:#6B7E86;font-size:13px;margin-top:24px;">iPhysics by machineering</p></div>`;
-  await sendMail(email, 'Ihr VIBN Potenzial-Check – Ihre Auswertung', guestHtml, { replyTo: MAIL_INTERNAL });
+  await sendMail(email, T.subject, guestHtml, { replyTo: MAIL_INTERNAL });
 
   // 2) Interne Benachrichtigung (Reply-To = Absender)
   const row = (l, v) =>
@@ -97,6 +131,7 @@ export default async function handler(req, res) {
     (top ? row('Stärkster Hebel', esc(top)) : '') +
     (priority ? row('Priorität', esc(priority)) : '') +
     row('Seite', `<a href="${esc(url)}">${esc(url)}</a>`) +
+    row('Sprache', LANG_NAME[lang]) +
     `</table>` +
     `<p style="font-weight:700;margin:20px 0 8px;">Potenzialfelder</p>` + bars +
     `<p style="font-weight:700;margin:20px 0 8px;">Alle Antworten</p>` +

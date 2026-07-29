@@ -36,6 +36,17 @@ export async function rateLimited(req, fn, max = 5, windowSeconds = 600) {
   } catch { return false; }
 }
 
+// Sprache des Absenders ('de' | 'en' | 'it') — aus payload.lang, sonst aus der Seiten-URL.
+export function pickLang(payload) {
+  const l = String((payload && payload.lang) || '').toLowerCase().slice(0, 2);
+  if (l === 'en' || l === 'it') return l;
+  const u = String((payload && payload.page_url) || '');
+  if (/\/en\/|\.en\.html/i.test(u)) return 'en';
+  if (/\/it\/|\.it\.html/i.test(u)) return 'it';
+  return 'de';
+}
+export const LANG_NAME = { de: 'Deutsch', en: 'Englisch', it: 'Italienisch' };
+
 // E-Mail über Lettermint (EU-Anbieter). Ohne LETTERMINT_API_KEY: still überspringen.
 export async function sendMail(to, subject, html, opts = {}) {
   const key = process.env.LETTERMINT_API_KEY;
