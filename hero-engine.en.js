@@ -87,7 +87,7 @@ export async function initHero(cfg = {}) {
   const stage = $("stage"), cvR = $("cv-real"), cvW = $("cv-wire");
   const rings = $("rings"), lensEl = $("lens"), lensScan = $("lens-scan"), lensDot = $("lens-dot");
   const heroUI = $("hero-ui"), kickerEl = $("hero-kicker"),
-        h1l1 = $("h1-l1"), h1l2 = $("h1-l2"), subIn = $("sub-inner");
+        h1l1 = $("h1-l1"), h1l2 = $("h1-l2"), subIn = $("sub-inner"), heroCta = $("hero-cta-wrap");
   /* Headline-Linse: invertierte Kopie (Kontur↔Füllung) + Masken-Loch im Basistext — wie die Modell-Linse (03.07.) */
   const h1Lens = [h1l1, h1l2].map(line => line ? { line, base: line.querySelector("[data-h1-base]"), inv: line.querySelector("[data-h1-inv]") } : null).filter(o => o && o.base && o.inv);
   function updateH1Lens(mx, my, r) {
@@ -1060,7 +1060,7 @@ export async function initHero(cfg = {}) {
        glyphgenau ausgespart (x aus Range-Rects, y aus dem stabilen Block-Rect) */
     let uiRect = null;
     try {
-      const xs = [kickerEl, h1l1, h1l2, subIn].filter(Boolean).map(el => {
+      const xs = [kickerEl, h1l1, h1l2, subIn, heroCta].filter(Boolean).map(el => {
         const r = document.createRange(); r.selectNodeContents(el);
         return r.getBoundingClientRect();
       }).filter(r => r.width > 0);
@@ -1204,6 +1204,7 @@ export async function initHero(cfg = {}) {
     if (kickerEl.style.opacity !== "1") { kickerEl.style.opacity = "1"; }
     if (kickerEl.style.transform !== "translateY(0px)") { kickerEl.style.transform = "translateY(0px)"; }
     [h1l1, h1l2, subIn].forEach(el => { if (el.style.transform !== "translateY(0px)") el.style.transform = "translateY(0px)"; });
+    if (heroCta) { if (heroCta.style.opacity !== "1") heroCta.style.opacity = "1"; if (heroCta.style.transform !== "translateY(0px)") heroCta.style.transform = "translateY(0px)"; if (heroCta.style.pointerEvents !== "") heroCta.style.pointerEvents = ""; }
     if (camRead.style.opacity !== "1") camRead.style.opacity = "1";
     if (hintDismissed) { if (hint.style.opacity !== "0") hint.style.opacity = "0"; }
     else if (hint.style.opacity !== "1") hint.style.opacity = "1";
@@ -1356,6 +1357,7 @@ export async function initHero(cfg = {}) {
     mask.mult = 1 - sp;
     heroUI.style.opacity = (1 - sp * 1.2).toFixed(3);
     heroUI.style.transform = `translateY(${-sp * 44}px)`;
+    if (heroCta) heroCta.style.pointerEvents = sp > .35 ? "none" : "";
     if (pMat) pMat.opacity = .22 * (1 - sp);
     if (sp > 0 && !barNoTrans) { specbar.style.transition = "none"; barNoTrans = true; }
     if (barNoTrans) {
@@ -2232,7 +2234,7 @@ export async function initHero(cfg = {}) {
     govGraceUntil = performance.now() + 1800; /* Tour-Einstieg: Settling nicht werten */
     cancelAnimationFrame(rafId); rafId = null; /* Hero-Loop aus — ab jetzt on-demand */
     /* Materialize-Endzustand erzwingen (Schutz bei Scroll-Sprüngen: Loop könnte mitten im Fade gecancelt werden) */
-    heroUI.style.opacity = "0"; heroUI.style.transform = "translateY(-44px)";
+    heroUI.style.opacity = "0"; heroUI.style.transform = "translateY(-44px)"; if (heroCta) heroCta.style.pointerEvents = "none";
     specbar.style.transition = "none"; specbar.style.opacity = "0"; specbar.style.transform = "translateY(18px)";
     hint.style.opacity = "0";
     lensEl.style.opacity = "0"; lensScan.style.opacity = "0"; lensDot.style.opacity = "0";
@@ -2254,7 +2256,7 @@ export async function initHero(cfg = {}) {
     handover = false;
     cancelAnimationFrame(tourRafId); tourRafId = null;
     sTour = 0; sOv = 0; sQuote = 0; /* frisch einsteigen beim nächsten Handover */
-    [tourIntro, tourQuote, rail, ...tCards, ...ovChips, ...(ovHead ? [ovHead] : [])].forEach(el => { el.style.opacity = "0"; });
+    [tourIntro, tourQuote, rail, ...tCards, ...ovChips, ...(ovHead ? [ovHead] : [])].forEach(el => { el.style.opacity = "0"; }); ovChips.forEach(el => { el.style.pointerEvents = "none"; });
     stillWrap.style.opacity = "0"; stillBar.style.opacity = "0"; stillFlash.style.opacity = "0"; /* Real-Standbild gehört zur Tour */
     applyStillFx(0); /* Studio-Licht exakt zurück — vor bake() */
     if (model && !model.visible) model.visible = true; /* Anlage zurück für Hero-Bake */
@@ -2401,9 +2403,10 @@ export async function initHero(cfg = {}) {
     ovChips.forEach((el, i) => {
       let co;
       if (reduced) co = ovP > 0 ? 1 : 0;
-      else { const S = .13; co = clamp((ovE - i * S) / (1 - 4 * S), 0, 1); }
+      else { const S = .11; co = clamp((ovE - i * S) / (1 - 5 * S), 0, 1); }
       co = Math.min(co, ovOutQ);
       el.style.opacity = co.toFixed(3);
+      el.style.pointerEvents = co > .5 ? "auto" : "none"; /* CTA-Chip: unsichtbar nie klickbar */
       el.style.transform = reduced ? "none" : `translateY(${((1 - co) * 16).toFixed(1)}px)`;
     });
 

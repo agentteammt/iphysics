@@ -60,8 +60,7 @@ export function initSection2() {
        Platzhalters bleibt RESERVIERT (kompakt 520/460 px, Kundenwunsch 06.07.), damit das spätere echte Tool keinen Layout-Sprung erzeugt. */
     if (demoGrid) demoGrid.style.gridTemplateColumns = desk ? "1.04fr 0.96fr" : "1fr";
     /* Richiamo ROI (21.07.): mobil einspaltig — Button rutscht unter den Text */
-    const roiTeaser = document.getElementById("roi-teaser");
-    if (roiTeaser) roiTeaser.style.gridTemplateColumns = desk ? "minmax(0, 1fr) auto" : "minmax(0, 1fr)";
+    /* ROI-Störer: Grid seit dem Ausbau rein per CSS responsiv (auto-fit) — kein JS-Override mehr */
     if (demoBox) { demoBox.style.minHeight = desk ? "520px" : "460px"; demoBox.style.height = "auto"; }
     if (trust) trust.style.gridTemplateColumns = desk ? "1fr 1fr 1fr" : "1fr";
     cells.forEach((c, i) => {

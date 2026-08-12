@@ -196,12 +196,44 @@
     return { open: openPreview };
   }
 
+
+  /* Teaser-Statistik (Beispiel-Auswertung im ROI-Störer): Balken wachsen, Score zählt hoch, sobald sichtbar */
+  function initTeaserStats() {
+    var teaser = document.getElementById("roi-teaser");
+    if (!teaser || teaser.__roiStats) return;
+    teaser.__roiStats = true;
+    var bars = [].slice.call(teaser.querySelectorAll("[data-roi-bar]"));
+    var score = teaser.querySelector("[data-roi-score]");
+    if (!bars.length && !score) return;
+    var reduced = matchMedia("(prefers-reduced-motion: reduce)").matches;
+    try { reduced = reduced || (sessionStorage.getItem("iph_qa_flags") || "").split(",").indexOf("reduced") >= 0; } catch (e) {}
+    if (reduced || !("IntersectionObserver" in window)) return; /* Endzustand steht bereits im Markup */
+    bars.forEach(function (b) { b.style.transform = "scaleX(0)"; });
+    var io = new IntersectionObserver(function (entries) {
+      if (!entries.some(function (e) { return e.isIntersecting; })) return;
+      io.disconnect();
+      bars.forEach(function (b, i) { setTimeout(function () { b.style.transform = "scaleX(1)"; }, 300 + i * 140); });
+      if (score) {
+        var target = parseInt(score.getAttribute("data-roi-score"), 10) || 0, t0 = null;
+        var tick = function (ts) {
+          if (t0 === null) t0 = ts;
+          var p = Math.min(1, (ts - t0) / 1200);
+          score.textContent = Math.round(target * (1 - Math.pow(1 - p, 3)));
+          if (p < 1) requestAnimationFrame(tick);
+        };
+        requestAnimationFrame(tick);
+      }
+    }, { threshold: 0.35 });
+    io.observe(teaser);
+  }
+
   function init() {
     var anchor = document.getElementById("roi-open");
     if (!anchor) { requestAnimationFrame(init); return; }
     if (anchor.__roiBound) return;
     anchor.__roiBound = true;
     build(anchor);
+    initTeaserStats();
   }
 
   if (document.readyState === "loading") {
