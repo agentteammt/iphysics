@@ -116,10 +116,10 @@
     if (t.closest("#hdr a[href='#kontakt']")) {
       return push("nav_click_kontakt", { cta_location: "header", cta_target: "kontakt" });
     }
-    /* „Demo vereinbaren" (Abschnitt Über machineering) → ebenfalls #kontakt,
-       aber eigenes Event, getrennt vom Header-Button. */
+    /* Kontakt-Link im Footer → ebenfalls #kontakt, aber eigenes Event,
+       getrennt vom Header-Button (dort greift nav_click_kontakt). */
     if (t.closest("a[href='#kontakt']")) {
-      return push("cta_click_demo_vereinbaren", { cta_location: "about_section", cta_target: "kontakt" });
+      return push("cta_click_kontakt_footer", { cta_location: "footer", cta_target: "kontakt" });
     }
     /* Sprungmarken zum Terminbuchungs-Widget */
     var demo = t.closest("a[href='#demo']");
