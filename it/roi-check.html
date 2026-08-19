@@ -1,6 +1,15 @@
 <!DOCTYPE html>
 <html lang="it">
 <head>
+<!-- ===== Consent Mode v2 (Default: alles denied) + Google Tag Manager =====
+     Tracking-Setup 17.08.2026 · Container GTM-PN2MZRT · GA4 G-T8BSKMECE7 · Ads AW-1002073438 -->
+<script>
+window.dataLayer=window.dataLayer||[];function gtag(){dataLayer.push(arguments);}
+gtag('consent','default',{ad_storage:'denied',ad_user_data:'denied',ad_personalization:'denied',analytics_storage:'denied',functionality_storage:'granted',security_storage:'granted',wait_for_update:1500});
+gtag('set','ads_data_redaction',true);
+gtag('set','url_passthrough',true);
+</script>
+<script>(function(w,d,s,l,i){w[l]=w[l]||[];w[l].push({'gtm.start':new Date().getTime(),event:'gtm.js'});var f=d.getElementsByTagName(s)[0],j=d.createElement(s),dl=l!='dataLayer'?'&l='+l:'';j.async=true;j.src='https://www.googletagmanager.com/gtm.js?id='+i+dl;f.parentNode.insertBefore(j,f);})(window,document,'script','dataLayer','GTM-PN2MZRT');</script>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <meta name="description" content="Calcolatore del risparmio potenziale: scoprite se il Virtual Commissioning conviene alla vostra azienda e dove si trovano i potenziali maggiori." />
@@ -12,6 +21,7 @@
 <link rel="alternate" hreflang="x-default" href="https://virtuelle-inbetriebnahme.machineering.com/roi-check.html">
   <link rel="stylesheet" href="../fonts/titillium.css" />
   <script defer src="../cookie-consent.js" data-ga4="" data-linkedin="" data-privacy-href="datenschutz.html"></script>
+  <script defer src="../tracking.js"></script>
   <style>
     :root {
       --ink: #10262E;
@@ -325,6 +335,7 @@
   </style>
 </head>
 <body>
+<noscript><iframe src="https://www.googletagmanager.com/ns.html?id=GTM-PN2MZRT" height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
   <div class="page-shell">
     <div class="progress-strip" aria-label="Avanzamento">
       <div class="progress-meta"><span id="progressText">Start</span><span class="progress-percent" id="progressPercent">0%</span></div>
@@ -537,11 +548,11 @@
       });
 
       backBtn.disabled = current === 0;
-      nextBtn.textContent = current === questions.length - 1 ? 'Mostra il risultato' : 'Weiter';
+      nextBtn.textContent = current === questions.length - 1 ? 'Mostra il risultato' : 'Avanti';
       const answered = selections.filter(v => v !== null).length;
       const percent = Math.round((answered / questions.length) * 100);
       progressBar.style.width = percent + '%';
-      progressText.textContent = `${answered} von ${questions.length} beantwortet`;
+      progressText.textContent = `${answered} risposte su ${questions.length}`;
       progressPercent.textContent = percent + '%';
     }
 

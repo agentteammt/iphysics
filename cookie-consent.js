@@ -112,6 +112,23 @@
     document.head.appendChild(s);
   }
   function apply(d) {
+    /* Consent Mode v2 (17.08.2026): Freigabe an Google weitergeben.
+       Statistik → analytics_storage · Marketing → ad_storage/ad_user_data/ad_personalization.
+       GA4 und Google Ads laufen jetzt über GTM-PN2MZRT, nicht mehr über loadGA(). */
+    var a = d.stat ? "granted" : "denied", m = d.mkt ? "granted" : "denied";
+    try {
+      window.dataLayer = window.dataLayer || [];
+      if (typeof window.gtag === "function") {
+        window.gtag("consent", "update", {
+          analytics_storage: a, ad_storage: m, ad_user_data: m, ad_personalization: m
+        });
+      }
+      window.dataLayer.push({
+        event: "iph_consent_update",
+        consent_analytics: d.stat ? 1 : 0,
+        consent_marketing: d.mkt ? 1 : 0
+      });
+    } catch (e) {}
     if (d.stat) loadGA(cfg.ga4);
     if (d.mkt) loadLI(cfg.li);
     try { window.dispatchEvent(new CustomEvent("iph-consent", { detail: { stat: !!d.stat, mkt: !!d.mkt, ts: d.ts } })); } catch (e) {}

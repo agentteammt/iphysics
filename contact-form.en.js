@@ -82,6 +82,8 @@ export function initContactForm() {
   function clearError() { const box = document.getElementById("cf-error"); if (box) box.textContent = ""; }
 
   function showDone() {
+    /* Tracking (17.08.2026): Lead erst bei erfolgreicher Übermittlung. */
+    if (window.iphTrack) window.iphTrack("generate_lead_contact", { form_id: "contact", form_name: "Kontaktformular", lead_type: "nachricht" });
     if (thanks) thanks.textContent = "";
     overlay.style.visibility = "visible";
     overlay.style.opacity = "1";

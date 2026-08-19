@@ -238,7 +238,15 @@
           s.done = true;
         }
       } catch (e) { s.error = "Prenotazione non riuscita. Riprovare."; }
-      finally { s.submitting = false; this.render(); }
+      finally {
+        s.submitting = false;
+        /* Tracking: Lead erst bei bestätigter Buchung, nicht beim Klick. */
+        if (s.done && !this._trkLead) {
+          this._trkLead = 1;
+          if (window.iphTrack) window.iphTrack("generate_lead_booking", { form_id: "booking", form_name: "Terminbuchung", lead_type: "termin" });
+        }
+        this.render();
+      }
     }
 
     reset(keepDate) {
@@ -352,6 +360,14 @@
         el.oninput = () => { s.form[k] = el.value; this.refreshCta(); };
       });
       const go = this.mount.querySelector("[data-go]"); if (go) go.onclick = () => this.submit();
+      /* Tracking (17.08.2026): erste Interaktion im Widget → form_start_booking.
+         Listener sitzen auf this.mount (überlebt die Re-Renders), einmal pro Sitzung. */
+      if (!this._trkBound) {
+        this._trkBound = 1;
+        const trk = () => { if (window.iphTrack) window.iphTrack("form_start_booking", { form_id: "booking", form_name: "Terminbuchung" }); };
+        this.mount.addEventListener("click", trk, { once: true });
+        this.mount.addEventListener("input", trk, { once: true });
+      }
       const again = this.mount.querySelector("[data-again]"); if (again) again.onclick = () => this.reset(true);
     }
     refreshCta() { const go = this.mount.querySelector("[data-go]"); if (go) go.disabled = !(this.valid() && !this.state.submitting); }
