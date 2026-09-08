@@ -19,6 +19,7 @@
 (function () {
   "use strict";
   if (window.iphConsent) return;
+  if (window.__IPH_EMBED) return; /* Embed auf fremder Website (roi-check.html?embed=1): kein Tracking, kein Banner */
   var KEY = "iph_consent_v1", MAX_AGE = 365 * 864e5;
   var sc = document.currentScript || {};
   var ds = sc.dataset || {};

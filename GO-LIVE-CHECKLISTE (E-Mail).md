@@ -66,8 +66,11 @@ Die Schritte im Einzelnen:
    <script defer src="backend.js"></script>
    ```
    (`backend.js` liegt in `github-export/`.) Ohne dieses Snippet: Demo-Modus.
-   Der VIBN-Rechner (`roi-check.html`, läuft als iframe) liest die Config automatisch
-   aus dem Eltern-Fenster mit.
+   Der VIBN-Rechner (`roi-check.html`, DE/EN/IT) setzt die Config seit 08.09. selbst
+   (gleiche Live-/Preview-Erkennung wie `index.html`) — das Formular sendet damit auch
+   beim Direktaufruf der Seite, nicht nur im Widget-iframe. Vorher: Demo-Modus.
+   Einbetten auf fremden Websites: `roi-embed.js` + 2-Zeilen-Snippet (s. README,
+   „Rechner auf anderen Websites einbetten") — Formular läuft dort ohne weitere Konfiguration.
 5. **Kein Keep-alive nötig:** Neon schläft bei Inaktivität nur und wacht bei der nächsten
    Anfrage automatisch auf (erste Antwort ~1–2 s langsamer). Kein Pausieren wie bei Supabase Free.
 6. **Testen:** Terminbuchung + Kontaktformular + VIBN-Check je einmal abschicken →
