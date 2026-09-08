@@ -1,6 +1,15 @@
 <!DOCTYPE html>
 <html lang="it">
 <head>
+<!-- Embed-Modus (08.09.): roi-check.html?embed=1 im iframe einer FREMDEN Website (siehe roi-embed.js).
+     Dann: kein GTM/Cookie-Banner im Drittkontext, Footer aus, Höhe + Scrollposition per postMessage
+     an die Host-Seite. Direktaufruf und Widget-iframe auf der Landingpage bleiben unverändert. -->
+<script>
+/* embed=1 → inline (Host-Seite steuert Höhe/Scrollen) · embed=popup → Popup-Fenster (scrollt selbst) */
+window.__IPH_EMBED = /(?:\?|&)embed=(?:1|popup)(?:&|$)/.test(location.search) && window.top !== window;
+window.__IPH_EMBED_INLINE = window.__IPH_EMBED && /(?:\?|&)embed=1(?:&|$)/.test(location.search);
+if (window.__IPH_EMBED) document.documentElement.setAttribute('data-embed', window.__IPH_EMBED_INLINE ? 'inline' : 'popup');
+</script>
 <!-- ===== Consent Mode v2 (Default: alles denied) + Google Tag Manager =====
      Tracking-Setup 17.08.2026 · Container GTM-PN2MZRT · GA4 G-T8BSKMECE7 · Ads AW-1002073438 -->
 <script>
@@ -9,7 +18,7 @@ gtag('consent','default',{ad_storage:'denied',ad_user_data:'denied',ad_personali
 gtag('set','ads_data_redaction',true);
 gtag('set','url_passthrough',true);
 </script>
-<script>(function(w,d,s,l,i){w[l]=w[l]||[];w[l].push({'gtm.start':new Date().getTime(),event:'gtm.js'});var f=d.getElementsByTagName(s)[0],j=d.createElement(s),dl=l!='dataLayer'?'&l='+l:'';j.async=true;j.src='https://www.googletagmanager.com/gtm.js?id='+i+dl;f.parentNode.insertBefore(j,f);})(window,document,'script','dataLayer','GTM-PN2MZRT');</script>
+<script>if(!window.__IPH_EMBED)(function(w,d,s,l,i){w[l]=w[l]||[];w[l].push({'gtm.start':new Date().getTime(),event:'gtm.js'});var f=d.getElementsByTagName(s)[0],j=d.createElement(s),dl=l!='dataLayer'?'&l='+l:'';j.async=true;j.src='https://www.googletagmanager.com/gtm.js?id='+i+dl;f.parentNode.insertBefore(j,f);})(window,document,'script','dataLayer','GTM-PN2MZRT');</script>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <meta name="description" content="Calcolatore del risparmio potenziale: scoprite se il Virtual Commissioning conviene alla vostra azienda e dove si trovano i potenziali maggiori." />
@@ -23,6 +32,17 @@ gtag('set','url_passthrough',true);
 <link rel="alternate" hreflang="it" href="https://virtuelle-inbetriebnahme.machineering.com/it/roi-check.html">
 <link rel="alternate" hreflang="x-default" href="https://virtuelle-inbetriebnahme.machineering.com/roi-check.html">
   <link rel="stylesheet" href="../fonts/titillium.css" />
+  <!-- Backend-Konfiguration (Vercel Functions /api) — dieselbe Erkennung wie in index.html.
+       Damit läuft das Formular auch beim Direktaufruf der Seite live (nicht nur im Widget-iframe).
+       Vorschau/lokal: Demo-Modus, es wird nichts gesendet. -->
+  <script>
+    (function () {
+      var h = location.hostname;
+      var preview = location.protocol === "file:" || h === "localhost" || /^127\./.test(h) || /claudeusercontent\.com$/.test(h);
+      if (!preview) window.KIW_BACKEND = { base: "/api" };
+      else console.info("[backend] Demo-Modus (Preview) — auf der Live-Domain ist /api aktiv.");
+    })();
+  </script>
   <script defer src="../cookie-consent.js" data-ga4="" data-linkedin="" data-privacy-href="datenschutz.html"></script>
   <script defer src="../tracking.js"></script>
   <style>
@@ -298,6 +318,14 @@ gtag('set','url_passthrough',true);
 
     .footer { padding: 26px 24px 40px; text-align: center; color: var(--muted); font-size: .82rem; }
 
+    /* Embed-Modus (roi-check.html?embed=1 im iframe einer fremden Website, siehe roi-embed.js) */
+    html[data-embed] body { background: transparent; }
+    html[data-embed="inline"] .page-shell { min-height: 0; }
+    html[data-embed] .progress-strip { padding-top: 6px; }
+    html[data-embed] .hero { padding-top: 24px; }
+    html[data-embed] .survey-wrap { padding-bottom: 8px; }
+    html[data-embed] .footer { display: none; }
+
     @media (max-width: 820px) {
       .hero { grid-template-columns: 1fr; padding-top: 34px; }
       .hero-card { min-height: auto; }
@@ -515,6 +543,20 @@ gtag('set','url_passthrough',true);
     let lastResult = null;
     const selections = new Array(questions.length).fill(null);
 
+    /* ---- Embed-Modus (roi-embed.js auf fremder Website): Höhe + Scrollwunsch an die Host-Seite ---- */
+    const EMBED = !!window.__IPH_EMBED, EMBED_INLINE = !!window.__IPH_EMBED_INLINE;
+    function embedPost(msg) { try { window.parent.postMessage(Object.assign({ type: 'iph-roi' }, msg), '*'); } catch (e) { /* kein Host */ } }
+    function embedHeight() { embedPost({ height: Math.ceil(document.documentElement.getBoundingClientRect().height) + 1 }); }
+    function scrollTo_(el) {
+      if (EMBED_INLINE) { embedHeight(); embedPost({ scroll: Math.round(el.getBoundingClientRect().top + window.pageYOffset) }); return; }
+      el.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    }
+    if (EMBED_INLINE) {
+      if ('ResizeObserver' in window) new ResizeObserver(embedHeight).observe(document.documentElement);
+      window.addEventListener('load', embedHeight);
+      embedHeight();
+    }
+
     const surveyCard = document.getElementById('surveyCard');
     const resultCard = document.getElementById('resultCard');
     const optionsEl = document.getElementById('options');
@@ -567,7 +609,7 @@ gtag('set','url_passthrough',true);
       if (current < questions.length - 1) {
         current++;
         renderQuestion();
-        surveyCard.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        scrollTo_(surveyCard);
       } else {
         showResult();
       }
@@ -665,7 +707,7 @@ gtag('set','url_passthrough',true);
       progressBar.style.width = '100%';
       progressText.textContent = 'Valutazione completata';
       progressPercent.textContent = '100%';
-      resultCard.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      scrollTo_(resultCard);
 
       requestAnimationFrame(() => {
         document.querySelectorAll('.bar-fill').forEach(el => el.style.width = el.dataset.width);
@@ -682,7 +724,7 @@ gtag('set','url_passthrough',true);
       resultCard.style.display = 'none';
       surveyCard.style.display = 'block';
       renderQuestion();
-      document.getElementById('start').scrollIntoView({ behavior: 'smooth' });
+      scrollTo_(document.getElementById('start'));
     });
 
     /* ---- Versand der Auswertung (Vercel Function "/api/roi") ----
@@ -702,6 +744,11 @@ gtag('set','url_passthrough',true);
       return null;
     }
     function pageUrl() {
+      if (EMBED) {
+        /* Host-Seite übergibt ihre URL als ?ref= (roi-embed.js); Fallback: Referrer */
+        try { const ref = new URLSearchParams(location.search).get('ref'); if (ref && /^https?:\/\//i.test(ref)) return ref.slice(0, 400); } catch (e) { /* kein URLSearchParams */ }
+        if (document.referrer) return document.referrer;
+      }
       try { if (window.parent && window.parent !== window) return window.parent.location.href; } catch (e) { /* cross-origin */ }
       return document.referrer || location.href;
     }

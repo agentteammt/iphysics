@@ -26,6 +26,7 @@
 (function () {
   "use strict";
   if (window.iphTrack) return;
+  if (window.__IPH_EMBED) return; /* Embed auf fremder Website: kein GTM → keine Events */
 
   var DL = (window.dataLayer = window.dataLayer || []);
   var SKEY = "iph_trk";

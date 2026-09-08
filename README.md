@@ -21,6 +21,7 @@ footer.js                       Footer „Zeichnungs-Schriftfeld“: Eingangs-Dr
 booking-widget.js               Terminbuchung (Supabase; ohne Config Demo-Modus)
 contact-form.js                 Kontaktformular (Versand-Backend offen, [Offen 17])
 roi-widget.js                   VIBN-Potenzial-Rechner (Inline-Widget)
+roi-embed.js                    Rechner auf FREMDEN Websites einbetten (Snippet, s. u.)
 image-slot.js                   Bild-Platzhalter-Komponente
 supabase/                       Backend: setup.sql + Edge Functions book/contact/roi
                                 (Einrichtung lt. „SETUP-PROMPT Claude Browser.md“)
@@ -85,6 +86,35 @@ python3 -m http.server 8000
 - Titillium Web: SIL Open Font License (`fonts/OFL.txt`).
 - three.js: MIT (© three.js authors).
 - Inhalte/Logo: © machineering GmbH & Co. KG.
+
+## Rechner auf anderen Websites einbetten (08.09.)
+
+Ein Skript, drei Varianten (Host-Seite: machineering.com, Partnerseiten …):
+
+```html
+<!-- Popup-Fenster wie auf der Startseite — eigener Button der Host-Seite öffnet es -->
+<button type="button" data-iph-roi-open data-lang="de">Potenzial berechnen</button>
+<script async src="https://virtuelle-inbetriebnahme.machineering.com/roi-embed.js"></script>
+
+<!-- Bubble unten rechts ab Seitenaufruf, ohne eigenen Button -->
+<script async src="https://virtuelle-inbetriebnahme.machineering.com/roi-embed.js" data-bubble data-lang="de"></script>
+
+<!-- Inline im Seitenfluss, Höhe passt sich automatisch an -->
+<div data-iph-roi data-lang="de"></div>
+<script async src="https://virtuelle-inbetriebnahme.machineering.com/roi-embed.js"></script>
+```
+
+- `data-lang`: `de` | `en` | `it` (Standard: `<html lang>` der Host-Seite). Skript einmal pro Seite.
+- Der Rechner läuft als iframe auf unserer Domain (`roi-check.html?embed=1` inline,
+  `?embed=popup` im Fenster): Formular, Mail-Versand, Neon-Speicherung, Rate-Limit und Honeypot
+  laufen unverändert über `/api` — same-origin im iframe, kein CORS, kein Backend/Schlüssel auf der Host-Seite.
+- Embed-Modus: Footer/Sprachumschalter aus, im Drittkontext weder GTM noch Cookie-Banner
+  (`cookie-consent.js`/`tracking.js` prüfen `window.__IPH_EMBED`). Inline: Höhe und Scrollen zum
+  nächsten Schritt per postMessage; Popup scrollt selbst. Host-URL wandert als `?ref=` in die interne Lead-Mail.
+- Testseite im Projekt: „ROI Embed Test.dc.html“ (lädt lokal, Demo-Modus).
+- Optional einschränken, wer einbetten darf: `vercel.json` mit Header
+  `Content-Security-Policy: frame-ancestors 'self' https://*.machineering.com` für
+  `/roi-check.html`, `/en/roi-check.html`, `/it/roi-check.html`. Ohne Header darf jede Seite einbetten.
 
 ## Sprachen
 - `/` Deutsch · `/en/` Englisch · `/it/` Italienisch (je: index, roi-check, impressum, datenschutz, agb).
