@@ -1214,7 +1214,7 @@ export async function initHero(cfg = {}) {
     govGraceUntil = performance.now() + 1800; /* Governor: Einschwingphase nach jedem State-Wechsel nicht werten */
     console.log(`[hero] state → ${s} @ sim ${simTime.toFixed(2)}`);
     if (s === "descent" || s === "video") skipBtn.style.display = "block"; /* Skip gilt auch während des Videos (v8 §C) */
-    if (s === "sweep" || s === "live") skipBtn.style.display = "none";
+    if (s === "settle" || s === "sweep" || s === "live") skipBtn.style.display = "none"; /* 09.09.: auch im Settle weg — nach dem Skip-Klick sofort */
     if (s === "live") {
       if (needRealBake) { rReal.setPixelRatio(effDPR()); bake(); needRealBake = false; } /* Governor-Step aus dem Flug: Real-Canvas vor der Linsen-Einblendung neu baken */
       liveDirty = 10; /* ein paar Frames zeichnen, danach ist Live im reduzierten Profil GL-statisch */
@@ -1617,7 +1617,7 @@ export async function initHero(cfg = {}) {
   let seqIdx = -1, seqTimer = null, seqDone = false, launched = false, pendingStart = false;
   let dockedFlags = [false, false, false], dockedCount = 0, launchScheduled = false;
   let barShown = false, seqStart = 0;
-  let beatStarted = false, introSkipped = false, readyShownAt = 0, readyDelay = 0; /* Änd. 1 (06.07.): Abflug-Beat mit großem „SYSTEM BEREIT" */
+  let beatStarted = false, introSkipped = false, skipAll = false, readyShownAt = 0, readyDelay = 0; /* Änd. 1 (06.07.): Abflug-Beat mit großem „SYSTEM BEREIT" */
   const READY_BEAT = 60; /* 07.07.: „SYSTEM BEREIT" folgt DIREKT auf das Verschwinden der letzten Zahl (Ankunft im Schriftfeld) */
   const LAUNCH_OVERLAP = 140; /* 09.07.: Iris/Video-Zoom startet ~140 ms vor der Landung der letzten Zahl (minimale Überschneidung) */
   let lastArriveT = 0, pendingQueued = false;
@@ -1755,7 +1755,8 @@ export async function initHero(cfg = {}) {
       intro.style.webkitMaskImage = m; intro.style.maskImage = m;
       if (p < 1) rafTick(ir); else intro.style.display = "none";
     })();
-    if (videoActive && videoReady) startVideoFlight(); /* v8 §C: Iris öffnet aufs laufende Video — der Descent-Start (+140 ms) entfällt */
+    if (skipAll) { setEndPose(); setState("settle"); } /* 09.09. Überspringen: Endpose sofort unter der öffnenden Iris (620 ms); Settle 0,35 s → Sweep startet, sobald die Iris offen ist (reduced: direkt Live) */
+    else if (videoActive && videoReady) startVideoFlight(); /* v8 §C: Iris öffnet aufs laufende Video — der Descent-Start (+140 ms) entfällt */
     else setTimeout(() => setState("descent"), reduced ? 0 : 140); /* Descent +140 ms */
   }
   /* Änd. 1 (06.07., v3.3): großes „SYSTEM BEREIT" als Abflug-Beat — mittig auf dem freien
@@ -1930,10 +1931,14 @@ export async function initHero(cfg = {}) {
   function skipIntro() {
     if (launched) return;
     introSkipped = true; /* Änd. 1: Abflug-Beat erscheint verkürzt (~350 ms), dann Iris */
+    skipAll = true; /* 09.09.: EIN Klick/Esc überspringt die GESAMTE Intro-Choreografie (KPI-Sequenz, Video-Flug, Descent) — die Iris öffnet direkt auf die Endpose, dann Settle → Linsen-Sweep → Live */
+    skipBtn.style.display = "none"; /* Klick ist registriert — kein zweiter Klick nötig; im Wartefall (GLB lädt noch) bleibt nur der Ladebalken */
+    if (videoActive) { videoActive = false; videoReady = false; videoOff(); } /* Video-Pfad verwerfen → das Gate hängt nur noch am GLB */
     seqDone = true;
     clearTimeout(seqTimer);
     kpiEls.forEach(o => { finishKpiFx(o); o.k.style.transition = "opacity .15s ease"; o.k.style.opacity = "0"; });
     for (let k = 0; k < KPIS.length; k++) { if (!dockedFlags[k]) dock(k, "instant"); }
+    if (pendingStart && gateOpen()) pendingLaunch(); /* Finale wartete nur noch aufs Video → jetzt sofort */
   }
 
   intro.addEventListener("pointerdown", () => advanceSeq());
@@ -2498,24 +2503,31 @@ export async function initHero(cfg = {}) {
     addEventListener("touchcancel", endTouch, { passive: true });
   }
 
-  function finish() { /* Skip im Descent — gilt auch im Video (v8 §C: Video stoppen/entfernen, Kurz-Descent 1,0 s) */
-    if (state === "video") {
-      videoOff();
-      DUR.descent = 1.0;
-      setState("descent");
-      return;
-    }
-    if (state !== "descent") return;
+  function setEndPose() { /* Endpose der Kamerafahrt: Pose P1, Sim-Freeze 17,30, Dächer aus */
     cam.position.copy(P1); cam.lookAt(T1);
     setSim(17.30);
     roofs.forEach(g => { g.material.opacity = 0; });
-    setState("sweep");
+  }
+  function finish() { /* Skip im Descent/Video (09.09.): EIN Klick → Endpose, Settle 0,35 s, dann Linsen-Sweep (reduced: direkt Live) — kein Kurz-Descent mehr */
+    if (state === "video") {
+      /* Übergabe im konturlosen Weiß wie bei videoEnded(): Overlay deckend → Video weg → Endpose → Overlay 350 ms ausfaden */
+      const w = vWhite && vWhite.isConnected ? vWhite : null;
+      if (w) { w.style.transition = "none"; w.style.display = "block"; w.style.opacity = "1"; w.getBoundingClientRect(); }
+      videoOff();
+      setEndPose();
+      setState("settle");
+      if (w) { w.style.transition = "opacity .35s ease-out"; w.style.opacity = "0"; setTimeout(() => w.remove(), 420); }
+      return;
+    }
+    if (state !== "descent") return;
+    setEndPose();
+    setState("settle");
   }
   skipBtn.addEventListener("click", () => {
-    if (!launched) { skipIntro(); return; } /* 07.07.: Button überspringt auch die KPI-Boot-Sequenz (wie Esc/Enter) */
+    if (!launched) { skipIntro(); return; } /* 07.07./09.09.: im Boot überspringt der Button die KPI-Sequenz UND (skipAll) Video/Descent — ein Klick genügt */
     if (state === "descent" || state === "video") finish();
   });
-  addEventListener("keydown", e => { if (e.key === "Enter" && (state === "descent" || state === "video")) finish(); });
+  addEventListener("keydown", e => { if ((e.key === "Enter" || e.key === "Escape") && (state === "descent" || state === "video")) finish(); });
 
   /* Taste R: Real-Layer als hochauflösendes PNG (§4) */
   addEventListener("keydown", e => {

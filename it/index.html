@@ -335,7 +335,7 @@ gtag('set','url_passthrough',true);
     <div id="intro-foot" style="position: absolute; bottom: 68px; left: 0; right: 0; text-align: center; font-weight: 400; font-size: 10px; letter-spacing: 0.1em; color: #6B7E86; opacity: .65;">Si avvia automaticamente dopo l’ultimo numero</div>
   </div>
 
-  <!-- Skip-Button (07.07.): Geschwister des Intros, z12 — über dem Intro-Layer (z9) sichtbar und klickbar; überspringt im Boot die KPI-Sequenz, danach Video/Descent -->
+  <!-- Skip-Button (07.07.): Geschwister des Intros, z12 — über dem Intro-Layer (z9) sichtbar und klickbar; ein Klick überspringt die gesamte Intro-Choreografie (KPI-Sequenz, Video, Descent → Settle → Sweep → Live), im Video/Descent ebenso (09.09.) -->
   <button id="skip" type="button" style="position: fixed; right: clamp(16px, 4vw, 48px); top: 92px; z-index: 12; white-space: nowrap; font-family: 'Titillium Web', sans-serif; font-weight: 700; font-size: clamp(10.5px, 0.66vw, 12.5px); letter-spacing: 0.24em; color: #6B7E86; background: rgba(255,255,255,.7); border: 1px solid #D6E7EE; padding: 9px 15px; cursor: pointer; border-radius: 99px; display: none; transition: color .3s, border-color .3s;" style-hover="color: #3BAED1; border-color: #3BAED1" style-focus="outline: 3px solid rgba(59,174,209,.55); outline-offset: 3px">SALTA ⏎</button>
 
   <!-- ===== Cartiglio (persistente KPI-Leiste, über dem Intro-Layer, überlebt die Iris) ===== -->
@@ -425,15 +425,15 @@ gtag('set','url_passthrough',true);
 
       <!-- Video-Anker (16:9) — Platzhalter mit Verlaufs-Play-Button -->
       <figure data-reveal="" style="margin: clamp(48px, 7vh, 96px) 0 0;">
-        <div id="s2-video" data-variant="embed" data-embed-src="https://www.youtube-nocookie.com/embed/AIzh0fUMpnY" role="button" tabindex="0" aria-label="Storia di successo Weber — riproduci il video (in tedesco)" style="position: relative; aspect-ratio: 16 / 9; width: 100%; border-radius: 16px; overflow: hidden; border: 1px solid #D6E7EE; background: #F1F4F5; cursor: pointer;" style-focus="outline: 3px solid rgba(59,174,209,.55); outline-offset: 3px">
+        <div id="s2-video" data-variant="embed" data-embed-src="https://www.youtube-nocookie.com/embed/cn23B7wbmLc" role="button" tabindex="0" aria-label="Storia di successo Weber — riproduci il video" style="position: relative; aspect-ratio: 16 / 9; width: 100%; border-radius: 16px; overflow: hidden; border: 1px solid #D6E7EE; background: #F1F4F5; cursor: pointer;" style-focus="outline: 3px solid rgba(59,174,209,.55); outline-offset: 3px">
           <img src="../assets/weber-poster.webp" alt="Virtual Commissioning da Weber Maschinenbau — storia di successo con il software di simulazione iPhysics" loading="lazy" decoding="async" style="position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover;">
           <div aria-hidden="true" style="position: absolute; inset: 0; background: linear-gradient(180deg, rgba(16,38,46,.10), rgba(16,38,46,.38));"></div>
-          <div style="position: absolute; left: 16px; top: 16px; font-weight: 600; font-size: clamp(10px, 0.62vw, 12px); letter-spacing: 0.18em; text-transform: uppercase; color: #6B7E86; background: rgba(255,255,255,.82); border: 1px solid #D6E7EE; padding: 7px 11px; border-radius: 999px;">Storia di successo Weber · video (in tedesco)</div>
+          <div style="position: absolute; left: 16px; top: 16px; font-weight: 600; font-size: clamp(10px, 0.62vw, 12px); letter-spacing: 0.18em; text-transform: uppercase; color: #6B7E86; background: rgba(255,255,255,.82); border: 1px solid #D6E7EE; padding: 7px 11px; border-radius: 999px;">Storia di successo Weber · video</div>
           <div style="position: absolute; inset: 0; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 22px;">
             <div style="width: 86px; height: 86px; border-radius: 50%; background: linear-gradient(120deg, #3BAED1, #45B347); display: flex; align-items: center; justify-content: center; box-shadow: 0 16px 40px -8px rgba(59,174,209,.42);">
               <div style="width: 0; height: 0; border-style: solid; border-width: 13px 0 13px 22px; border-color: transparent transparent transparent #FFFFFF; margin-left: 6px;"></div>
             </div>
-            <div style="font-weight: 600; font-size: clamp(11px, 0.72vw, 13px); letter-spacing: 0.26em; text-transform: uppercase; color: #FFFFFF; text-shadow: 0 1px 12px rgba(16,38,46,.45);">Riproduci la storia di successo Weber (in tedesco)</div>
+            <div style="font-weight: 600; font-size: clamp(11px, 0.72vw, 13px); letter-spacing: 0.26em; text-transform: uppercase; color: #FFFFFF; text-shadow: 0 1px 12px rgba(16,38,46,.45);">Riproduci la storia di successo Weber</div>
           </div>
         </div>
       </figure>
