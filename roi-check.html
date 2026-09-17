@@ -319,7 +319,7 @@ gtag('set','url_passthrough',true);
     .footer { padding: 26px 24px 40px; text-align: center; color: var(--muted); font-size: .82rem; }
 
     /* Embed-Modus (roi-check.html?embed=1 im iframe einer fremden Website, siehe roi-embed.js) */
-    html[data-embed] body { background: transparent; }
+    html[data-embed="inline"] body { background: transparent; } /* Popup bleibt deckend, sonst scheint der Ladebalken des Fensters durch */
     html[data-embed="inline"] .page-shell { min-height: 0; }
     html[data-embed] .progress-strip { padding-top: 6px; }
     html[data-embed] .hero { padding-top: 24px; }

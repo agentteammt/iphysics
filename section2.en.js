@@ -117,9 +117,9 @@ function showConsent(box) {
   card.setAttribute("data-consent", "1");
   card.style.cssText = "position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:16px;text-align:center;padding:8% 12%;background:rgba(241,244,245,.96);";
   card.innerHTML =
-    '<div style="font-family:\'Titillium Web\',sans-serif;font-weight:600;font-size:11px;letter-spacing:0.26em;color:#6B7E86;text-transform:uppercase;">Externes Video</div>' +
-    '<p style="margin:0;max-width:520px;font-family:\'Titillium Web\',sans-serif;font-weight:400;font-size:14px;line-height:1.65;color:#6B7E86;">Beim Laden werden Daten an den Video-Anbieter übertragen. Erst mit Ihrer Einwilligung wird der Inhalt geladen.</p>' +
-    '<button type="button" data-load style="font-family:\'Titillium Web\',sans-serif;font-weight:700;font-size:14px;letter-spacing:0.01em;color:#fff;background:linear-gradient(120deg,#3BAED1,#45B347);border:0;padding:13px 26px;border-radius:999px;cursor:pointer;">Video laden &amp; abspielen</button>';
+    '<div style="font-family:\'Titillium Web\',sans-serif;font-weight:600;font-size:11px;letter-spacing:0.26em;color:#6B7E86;text-transform:uppercase;">External video</div>' +
+    '<p style="margin:0;max-width:520px;font-family:\'Titillium Web\',sans-serif;font-weight:400;font-size:14px;line-height:1.65;color:#6B7E86;">Loading this video transfers data to the video provider. The content is loaded only with your consent.</p>' +
+    '<button type="button" data-load style="font-family:\'Titillium Web\',sans-serif;font-weight:700;font-size:14px;letter-spacing:0.01em;color:#fff;background:linear-gradient(120deg,#3BAED1,#45B347);border:0;padding:13px 26px;border-radius:999px;cursor:pointer;">Load &amp; play video</button>';
   box.appendChild(card);
   card.querySelector("[data-load]").addEventListener("click", (ev) => {
     ev.stopPropagation();

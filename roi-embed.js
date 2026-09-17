@@ -120,8 +120,15 @@
     var loader = el("div", "position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:20px;padding:24px;text-align:center;",
       '<div style="font-weight:600;font-size:11px;letter-spacing:.3em;text-transform:uppercase;color:#6B7E86;">' + S.loading + '</div>' +
       '<div style="width:160px;height:3px;background:#E7F0F4;border-radius:2px;overflow:hidden;position:relative;"><div style="position:absolute;inset:0;width:55%;background:linear-gradient(120deg,#3BAED1,#45B347);border-radius:2px;animation:iphRoiLoad 1.3s ease-in-out infinite;"></div></div>');
-    var frame = el("iframe", "position:absolute;inset:0;width:100%;height:100%;border:0;background:transparent;");
+    var frame = el("iframe", "position:absolute;inset:0;width:100%;height:100%;border:0;background:transparent;opacity:0;transition:opacity .25s ease;");
     frame.title = S.title;
+    /* Ladebalken nur bis zum Laden des Rechners — danach ausblenden, sonst scheint er durch den iframe durch */
+    frame.addEventListener("load", function () {
+      if (!frame.getAttribute("src")) return;
+      loader.style.display = "none";
+      frame.style.background = "#FFFFFF";
+      frame.style.opacity = "1";
+    });
     area.appendChild(loader); area.appendChild(frame);
     wrap.appendChild(bar); wrap.appendChild(area);
 
